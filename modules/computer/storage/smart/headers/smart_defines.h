@@ -1,0 +1,15 @@
+#ifndef SMARTDEFINES_H
+#define SMARTDEFINES_H
+
+//#define _WIN32_WINNT 0x500
+#define DRIVE_HEAD_REG	0xA0
+#define OUT_BUFFER_SIZE IDENTIFY_BUFFER_SIZE+16
+
+#define INDEX_ATTRIB_INDEX									0
+#define INDEX_ATTRIB_UNKNOWN1								1
+#define INDEX_ATTRIB_UNKNOWN2								2
+#define INDEX_ATTRIB_VALUE									3
+#define INDEX_ATTRIB_WORST									4
+#define INDEX_ATTRIB_RAW									5
+
+#endif
