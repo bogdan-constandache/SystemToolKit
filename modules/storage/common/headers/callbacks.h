@@ -17,4 +17,7 @@
 
 QStringList GetPhysicalDrivesList();
 
+// return the size of hDrive (partition, disk, etc..) in MB
+int GetDriveLength(HANDLE hDrive);
+
 #endif // CALLBACKS_H

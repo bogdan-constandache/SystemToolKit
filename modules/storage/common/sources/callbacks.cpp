@@ -104,3 +104,35 @@ QStringList GetPhysicalDrivesList()
     }
     return retValue;
 }
+
+
+int GetDriveLength(HANDLE hDrive)
+{
+    GET_LENGTH_INFORMATION driveInformation;
+    DWORD dwResult = 0;
+
+    if( NULL == hDrive )
+    {
+        return InvalidHandle;
+    }
+
+    bool bResult = DeviceIoControl(hDrive,
+                                   IOCTL_DISK_GET_LENGTH_INFO ,
+                                   NULL,
+                                   0,
+                                   &driveInformation,
+                                   sizeof(GET_LENGTH_INFORMATION),
+                                   &dwResult,
+                                   NULL);
+    if( !bResult )
+    {
+        return Unsuccessful;
+    }
+
+    QString qz;
+    qz.sprintf("%llu bytes", driveInformation.Length);
+//    float value = (float)(driveInformation.Length  (1024 * 1024));
+
+//    return (int)value;
+    return 0;
+}

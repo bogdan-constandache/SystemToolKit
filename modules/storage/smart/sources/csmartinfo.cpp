@@ -100,6 +100,11 @@ int CSmartInfo::Initialize(int nDriveIndex)
         return nStatus;
     }
 
+    CIdentifyData *pData = new CIdentifyData();
+    pData->Initialize(qzDriveName.toStdWString().c_str());
+
+    delete pData;
+
     // check for smart flag
     bResult = CheckForSmartFlag(qzDriveName.toStdWString().c_str());
     if( false == bResult )
@@ -228,9 +233,13 @@ DeviceData *CSmartInfo::GetATADriveData(const wchar_t *tszDriveName)
     SENDCMDINPARAMS paramsIN;
     HANDLE hDevice = NULL;
     DeviceData *pData = NULL;
-    BYTE paramOUT[OUT_BUFFER_SIZE];
-    memset(&paramOUT, 0, sizeof(paramOUT));
+//    BYTE paramOUT[OUT_BUFFER_SIZE];
+//    memset(&paramOUT, 0, sizeof(paramOUT));
     memset(&paramsIN, 0, sizeof(SENDCMDINPARAMS));
+
+    int nBufferSize = 0;
+    nBufferSize = IDENTIFY_BUFFER_SIZE + sizeof(SENDCMDOUTPARAMS);
+    BYTE paramOUT[IDENTIFY_BUFFER_SIZE + sizeof(SENDCMDOUTPARAMS)];
 
     if( NULL == tszDriveName )
     {
@@ -279,11 +288,15 @@ DeviceData *CSmartInfo::GetATADriveData(const wchar_t *tszDriveName)
         {
             DEBUG_STATUS(NotAllocated);
         }
+        BYTE *pTemp = paramOUT + 16;
         // fill struct members
         pData->FirmwareRevision = ParseFirmware(paramOUT);
         pData->Model = ParseModel(paramOUT);
         pData->SerialNumber = ParseSerial(paramOUT);
     }
+
+    CloseHandle(hDevice);
+
     return pData;
 }
 
@@ -371,37 +384,6 @@ int CSmartInfo::ReadSMARTDetailsFromDB()
     }
 
     qDB.close();
-
-//    int nStatus = Uninitialized;
-//    sqlite3 *db;
-//    QString qszSQLStatement;
-//    char *pszErrMsg = 0;
-
-//    nStatus = sqlite3_open("config/databases/config.db", &db);
-//    if( Success != nStatus )
-//    {
-//        nStatus = DBOpenError;
-//        DEBUG_STATUS(nStatus);
-//        return nStatus;
-//    }
-
-//    qszSQLStatement = QString("SELECT * from SMART_DETAILS");
-
-//    /* Execute SQL statement */
-//    nStatus = sqlite3_exec(db, qszSQLStatement.toStdString().c_str(), this->SQLiteCallback, 0, &pszErrMsg);
-
-//    if( Success != nStatus )
-//    {
-//        sqlite3_free(pszErrMsg);
-//        nStatus = DBExecError;
-//        DEBUG_STATUS(nStatus);
-//        return nStatus;
-//    }
-
-//    sqlite3_close(db);
-//    SafeDelete(pszErrMsg);
-
-//    return nStatus;
     return Success;
 }
 

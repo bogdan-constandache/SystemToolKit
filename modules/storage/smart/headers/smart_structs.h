@@ -32,6 +32,26 @@ typedef struct  _DEVICE_DATA
     QStringList DeviceFeatures;
 }DeviceData, *PDeviceData;
 
+typedef struct  _IDENTIFY_DEVICE_DATA_
+{
+    QString Manufacturer;
+    QString FormFactor;
+    QString PhysicalDimensions;
+    QString Model;
+    QString FirmwareRevision;
+    QString SerialNumber;
+    QString Interface;
+    QString TransferMode;
+    QString BufferSize;
+    QString DeviceType;
+    QString Cylinders;
+    QString Heads;
+    QString SectorPerTrack;
+    QString BytesPerSector;
+    QString ATAStandard;
+    QStringList DeviceFeatures;
+}IdentifyDeviceData, *PIdentifyDeviceData;
+
 typedef struct
 {
     BYTE  bDriverError;
