@@ -55,7 +55,6 @@ SOURCES += \
 #    modules/operating-system/summary/sources/operating_system.cpp \
     modules/operating-system/system-drivers/sources/system-drivers.cpp \
     modules/storage/smart/sources/csmartinfo.cpp \
-    modules/storage/smart/sources/identify.cpp \
     modules/storage/common/sources/callbacks.cpp \
 #    modules/software/applications-manager/sources/application_manager.cpp \
 #    modules/software/startup-applications/sources/startup_application.cpp \
@@ -86,7 +85,6 @@ HEADERS += \
     modules/storage/smart/headers/smart_structs.h \
     modules/storage/smart/headers/smart_defines.h \
     modules/storage/smart/headers/csmartinfo.h \
-    modules/storage/smart/headers/identify.h \
     modules/storage/common/headers/callbacks.h \
 #    modules/software/applications-manager/headers/software_structures.h \
 #    modules/software/applications-manager/headers/application_manager.h \

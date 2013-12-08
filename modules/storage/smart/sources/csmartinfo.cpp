@@ -19,36 +19,6 @@ CSmartInfo::~CSmartInfo()
 {
 }
 
-//// callback for SQLite necessary for processing query results
-//int CSmartInfo::SQLiteCallback(void *NotUsed, int argc, char **argv, char **azColName)
-//{
-//    UNUSED(NotUsed);
-//    UNUSED(argc);
-//    UNUSED(azColName);
-//    int nStatus = Uninitialized;
-
-//    SmartDetails *pSmartDetails = 0;
-//    pSmartDetails = new SmartDetails;
-//    if( 0 == pSmartDetails )
-//    {
-//        nStatus = NotAllocated;
-//        DEBUG_STATUS(nStatus);
-//        return nStatus;
-//    }
-//    pSmartDetails->m_ucAttribId = 0;
-//    pSmartDetails->m_bCritical = 0;
-
-//    pSmartDetails->m_ucAttribId = QString(argv[0]).toInt();
-//    pSmartDetails->m_bCritical = QString(argv[1]).toInt();
-//    pSmartDetails->m_csAttribName = QString(argv[2]);
-//    pSmartDetails->m_csAttribDetails = QString(argv[3]);
-
-//    m_dbSmartDetails.insert(pSmartDetails->m_ucAttribId, pSmartDetails);
-
-//    nStatus = Success;
-//    return nStatus;
-//}
-
 int CSmartInfo::Initialize(int nDriveIndex)
 {
     int nStatus = Uninitialized;
@@ -100,10 +70,24 @@ int CSmartInfo::Initialize(int nDriveIndex)
         return nStatus;
     }
 
-    CIdentifyData *pData = new CIdentifyData();
-    pData->Initialize(qzDriveName.toStdWString().c_str());
+    ATADeviceProperties *pDev = GetATADeviceProperties(qzDriveName.toStdWString().c_str());
+    qDebug() << "Rotation Speed " << pDev->RotationSpeed;
+    qDebug() << "UDMA " << pDev->UDMATransferMode;
+    qDebug() << "Active UDMA " << pDev->ActiveUDMATransferMode;
+    qDebug() << "PIO " << pDev->PIOTransferMode;
+    qDebug() << "MWDMA " << pDev->MWDMATransferMode;
+    qDebug() << "Model " << pDev->Model;
+    qDebug() << "Firmware " << pDev->FirmwareRevision;
+    qDebug() << "Serial " << pDev->SerialNumber;
+    qDebug() << "Buffer size " << pDev->BufferSize;
+    qDebug() << "Device type " << pDev->DeviceType;
+    qDebug() << "Cylinders" << pDev->Cylinders;
+    qDebug() << "Logical Heads" << pDev->Heads;
+    qDebug() << "Sector per track " << pDev->SectorPerTrack;
+    qDebug() << "Bytes per sector " << pDev->BytesPerSector;
+    qDebug() << "ATA Standard " << pDev->ATAStandard;
 
-    delete pData;
+    delete pDev;
 
     // check for smart flag
     bResult = CheckForSmartFlag(qzDriveName.toStdWString().c_str());

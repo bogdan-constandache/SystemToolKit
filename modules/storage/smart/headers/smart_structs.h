@@ -32,25 +32,27 @@ typedef struct  _DEVICE_DATA
     QStringList DeviceFeatures;
 }DeviceData, *PDeviceData;
 
-typedef struct  _IDENTIFY_DEVICE_DATA_
+typedef struct  _ATA_DEVICE_PROPERTIES_
 {
-    QString Manufacturer;
-    QString FormFactor;
-    QString PhysicalDimensions;
-    QString Model;
-    QString FirmwareRevision;
-    QString SerialNumber;
-    QString Interface;
-    QString TransferMode;
-    QString BufferSize;
-    QString DeviceType;
-    QString Cylinders;
-    QString Heads;
-    QString SectorPerTrack;
-    QString BytesPerSector;
-    QString ATAStandard;
+    QString RotationSpeed;              //done
+    QString UDMATransferMode;           //done
+    QString ActiveUDMATransferMode;     //done
+    QString PIOTransferMode;            //done
+    QString MWDMATransferMode;          //done
+    QString ActiveMWDMATransferMode;    //done
+    QString ECCBytes;
+    QString Model;                      //done
+    QString FirmwareRevision;           //done
+    QString SerialNumber;               //done
+    QString BufferSize;                 //done
+    QString DeviceType;                 //done
+    QString Cylinders;                  //done
+    QString Heads;                      //done
+    QString SectorPerTrack;             //done
+    QString BytesPerSector;             //done
+    QString ATAStandard;                //done
     QStringList DeviceFeatures;
-}IdentifyDeviceData, *PIdentifyDeviceData;
+}ATADeviceProperties, *PATADeviceProperties;
 
 typedef struct
 {

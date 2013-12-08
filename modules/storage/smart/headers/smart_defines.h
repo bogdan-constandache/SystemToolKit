@@ -14,6 +14,7 @@
 
 
 // identify field defines
+#define LOGICAL_HEADS   3
 #define START_SERIAL    10
 #define LENGTH_SERIAL   10 // words
 #define BUFFER_TYPE     20
@@ -28,5 +29,11 @@
 #define NMRR            217 // nominal media rotation rate
 #define START_MANUFACTURER 196
 #define LENGTH_MANUFACTURER 10
+#define TRANSPORT_MAJOR 222
+#define TRANSPORT_MINOR 233
+#define ATA_STANDARD    80
+#define ULTRA_DMA       88
+#define PIO             64
+#define MWDMA           63
 
 #endif

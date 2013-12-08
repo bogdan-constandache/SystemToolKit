@@ -23,7 +23,6 @@
 #include "../../../../utils/headers/sqlite3.h"
 #include "../../common/headers/callbacks.h"
 #include "../../../../interfaces/module.h"
-#include "identify.h"
 
 class CSmartInfo : public IModule
 {

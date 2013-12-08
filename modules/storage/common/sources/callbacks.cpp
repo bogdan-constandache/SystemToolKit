@@ -131,8 +131,261 @@ int GetDriveLength(HANDLE hDrive)
 
     QString qz;
     qz.sprintf("%llu bytes", driveInformation.Length);
-//    float value = (float)(driveInformation.Length  (1024 * 1024));
+    //    float value = (float)(driveInformation.Length  (1024 * 1024));
 
-//    return (int)value;
+    //    return (int)value;
+    return 0;
+}
+
+
+ATADeviceProperties *GetATADeviceProperties(const wchar_t *wszDriveName)
+{
+    DWORD dwResult = 0;
+    SENDCMDINPARAMS pIN;
+    HANDLE hDevice = NULL;
+    WORD *bData = new WORD[OUT_IDENTIFY_SIZE];
+    WORD *pIdentifyData = 0;
+    DISK_GEOMETRY diskGeometry;
+    WORD wAux = 0;
+    QString qzTemp;
+
+    ATADeviceProperties *pItem = 0;
+    pItem = new ATADeviceProperties;
+    if( 0 == pItem )
+        return 0;
+
+    memset(&pIN, 0, sizeof(SENDCMDINPARAMS));
+    memset(bData, 0, OUT_IDENTIFY_SIZE);
+
+    if( NULL == wszDriveName )
+        return 0;
+
+    hDevice = CreateFile(
+                wszDriveName,
+                GENERIC_READ | GENERIC_WRITE,
+                FILE_SHARE_READ | FILE_SHARE_WRITE,
+                NULL,
+                OPEN_EXISTING,
+                FILE_ATTRIBUTE_SYSTEM,
+                NULL);
+
+    if( INVALID_HANDLE_VALUE == hDevice )
+        return 0;
+
+    pIN.cBufferSize = IDENTIFY_BUFFER_SIZE;
+    pIN.irDriveRegs.bFeaturesReg = 0;
+    pIN.irDriveRegs.bSectorCountReg = 1;
+    pIN.irDriveRegs.bSectorNumberReg = 1;
+    pIN.irDriveRegs.bCylLowReg = 0;
+    pIN.irDriveRegs.bCylHighReg = 0;
+    pIN.irDriveRegs.bDriveHeadReg = DRIVE_HEAD_REG;
+    pIN.irDriveRegs.bCommandReg = ID_CMD;
+
+    bool bResult = DeviceIoControl(
+                hDevice,
+                SMART_RCV_DRIVE_DATA,
+                &pIN,
+                sizeof(SENDCMDINPARAMS),
+                bData,
+                OUT_BUFFER_SIZE,
+                &dwResult,
+                NULL);
+
+    if( !bResult )
+        goto CleanUp;
+
+    bResult = DeviceIoControl(
+                hDevice,
+                IOCTL_DISK_GET_DRIVE_GEOMETRY,
+                NULL,
+                0,
+                &diskGeometry,
+                sizeof(DISK_GEOMETRY),
+                &dwResult,
+                NULL);
+    if( !bResult )
+        goto CleanUp;
+
+    CloseHandle(hDevice);
+
+    DWORD dwErr = GetLastError();
+
+    pItem->Cylinders.sprintf("%llu", diskGeometry.Cylinders);
+    pItem->SectorPerTrack.sprintf("%d", diskGeometry.SectorsPerTrack);
+    pItem->BytesPerSector.sprintf("%d", diskGeometry.BytesPerSector);
+
+    pIdentifyData = bData + 8;
+
+    //Rotation Speed
+    if( 0 == pIdentifyData[NMRR] )
+        pItem->RotationSpeed = "Rotation speed not reported";
+    if( 1 == pIdentifyData[NMRR] )
+        pItem->RotationSpeed.sprintf("0 RPM(Solid State Device)");
+    else
+        if( pIdentifyData[NMRR] > 0x401 )
+            pItem->RotationSpeed.sprintf("%u RPM", pIdentifyData[NMRR]);
+    //end Rotation Speed
+
+    //ATA Standard
+    wAux = pIdentifyData[ATA_STANDARD];
+
+    if( 0x0000 == wAux || 0xFFFF == wAux )
+        pItem->ATAStandard = "ATA Standard not reported";
+    else
+    {
+        if( wAux >> 8 & 0x01 )
+            pItem->ATAStandard = "ATA8-ACS";
+        else
+            if( wAux >> 7 & 0x01 )
+                pItem->ATAStandard = "ATA/ATAPI-7";
+            else
+                if( wAux >> 6 & 0x01 )
+                    pItem->ATAStandard = "ATA/ATAPI-6";
+                else
+                    if( wAux >> 5 & 0x01 )
+                        pItem->ATAStandard = "ATA/ATAPI-5";
+                    else
+                        if( wAux >> 4 & 0x01 )
+                            pItem->ATAStandard = "ATA/ATAPI-4";
+    }
+    //end ATA Standard
+
+    //Max and Active UDMA Transfer Mode
+    wAux = pIdentifyData[ULTRA_DMA];
+
+    if( wAux >> 14 & 0x01 )
+        pItem->ActiveUDMATransferMode = "UDMA 6";
+    if( wAux >> 13 & 0x01 )
+        pItem->ActiveUDMATransferMode = "UDMA 5";
+    if( wAux >> 12 & 0x01 )
+        pItem->ActiveUDMATransferMode = "UDMA 4";
+    if( wAux >> 11 & 0x01 )
+        pItem->ActiveUDMATransferMode = "UDMA 3";
+    if( wAux >> 10 & 0x01 )
+        pItem->ActiveUDMATransferMode = "UDMA 2";
+    if( wAux >> 9 & 0x01 )
+        pItem->ActiveUDMATransferMode = "UDMA 1";
+    if( wAux >> 8 & 0x01 )
+        pItem->ActiveUDMATransferMode = "UDMA 0";
+
+    if( wAux >> 6 & 0x01 )
+        pItem->UDMATransferMode = "UDMA 6";
+    else
+        if( wAux >> 5 & 0x01 )
+            pItem->UDMATransferMode = "UDMA 5";
+        else
+            if( wAux >> 4 & 0x01 )
+                pItem->UDMATransferMode = "UDMA 4";
+            else
+                if( wAux >> 3 & 0x01 )
+                    pItem->UDMATransferMode = "UDMA 3";
+                else
+                    if( wAux >> 2 & 0x01 )
+                        pItem->UDMATransferMode = "UDMA 2";
+                    else
+                        if( wAux >> 1 & 0x01 )
+                            pItem->UDMATransferMode = "UDMA 1";
+                        else
+                            if( wAux & 0x01 )
+                                pItem->UDMATransferMode = "UDMA 0";
+    //end Max and Active UDMA Transfer Mode
+
+    //PIO Transfer Mode
+    wAux = pIdentifyData[PIO];
+    if( wAux >> 1 & 0x01 )
+        pItem->PIOTransferMode = "PIO 4";
+    else
+        if( wAux & 0x01 )
+            pItem->PIOTransferMode = "PIO 3";
+    //end PIO TransferMode
+
+    //Max and active MWDMA Transfer Mode
+    wAux = pIdentifyData[MWDMA];
+
+    if( wAux >> 10 & 0x01 )
+        pItem->ActiveMWDMATransferMode = "MWDMA 2";
+    if( wAux >> 9 & 0x01 )
+        pItem->ActiveMWDMATransferMode = "MWDMA 1";
+    if( wAux >> 8 & 0x01 )
+        pItem->ActiveMWDMATransferMode = "MWDMA 0";
+
+    if( wAux >> 2 & 0x01 )
+        pItem->MWDMATransferMode = "MWDMA 2";
+    else
+        if( wAux >> 1 & 0x01 )
+            pItem->MWDMATransferMode = "MWDMA 1";
+        else
+            if( wAux & 0x01 )
+                pItem->MWDMATransferMode = "MWDMA 0";
+    //end Max and active MWDMA Transfer Mode
+
+    //Model
+    qzTemp.clear();
+
+    for(unsigned int i = 0; i < LENGTH_MODEL; i++)
+    {
+        qzTemp.append((char)(0x00ff & pIdentifyData[i + START_MODEL] >> 8 ));
+        qzTemp.append((char)(0x00ff & pIdentifyData[i + START_MODEL] ));
+    }
+    pItem->Model = qzTemp.trimmed();
+    //end Model
+
+    //Revision
+    qzTemp.clear();
+
+    for(unsigned int i = 0; i < LENGTH_FIRMWARE; i++)
+    {
+        qzTemp.append((char)(0x00ff & pIdentifyData[i + START_FIRMWARE] >> 8 ));
+        qzTemp.append((char)(0x00ff & pIdentifyData[i + START_FIRMWARE] ));
+    }
+    pItem->FirmwareRevision = qzTemp.trimmed();
+    //end Revision
+
+    //Serial
+    qzTemp.clear();
+
+    for(unsigned int i = 0; i < LENGTH_SERIAL; i++)
+    {
+        qzTemp.append((char)(0x00ff & pIdentifyData[i + START_SERIAL] >> 8 ));
+        qzTemp.append((char)(0x00ff & pIdentifyData[i + START_SERIAL] ));
+    }
+    pItem->SerialNumber = qzTemp.trimmed();
+    //end Serial
+
+    //Buffer size
+    if (pIdentifyData[20] <= 3 && pIdentifyData[BUFFER_SIZE] && pIdentifyData[BUFFER_SIZE] != 0xffff)
+    {
+        pItem->BufferSize.sprintf("%u KBytes", pIdentifyData[BUFFER_SIZE] / 2);
+    }
+    //Buffer size
+
+    //Device type
+    wAux = pIdentifyData[TRANSPORT_MAJOR];
+    if( wAux >> 12 == 0 )
+        pItem->DeviceType = "Parallel";
+    else
+    {
+        if( wAux >> 5 & 0x01 )
+            pItem->DeviceType = "SATA-III";
+        else
+            if( wAux >> 4 & 0x01 ||
+                    wAux >> 3 & 0x01 ||
+                    wAux >> 2 & 0x01 )
+                pItem->DeviceType = "SATA-II";
+            else
+                if( wAux >> 1 & 0x01 )
+                    pItem->DeviceType = "SATA-I";
+    }
+    //end Device type
+
+    //Logical heads
+    wAux = pIdentifyData[LOGICAL_HEADS];
+    pItem->Heads.sprintf("%u", wAux);
+    //end Logical heads
+
+    return pItem;
+
+CleanUp:
+    delete bData;
     return 0;
 }
