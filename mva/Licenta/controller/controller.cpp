@@ -1,7 +1,7 @@
 #include "controller.h"
 
 Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
-    m_pDMIManager(NULL)
+    m_pDMIManager(NULL), m_pSmartManager(NULL)
 {
 }
 
@@ -13,6 +13,8 @@ Controller::~Controller()
         delete m_pApplicationManager;
     if (m_pDMIManager)
         delete m_pDMIManager;
+    if (m_pSmartManager)
+        delete m_pSmartManager;
 }
 
 void Controller::StartController()
@@ -120,7 +122,12 @@ void Controller::OnSystemDriversOptClickedSlot()
 
 void Controller::OnStorageSmartOptClickedSlot()
 {
-    qDebug() << __FUNCTION__;
+    m_pSmartManager = new CSmartInfo();
+
+    QStandardItemModel *pModel = m_pSmartManager->GetAvailableHDD();
+
+    if (0 != pModel)
+        emit OnSetSMARTHDDItemsInformation(pModel);
 }
 
 void Controller::OnSmbiosOptClickedSlot()
@@ -149,6 +156,14 @@ void Controller::OnRequestDMIItemProperties(DMIModuleType ItemType)
 
     if (0 != pModel)
         emit OnSetDMIPropertiesInfomation(pModel);
+}
+
+void Controller::OnRequestSMARTProperties(QString qzModel)
+{
+    QStandardItemModel *pModel = m_pSmartManager->GetSMARTPropertiesForHDD(qzModel);
+
+    if (0 != pModel)
+        emit OnSetSMARTItemPropertiesInformation(pModel);
 }
 
 void Controller::OnUninstallApplicationSlot()

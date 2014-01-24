@@ -29,11 +29,13 @@ QStringList GetPhysicalDrivesList()
         {
             // if so then we have current letter available for process
             // prepare path for CreateFile function
-            _stprintf_s(tszDrivePath, 32, _T("\\\\.\\%c:"), _T('A' + chDriveCount));
+            StringCchPrintf(tszDrivePath, 32, L"\\\\.\\%c:", _T('A' + chDriveCount));
+//            _stprintf_s(tszDrivePath, 32, _T("\\\\.\\%c:"), _T('A' + chDriveCount));
 
             TCHAR tszDriveType[10];
             memset(tszDriveType, '\0', sizeof(tszDriveType));
-            _stprintf_s(tszDriveType, 10, _T("%c:\\"), _T('A'+chDriveCount));
+            StringCchPrintf(tszDriveType, 10, L"%c:\\", _T('A' + chDriveCount));
+//            _stprintf_s(tszDriveType, 10, _T("%c:\\"), _T('A'+chDriveCount));
 
 
             // check if current drive that we found is a fixed one
@@ -207,8 +209,6 @@ ATADeviceProperties *GetATADeviceProperties(const wchar_t *wszDriveName)
         goto CleanUp;
 
     CloseHandle(hDevice);
-
-    DWORD dwErr = GetLastError();
 
     pItem->Cylinders.sprintf("%llu", diskGeometry.Cylinders);
     pItem->SectorPerTrack.sprintf("%d", diskGeometry.SectorsPerTrack);

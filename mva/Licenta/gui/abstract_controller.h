@@ -19,6 +19,8 @@ signals:
 
     void OnSetDMIItemsInformation(QStandardItemModel*);
     void OnSetDMIPropertiesInfomation(QStandardItemModel*);
+    void OnSetSMARTHDDItemsInformation(QStandardItemModel*);
+    void OnSetSMARTItemPropertiesInformation(QStandardItemModel*);
     void OnSetPowerManagementInformation(QStandardItemModel *);
     void OnSetApplicationManagerInformation(QStandardItemModel *);
 
@@ -36,6 +38,9 @@ public slots:
 
     // DMI slots
     virtual void OnRequestDMIItemProperties(DMIModuleType) = 0;
+
+    // SMART slots
+    virtual void OnRequestSMARTProperties(QString) = 0;
 
     // Power management slots
 

@@ -5,6 +5,7 @@
 #include "../modules/computer/power-management/headers/battery_status.h"
 #include "../modules/software/applications-manager/headers/application_manager.h"
 #include "../modules/computer/dmi/headers/smbios_entry_point.h"
+#include "../modules/storage/smart/headers/csmartinfo.h"
 
 #include <QDebug>
 
@@ -15,6 +16,7 @@ private: // internal objects
     BatteryStatus *m_pBatteryStatus;
     CApplicationManager *m_pApplicationManager;
     CSMBiosEntryPoint *m_pDMIManager;
+    CSmartInfo *m_pSmartManager;
 
 public:
     Controller();
@@ -35,6 +37,9 @@ public slots:
 
     // DMI slots()
     virtual void OnRequestDMIItemProperties(DMIModuleType);
+
+    // SMART slots()
+    virtual void OnRequestSMARTProperties(QString);
 
     // Power management slots()
 

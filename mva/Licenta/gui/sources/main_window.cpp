@@ -6,7 +6,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     ui(new Ui::MainWindow),
     m_pController(NULL),
     m_pItemTreeModel(NULL), m_pPowerManagementWidget(NULL),
-    m_pApplicationManagerWidget(NULL), m_pDMIManagerWidget(NULL)
+    m_pApplicationManagerWidget(NULL), m_pDMIManagerWidget(NULL),
+    m_pSMARTManagerWidget(NULL)
 {
     ui->setupUi(this);
     this->setMinimumWidth(1000);
@@ -59,10 +60,14 @@ void MainWindow::InitializeStackedWidget()
     m_pApplicationManagerWidget = new CApplicationManagerWidget(ui->stackedWidget, m_pController);
     connect(m_pApplicationManagerWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
 
+    m_pSMARTManagerWidget = new CSmartWidget(ui->stackedWidget, m_pController);
+    connect(m_pSMARTManagerWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
+
     // Add widget to the stacked widget
     ui->stackedWidget->addWidget(m_pDMIManagerWidget);
     ui->stackedWidget->addWidget(m_pPowerManagementWidget);
     ui->stackedWidget->addWidget(m_pApplicationManagerWidget);
+    ui->stackedWidget->addWidget(m_pSMARTManagerWidget);
 
     // remove first to pages
     ui->stackedWidget->removeWidget(ui->page_2);

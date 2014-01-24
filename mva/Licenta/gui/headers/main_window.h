@@ -17,6 +17,7 @@
 #include "battery_status_widget.h"
 #include "application_manager_widget.h"
 #include "dmi_widget.h"
+#include "smart_widget.h"
 
 namespace Ui {
 class MainWindow;
@@ -35,6 +36,7 @@ private:
     CDMIWidget *m_pDMIManagerWidget;
     CBatteryStatusWidget *m_pPowerManagementWidget;
     CApplicationManagerWidget *m_pApplicationManagerWidget;
+    CSmartWidget *m_pSMARTManagerWidget;
 
     void InitializeStackedWidget();
 

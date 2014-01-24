@@ -7,9 +7,8 @@
 #include <commctrl.h>
 #include <winioctl.h>
 #include <WinBase.h>
-#include <atlstr.h>
 #include <tchar.h>
-#include <stdio.h>
+#include <strsafe.h>
 
 #include <QStringList>
 

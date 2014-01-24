@@ -1,18 +1,19 @@
 #include "../headers/csmartinfo.h"
 
 CSmartInfo::CSmartInfo():
-    m_data(0),
-    m_pAvailableHDDModel(NULL),
-    m_pAvailableHDDTableView(NULL),
-    m_pHDDDetailsModel(NULL),
-    m_pHDDDetailsTableView(NULL)
+    m_data(0)
 {
     // read details out of database
     ReadSMARTDetailsFromDB();
+    // get physical drives list (e.g. PhysicalDrive0, PhysicalDrive1, etc..)
     m_PhysicalDrives = GetPhysicalDrivesList();
 
-    m_pAvailableHDDModel = new QStandardItemModel();
-    m_pHDDDetailsModel = new QStandardItemModel();
+    for(int i = 0; i < m_PhysicalDrives.count(); i++)
+    {
+        ATADeviceProperties *pProp = GetATADeviceProperties(m_PhysicalDrives.at(i).toStdWString().c_str());
+        m_PhysicalDrivesToModel.insert(pProp->Model, m_PhysicalDrives.at(i));
+        delete pProp;
+    }
 }
 
 CSmartInfo::~CSmartInfo()
@@ -58,7 +59,7 @@ int CSmartInfo::Initialize(int nDriveIndex)
         return nStatus;
     }
 
-    // we save the drive letter
+    // we save the drive index
     pDriveInfo->DriveIndex = qzDriveName.right(qzDriveName.count() - 1).toShort();
 
     // check for cmd commands;
@@ -70,25 +71,6 @@ int CSmartInfo::Initialize(int nDriveIndex)
         return nStatus;
     }
 
-    ATADeviceProperties *pDev = GetATADeviceProperties(qzDriveName.toStdWString().c_str());
-    qDebug() << "Rotation Speed " << pDev->RotationSpeed;
-    qDebug() << "UDMA " << pDev->UDMATransferMode;
-    qDebug() << "Active UDMA " << pDev->ActiveUDMATransferMode;
-    qDebug() << "PIO " << pDev->PIOTransferMode;
-    qDebug() << "MWDMA " << pDev->MWDMATransferMode;
-    qDebug() << "Model " << pDev->Model;
-    qDebug() << "Firmware " << pDev->FirmwareRevision;
-    qDebug() << "Serial " << pDev->SerialNumber;
-    qDebug() << "Buffer size " << pDev->BufferSize;
-    qDebug() << "Device type " << pDev->DeviceType;
-    qDebug() << "Cylinders" << pDev->Cylinders;
-    qDebug() << "Logical Heads" << pDev->Heads;
-    qDebug() << "Sector per track " << pDev->SectorPerTrack;
-    qDebug() << "Bytes per sector " << pDev->BytesPerSector;
-    qDebug() << "ATA Standard " << pDev->ATAStandard;
-
-    delete pDev;
-
     // check for smart flag
     bResult = CheckForSmartFlag(qzDriveName.toStdWString().c_str());
     if( false == bResult )
@@ -97,9 +79,6 @@ int CSmartInfo::Initialize(int nDriveIndex)
         DEBUG_STATUS(nStatus);
         return nStatus;
     }
-
-    // getDriveInformation
-    m_data->DeviceInformation = GetATADriveData(qzDriveName.toStdWString().c_str());
 
     nStatus = CollectSmartAttributes(qzDriveName.toStdWString().c_str());
     if( Success != nStatus )
@@ -210,128 +189,6 @@ bool CSmartInfo::CheckForSmartFlag(const wchar_t *tszDriveName)
     return bResult;
 }
 
-// get SMART Identify information
-DeviceData *CSmartInfo::GetATADriveData(const wchar_t *tszDriveName)
-{
-    DWORD dwResult=0;
-    SENDCMDINPARAMS paramsIN;
-    HANDLE hDevice = NULL;
-    DeviceData *pData = NULL;
-//    BYTE paramOUT[OUT_BUFFER_SIZE];
-//    memset(&paramOUT, 0, sizeof(paramOUT));
-    memset(&paramsIN, 0, sizeof(SENDCMDINPARAMS));
-
-    int nBufferSize = 0;
-    nBufferSize = IDENTIFY_BUFFER_SIZE + sizeof(SENDCMDOUTPARAMS);
-    BYTE paramOUT[IDENTIFY_BUFFER_SIZE + sizeof(SENDCMDOUTPARAMS)];
-
-    if( NULL == tszDriveName )
-    {
-        DEBUG_STATUS(InvalidParameter);
-    }
-
-    // prepare parameter for DeviceIoControl function
-    // telling that i need Identify information
-    // ID_CMD
-    paramsIN.cBufferSize=IDENTIFY_BUFFER_SIZE;
-    paramsIN.irDriveRegs.bFeaturesReg=0;
-    paramsIN.irDriveRegs.bSectorCountReg = 1;
-    paramsIN.irDriveRegs.bSectorNumberReg = 1;
-    paramsIN.irDriveRegs.bCylLowReg = 0;
-    paramsIN.irDriveRegs.bCylHighReg = 0;
-    paramsIN.irDriveRegs.bDriveHeadReg = DRIVE_HEAD_REG;
-    paramsIN.irDriveRegs.bCommandReg = ID_CMD;
-
-    hDevice = CreateFile(
-                tszDriveName,
-                GENERIC_READ | GENERIC_WRITE,
-                FILE_SHARE_READ | FILE_SHARE_WRITE,
-                NULL,
-                OPEN_EXISTING,
-                FILE_ATTRIBUTE_SYSTEM,
-                NULL);
-    if( INVALID_HANDLE_VALUE == hDevice )
-    {
-        DEBUG_STATUS(InvalidHandle);
-    }
-
-    bool bResult = DeviceIoControl(
-                hDevice,
-                SMART_RCV_DRIVE_DATA,
-                &paramsIN,
-                sizeof(SENDCMDINPARAMS),
-                paramOUT,
-                OUT_BUFFER_SIZE,
-                &dwResult,
-                NULL );
-    // if function was successful
-    if( bResult )
-    {
-        pData = new DeviceData;
-        if( NULL == pData )
-        {
-            DEBUG_STATUS(NotAllocated);
-        }
-        BYTE *pTemp = paramOUT + 16;
-        // fill struct members
-        pData->FirmwareRevision = ParseFirmware(paramOUT);
-        pData->Model = ParseModel(paramOUT);
-        pData->SerialNumber = ParseSerial(paramOUT);
-    }
-
-    CloseHandle(hDevice);
-
-    return pData;
-}
-
-QString CSmartInfo::ParseFirmware(PBYTE pbData)
-{
-    QString retValue = "";
-    WCHAR wzTemp[9];
-    memset(wzTemp, '\0', 9);
-    PBYTE offSet = pbData + 16 + 46;
-    for(int i = 0; i < 8; i+=2)
-    {
-        wzTemp[i] = offSet[i+1];
-        wzTemp[i+1] = offSet[i];
-    }
-    wzTemp[8] = L'\0';
-    retValue = QString::fromWCharArray(wzTemp);
-    return retValue.trimmed();
-}
-
-QString CSmartInfo::ParseModel(PBYTE pbData)
-{
-    QString retValue = "";
-    WCHAR wzTemp[41];
-    memset(wzTemp, '\0', 41);
-    PBYTE offSet = pbData + 16 + 54;
-    for(int i = 0; i < 40; i+=2)
-    {
-        wzTemp[i] = offSet[i+1];
-        wzTemp[i+1] = offSet[i];
-    }
-    wzTemp[40] = L'\0';
-    retValue = QString::fromWCharArray(wzTemp);
-    return retValue.trimmed();
-}
-
-QString CSmartInfo::ParseSerial(PBYTE pbData)
-{
-    QString retValue = "";
-    WCHAR wzTemp[21];
-    memset(wzTemp, '\0', 21);
-    PBYTE offSet = pbData + 16 + 20;
-    for(int i = 0; i < 20; i+=2)
-    {
-        wzTemp[i] = offSet[i+1];
-        wzTemp[i+1] = offSet[i];
-    }
-    wzTemp[20] = L'\0';
-    retValue = QString::fromWCharArray(wzTemp);
-    return retValue.trimmed();
-}
-
 // get the attributes from database
 int CSmartInfo::ReadSMARTDetailsFromDB()
 {
@@ -372,7 +229,7 @@ int CSmartInfo::ReadSMARTDetailsFromDB()
 }
 
 // getting smart details for required index
-SmartDetails *CSmartInfo::GetSMARTDetails(short sAttribIndex)
+SmartDetails *CSmartInfo::GetSMARTDetailsFromDB(short sAttribIndex)
 {
     QMap<BYTE, SmartDetails*>::iterator pIt;
     SmartDetails *pRet=NULL;
@@ -516,143 +373,72 @@ int CSmartInfo::CollectSmartAttributes(const wchar_t *tszDriveName)
     return nStatus;
 }
 
-// return drive info struct according to the required index
-DeviceData *CSmartInfo::GetDriveInfo()
-{
-    return m_data->DeviceInformation;
-}
-
-QList<SmartData *> CSmartInfo::GetSmartData()
+QList<SmartData*> CSmartInfo::GetSmartData()
 {
     return m_data->SmartEntries;
 }
 
-QStringList CSmartInfo::GetAvailablePhysicalDrives()
+QStandardItemModel *CSmartInfo::GetAvailableHDD()
 {
-    return m_PhysicalDrives;
-}
-
-int CSmartInfo::OnCreateWidget(QWidget **ppWidget)
-{
-    QWidget *pWidget = new QWidget();
-    pWidget->setLayout(new QVBoxLayout());
-    pWidget->layout()->setContentsMargins(0, 0, 0, 0);
-    pWidget->layout()->setSpacing(2);
-
-    m_pAvailableHDDTableView = new QTableView();
-    m_pAvailableHDDTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_pAvailableHDDTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    m_pAvailableHDDTableView->verticalHeader()->hide();
-    m_pAvailableHDDTableView->setShowGrid(false);
-    m_pAvailableHDDTableView->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_pAvailableHDDTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_pAvailableHDDTableView->setFixedHeight(75);
-
-    QObject::connect(m_pAvailableHDDTableView, SIGNAL(clicked(QModelIndex)),
-                     this, SLOT(OnAvailableHDDTableItemClicked(QModelIndex)),
-                     Qt::QueuedConnection);
-
-    m_pAvailableHDDModel->setColumnCount(1);
-    m_pAvailableHDDModel->setRowCount(this->m_qInfomations.count());
-
-    for(int i = 0; i < this->m_qInfomations.count(); i++)
-    {
-        QStandardItem *pItem = new QStandardItem(m_qInfomations.at(i)->DeviceInformation->Model);
-        m_pAvailableHDDModel->setItem(i, 0, pItem);
-    }
-    m_pAvailableHDDTableView->setModel(m_pAvailableHDDModel);
-
-    pWidget->layout()->addWidget(m_pAvailableHDDTableView);
-
-    m_pHDDDetailsTableView = new QTableView();
-    m_pHDDDetailsTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_pHDDDetailsTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    m_pHDDDetailsTableView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
-    m_pHDDDetailsTableView->verticalHeader()->hide();
-    m_pHDDDetailsTableView->setShowGrid(false);
-    m_pHDDDetailsTableView->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_pHDDDetailsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_pHDDDetailsTableView->setColumnWidth(0, 10);
-    m_pHDDDetailsTableView->setRowHeight(0, 5);
-
-    pWidget->layout()->addWidget(m_pHDDDetailsTableView);
-
-    (*ppWidget) = pWidget;
-
-    return Success;
-}
-
-void CSmartInfo::OnStartLoadingModuleDataSlot()
-{
-    for(int i = 0; i < m_PhysicalDrives.count(); i++)
-    {
-        this->Initialize(i);
-        this->m_qInfomations.append(m_data);
-    }
-
-    emit OnLoadingModuleDataCompleteSignal();
-    emit OnCreateWidgetSignal(STORAGE_SMART, this);
-}
-
-void CSmartInfo::OnAvailableHDDTableItemClicked(QModelIndex index)
-{
-    QStandardItem *pItem = m_pAvailableHDDModel->itemFromIndex(index);
-    QString qzItemText = pItem->text();
-    DriveInfo *pDriveInfo = 0;
-
-    for(int i = 0; i < m_qInfomations.count(); i++)
-    {
-        if( qzItemText == m_qInfomations.at(i)->DeviceInformation->Model )
-        {
-            pDriveInfo = m_qInfomations.at(i);
-            break;
-        }
-    }
-
-    this->PopulateModel(pDriveInfo);
-}
-
-void CSmartInfo::PopulateModel(DriveInfo *pDriveInfo)
-{
-    SmartDetails *pSmartDetails = 0;
+    QStandardItemModel *pModel = new QStandardItemModel();
     QStandardItem *pItem = 0;
-    SmartData *pSmartData = 0;
-    m_pHDDDetailsModel->clear();
 
-    m_pHDDDetailsModel->setColumnCount(6);
-    m_pHDDDetailsModel->setRowCount(pDriveInfo->SmartEntries.count());
+    pModel->setColumnCount(1);
+    pModel->setHorizontalHeaderLabels(QStringList() << "Device description");
 
-    m_pHDDDetailsModel->setHorizontalHeaderLabels(QStringList() << "ID"
-                                                  << "Property name" << "Raw" << "Value" <<
-                                                  "Worst" << "Threshold");
-
-    for(int i = 0; i < pDriveInfo->SmartEntries.count(); i++)
+    for(int i = 0; i < m_PhysicalDrivesToModel.keys().count(); i++)
     {
-        pSmartData = pDriveInfo->SmartEntries.at(i);
-        pSmartDetails = this->GetSMARTDetails(pSmartData->m_ucAttribIndex);
+        pItem = new QStandardItem(m_PhysicalDrivesToModel.keys().at(i));
+        pModel->setItem(i, 0, pItem);
+    }
+
+    return pModel;
+}
+
+QStandardItemModel *CSmartInfo::GetSMARTPropertiesForHDD(QString qzModel)
+{
+    QStandardItemModel *pModel = new QStandardItemModel();
+    QStandardItem *pItem = 0;
+    SmartDetails *pSmartDetails = 0;
+    SmartData *pSmartData = 0;
+    QString qzDrive = m_PhysicalDrivesToModel.value(qzModel);
+
+    int nStatus = Initialize(qzDrive.right(qzDrive.count() - 1).toShort());
+    if (Success != nStatus)
+        return 0;
+
+
+    pModel->setColumnCount(6);
+    pModel->setRowCount(m_data->SmartEntries.count());
+    pModel->setHorizontalHeaderLabels(QStringList() << "ID" << "Property name" << "Raw" << "Value" << "Worst" << "Threshold");
+
+    for(int i = 0; i < m_data->SmartEntries.count(); i++)
+    {
+        pSmartData = m_data->SmartEntries.at(i);
+        pSmartDetails = this->GetSMARTDetailsFromDB(pSmartData->m_ucAttribIndex);
 
         pItem = new QStandardItem(QString().setNum(pSmartDetails->m_ucAttribId));
-        m_pHDDDetailsModel->setItem(i, 0, pItem);
+        pModel->setItem(i, 0, pItem);
 
         pItem = new QStandardItem(pSmartDetails->m_csAttribName);
-        m_pHDDDetailsModel->setItem(i, 1, pItem);
+        pModel->setItem(i, 1, pItem);
 
         // raw
         pItem = new QStandardItem(QString().setNum(pSmartData->m_dwAttribValue));
-        m_pHDDDetailsModel->setItem(i, 2, pItem);
+        pModel->setItem(i, 2, pItem);
 
         // value
         pItem = new QStandardItem(QString().setNum(pSmartData->m_ucValue));
-        m_pHDDDetailsModel->setItem(i, 3, pItem);
+        pModel->setItem(i, 3, pItem);
 
         // worst
         pItem = new QStandardItem(QString().setNum(pSmartData->m_ucWorst));
-        m_pHDDDetailsModel->setItem(i, 4, pItem);
+        pModel->setItem(i, 4, pItem);
 
         // threshold
         pItem = new QStandardItem(QString().setNum(pSmartData->m_dwThreshold));
-        m_pHDDDetailsModel->setItem(i, 5, pItem);
+        pModel->setItem(i, 5, pItem);
     }
 
-    emit OnSendModuleDataToGUISignal(STORAGE_SMART, m_pHDDDetailsTableView, m_pHDDDetailsModel);
+    return pModel;
 }

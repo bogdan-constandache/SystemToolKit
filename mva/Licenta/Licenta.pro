@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui sql
 QT       += widgets
 
 TARGET = Licenta
@@ -28,7 +28,9 @@ SOURCES += main/main.cpp \
         gui/sources/battery_status_widget.cpp \
         gui/sources/application_manager_widget.cpp \
         gui/sources/dmi_widget.cpp \
-        gui/sources/smart_widget.cpp
+        gui/sources/smart_widget.cpp \
+    modules/storage/common/sources/callbacks.cpp \
+    modules/storage/smart/sources/csmartinfo.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -50,7 +52,11 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/battery_status_widget.h \
         gui/headers/application_manager_widget.h \
         gui/headers/dmi_widget.h \
-        gui/headers/smart_widget.h
+        gui/headers/smart_widget.h \
+    modules/storage/smart/headers/smart_structs.h \
+    modules/storage/smart/headers/smart_defines.h \
+    modules/storage/smart/headers/csmartinfo.h \
+    modules/storage/common/headers/callbacks.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
