@@ -14,20 +14,20 @@
 
 typedef struct  _ATA_DEVICE_PROPERTIES_
 {
-    QString RotationSpeed;              //done
+    QString RotationSpeed;              //done 0
     QString UDMATransferMode;           //done
     QString ActiveUDMATransferMode;     //done
     QString PIOTransferMode;            //done
     QString MWDMATransferMode;          //done
     QString ActiveMWDMATransferMode;    //done
     QString ECCBytes;
-    QString Model;                      //done
-    QString FirmwareRevision;           //done
-    QString SerialNumber;               //done
-    QString BufferSize;                 //done
-    QString DeviceType;                 //done
-    QString Cylinders;                  //done
-    QString Heads;                      //done
+    QString Model;                      //done 0
+    QString FirmwareRevision;           //done 0
+    QString SerialNumber;               //done 0
+    QString BufferSize;                 //done 0
+    QString DeviceType;                 //done 0
+    QString Cylinders;                  //done 0
+    QString Heads;                      //done 0
     QString SectorPerTrack;             //done
     QString BytesPerSector;             //done
     QString ATAStandard;                //done

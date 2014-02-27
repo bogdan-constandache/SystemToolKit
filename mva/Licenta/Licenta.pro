@@ -10,6 +10,8 @@ LIBS += -lOle32
 LIBS += -loleaut32
 LIBS += -lVersion
 LIBS += -lWbemuuid
+LIBS += -liphlpapi
+LIBS += -lws2_32
 
 
 SOURCES += main/main.cpp \
@@ -25,12 +27,17 @@ SOURCES += main/main.cpp \
         modules/computer/dmi/sources/type2_baseboard_information.cpp \
         modules/computer/dmi/sources/type0_bios_information.cpp \
         modules/computer/dmi/sources/smbios_entry_point.cpp \
+        modules/storage/common/sources/callbacks.cpp \
+        modules/storage/smart/sources/csmartinfo.cpp \
+        modules/operating-system/system-drivers/sources/system-drivers.cpp \
+        modules/network/active-connections/active_connections.cpp \
         gui/sources/battery_status_widget.cpp \
         gui/sources/application_manager_widget.cpp \
         gui/sources/dmi_widget.cpp \
         gui/sources/smart_widget.cpp \
-    modules/storage/common/sources/callbacks.cpp \
-    modules/storage/smart/sources/csmartinfo.cpp
+        gui/sources/ata_widget.cpp \
+        gui/sources/system_drivers_widget.cpp \
+        gui/sources/active_connections_widget.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -49,18 +56,27 @@ HEADERS  += gui/abstract_controller.h \
         modules/computer/dmi/headers/smbios_entry_point.h \
         modules/computer/dmi/headers/smbios_api_classes.h \
         modules/computer/dmi/interfaces/smbios_generic_structure.h \
+        modules/storage/smart/headers/smart_structs.h \
+        modules/storage/smart/headers/smart_defines.h \
+        modules/storage/smart/headers/csmartinfo.h \
+        modules/storage/common/headers/callbacks.h \
+        modules/operating-system/system-drivers/headers/system_drivers.h \
+        modules/network/active-connections/active_connections.h \
+        modules/network/active-connections/network_structures.h \
         gui/headers/battery_status_widget.h \
         gui/headers/application_manager_widget.h \
         gui/headers/dmi_widget.h \
         gui/headers/smart_widget.h \
-    modules/storage/smart/headers/smart_structs.h \
-    modules/storage/smart/headers/smart_defines.h \
-    modules/storage/smart/headers/csmartinfo.h \
-    modules/storage/common/headers/callbacks.h
+        gui/headers/ata_widget.h \
+        gui/headers/system_drivers_widget.h \
+        gui/headers/active_connections_widget.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
         gui/forms/battery_status_widget.ui \
         gui/forms/application_manager_widget.ui \
         gui/forms/dmi_widget.ui \
-        gui/forms/smart_widget.ui
+        gui/forms/smart_widget.ui \
+        gui/forms/ata_widget.ui \
+        gui/forms/system_drivers_widget.ui \
+        gui/forms/active_connections_widget.ui

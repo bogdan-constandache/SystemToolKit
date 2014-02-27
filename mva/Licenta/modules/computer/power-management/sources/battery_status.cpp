@@ -2,7 +2,7 @@
 
 
 BatteryStatus::BatteryStatus():
-    m_data(NULL)
+    m_data(NULL), m_bIsDesktop(false)
 {
 }
 
@@ -107,6 +107,9 @@ int BatteryStatus::Initialize()
                                              count,
                                              &dData))
     {
+        DWORD dwLastError = GetLastError();
+        if( ERROR_NO_MORE_ITEMS == dwLastError )
+            m_bIsDesktop = true;
         DEBUG_STATUS(Unsuccessful);
         goto Cleanup;
     }
@@ -338,6 +341,40 @@ QStandardItemModel* BatteryStatus::GetBatteryInformation()
 
     QStandardItemModel *pModel = new QStandardItemModel();
     QStandardItem *pItem = 0;
+
+    if( m_bIsDesktop )
+    {
+        pModel->setColumnCount(2);
+        pModel->setRowCount(4);
+
+        pModel->setHorizontalHeaderLabels(QStringList() << "Property name" << "Property value");
+
+        pItem = new QStandardItem("AC-Line status:");
+        pModel->setItem(0, 0, pItem);
+
+        pItem = new QStandardItem("Online");
+        pModel->setItem(0, 1, pItem);
+
+        pItem = new QStandardItem("Battery status:");
+        pModel->setItem(1, 0, pItem);
+
+        pItem = new QStandardItem("No battery");
+        pModel->setItem(1, 1, pItem);
+
+        pItem = new QStandardItem("Life time:");
+        pModel->setItem(2, 0, pItem);
+
+        pItem = new QStandardItem("Unknown");
+        pModel->setItem(2, 1, pItem);
+
+        pItem = new QStandardItem("Full life-time:");
+        pModel->setItem(3, 0, pItem);
+
+        pItem = new QStandardItem("Unknown");
+        pModel->setItem(3, 1, pItem);
+
+        return pModel;
+    }
 
     pModel->setColumnCount(2);
     pModel->setRowCount(15);

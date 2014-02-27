@@ -38,6 +38,7 @@ class BatteryStatus
 {
 private:
     PBatteryInformationStruct m_data;
+    bool m_bIsDesktop;
     int Initialize();
 
 public:

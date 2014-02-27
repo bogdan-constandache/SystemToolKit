@@ -18,6 +18,9 @@
 #include "application_manager_widget.h"
 #include "dmi_widget.h"
 #include "smart_widget.h"
+#include "ata_widget.h"
+#include "system_drivers_widget.h"
+#include "active_connections_widget.h"
 
 namespace Ui {
 class MainWindow;
@@ -37,6 +40,9 @@ private:
     CBatteryStatusWidget *m_pPowerManagementWidget;
     CApplicationManagerWidget *m_pApplicationManagerWidget;
     CSmartWidget *m_pSMARTManagerWidget;
+    CATAWidget *m_pATAManagerWidget;
+    CSystemDriversWidget *m_pSystemDriversWidget;
+    CActiveConnectionsWidget *m_pActiveConnectionsWidget;
 
     void InitializeStackedWidget();
 
@@ -56,10 +62,12 @@ signals:
     void OnOperatingSystemOptClickedSignal();
     void OnProcessesOptClickedSignal();
     void OnSystemDriversOptClickedSignal();
+    void OnStorageATAOptClickedSignal();
     void OnStorageSmartOptClickedSignal();
     void OnSmbiosOptClickedSignal();
     void OnApplicationManagerOptClickedSignal();
     void OnStartupApplicationsOptClickedSignal();
+    void OnActiveConnectionsOptClickedSignal();
 };
 
 #endif // MAINWINDOW_H

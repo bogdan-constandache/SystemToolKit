@@ -1,11 +1,56 @@
 #include "../headers/system_drivers.h"
 
 SystemDrivers::SystemDrivers():
-    m_qszWinDir(""),
-    m_pTableModel(NULL),
-    m_pTableView(NULL)
+    m_qszWinDir("")
 {
-    m_pTableModel = new QStandardItemModel();
+}
+
+SystemDrivers::~SystemDrivers()
+{
+    Destroy();
+}
+
+QStandardItemModel *SystemDrivers::GetSystemDriversInformation()
+{
+    int nStatus = Initialize();
+    if( Success != nStatus )
+    {
+        return 0;
+    }
+
+    QStandardItemModel *pModel = new QStandardItemModel;
+    QStandardItem *pItem = 0;
+    SystemDriverInfo *pDriver = 0;
+
+    pModel->setColumnCount(6);
+    pModel->setRowCount(this->m_qlSystemDrivers.count());
+    pModel->setHorizontalHeaderLabels(QStringList() << "Driver name" <<
+                                             "Description" << "File name" <<
+                                             "Version" << "Type" << "Current state");
+
+    for(int i = 0; i < m_qlSystemDrivers.count(); i++)
+    {
+        pDriver = m_qlSystemDrivers.at(i);
+        pItem = new QStandardItem(pDriver->qszDriverName == "" ? "N/A" : pDriver->qszDriverName);
+        pModel->setItem(i, 0, pItem);
+
+        pItem = new QStandardItem(pDriver->qszDescription == "" ? "N/A" : pDriver->qszDescription);
+        pModel->setItem(i, 1, pItem);
+
+        pItem = new QStandardItem(pDriver->qszFileName == "" ? "N/A" : pDriver->qszFileName);
+        pModel->setItem(i, 2, pItem);
+
+        pItem = new QStandardItem(pDriver->qszVersion == "" ? "N/A" : pDriver->qszVersion);
+        pModel->setItem(i, 3, pItem);
+
+        pItem = new QStandardItem(pDriver->qszType == "" ? "N/A" : pDriver->qszType);
+        pModel->setItem(i, 4, pItem);
+
+        pItem = new QStandardItem(pDriver->qszState == "" ? "N/A" : pDriver->qszState);
+        pModel->setItem(i, 5, pItem);
+    }
+
+    return pModel;
 }
 
 int SystemDrivers::Initialize()
@@ -191,38 +236,6 @@ int SystemDrivers::Destroy()
     return Success;
 }
 
-void SystemDrivers::OnStartLoadingModuleDataSlot()
-{
-    this->Initialize();
-    emit OnLoadingModuleDataCompleteSignal();
-    emit OnCreateWidgetSignal(OS_SYSTEM_DRIVERS, this);
-}
-
-int SystemDrivers::OnCreateWidget(QWidget **ppWidget)
-{
-    QWidget *pWidget = new QWidget();
-    pWidget->setLayout(new QVBoxLayout());
-    pWidget->layout()->setContentsMargins(0, 0, 0, 0);
-
-    m_pTableView = new QTableView();
-    m_pTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_pTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    m_pTableView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
-    m_pTableView->verticalHeader()->hide();
-    m_pTableView->setShowGrid(false);
-    m_pTableView->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_pTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_pTableView->setFocusPolicy(Qt::NoFocus);
-
-    pWidget->layout()->addWidget(m_pTableView);
-
-    this->PopulateModel();
-
-    (*ppWidget) = pWidget;
-
-    return Success;
-}
-
 QString SystemDrivers::GetDriverVersion(WCHAR *wszFileName)
 {
     DWORD dwVersionHandle = NULL;
@@ -265,42 +278,5 @@ QString SystemDrivers::GetDriverVersion(WCHAR *wszFileName)
         delete[] lpVersionData;
     }
     return returnValue;
-}
-
-void SystemDrivers::PopulateModel()
-{
-    QStandardItem *pItem = 0;
-    SystemDriverInfo *pDriver = 0;
-    m_pTableModel->clear();
-
-    m_pTableModel->setColumnCount(6);
-    m_pTableModel->setHorizontalHeaderLabels(QStringList() << "Driver name" <<
-                                             "Description" << "File name" <<
-                                             "Version" << "Type" << "Current state");
-    m_pTableModel->setRowCount(this->m_qlSystemDrivers.count());
-
-    for(int i = 0; i < m_qlSystemDrivers.count(); i++)
-    {
-        pDriver = m_qlSystemDrivers.at(i);
-        pItem = new QStandardItem(pDriver->qszDriverName == "" ? "N/A" : pDriver->qszDriverName);
-        m_pTableModel->setItem(i, 0, pItem);
-
-        pItem = new QStandardItem(pDriver->qszDescription == "" ? "N/A" : pDriver->qszDescription);
-        m_pTableModel->setItem(i, 1, pItem);
-
-        pItem = new QStandardItem(pDriver->qszFileName == "" ? "N/A" : pDriver->qszFileName);
-        m_pTableModel->setItem(i, 2, pItem);
-
-        pItem = new QStandardItem(pDriver->qszVersion == "" ? "N/A" : pDriver->qszVersion);
-        m_pTableModel->setItem(i, 3, pItem);
-
-        pItem = new QStandardItem(pDriver->qszType == "" ? "N/A" : pDriver->qszType);
-        m_pTableModel->setItem(i, 4, pItem);
-
-        pItem = new QStandardItem(pDriver->qszState == "" ? "N/A" : pDriver->qszState);
-        m_pTableModel->setItem(i, 5, pItem);
-    }
-
-    emit OnSendModuleDataToGUISignal(OS_SYSTEM_DRIVERS, m_pTableView, m_pTableModel);
 }
 

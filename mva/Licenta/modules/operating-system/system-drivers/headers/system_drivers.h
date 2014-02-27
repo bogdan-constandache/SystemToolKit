@@ -12,9 +12,9 @@
 #include <QDir>
 #include <QFile>
 #include <QTextStream>
+#include <QStandardItemModel>
 
 // My includes
-#include "../../../../interfaces/module.h"
 #include "../../../../utils/headers/utils.h"
 
 typedef struct _SYSTEM_DRIVER_INFO
@@ -27,30 +27,22 @@ typedef struct _SYSTEM_DRIVER_INFO
     QString qszState;
 }SystemDriverInfo;
 
-class SystemDrivers : public IModule
+class SystemDrivers
 {
-    Q_OBJECT
-
 public:
     QList<SystemDriverInfo*> m_qlSystemDrivers;
-
-    QTableView *m_pTableView;
-
-    QStandardItemModel *m_pTableModel;
 
 private:
     QString m_qszWinDir;
 
 public:
     SystemDrivers();
-    int Initialize();
-    int Destroy();
-    virtual int OnCreateWidget(QWidget **ppWidget);
-
-public slots:
-    virtual void OnStartLoadingModuleDataSlot();
+    ~SystemDrivers();
+    QStandardItemModel *GetSystemDriversInformation();
 
 private:
+    int Initialize();
+    int Destroy();
     QString GetDriverVersion(WCHAR* wszFileName);
     void PopulateModel();
 };

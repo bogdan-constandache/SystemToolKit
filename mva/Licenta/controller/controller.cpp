@@ -1,7 +1,8 @@
 #include "controller.h"
 
 Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
-    m_pDMIManager(NULL), m_pSmartManager(NULL)
+    m_pDMIManager(NULL), m_pSmartManager(NULL), m_pSystemDriversManager(NULL),
+    m_pActiveConnectionsManager(NULL)
 {
 }
 
@@ -15,6 +16,10 @@ Controller::~Controller()
         delete m_pDMIManager;
     if (m_pSmartManager)
         delete m_pSmartManager;
+    if (m_pSystemDriversManager)
+        delete m_pSystemDriversManager;
+    if (m_pActiveConnectionsManager)
+        delete m_pActiveConnectionsManager;
 }
 
 void Controller::StartController()
@@ -57,7 +62,19 @@ void Controller::StartController()
     pDataItem = new QStandardItem(QString("Storage"));
     qList.append(pDataItem);
 
+    pChildItem = new QStandardItem(QString("ATA"));
+    qChildList.append(pChildItem);
+
     pChildItem = new QStandardItem(QString("SMART"));
+    qChildList.append(pChildItem);
+
+    pDataItem->appendRows(qChildList);
+    qChildList.clear();
+
+    pDataItem = new QStandardItem(QString("Network"));
+    qList.append(pDataItem);
+
+    pChildItem = new QStandardItem(QString("Connections"));
     qChildList.append(pChildItem);
 
     pDataItem->appendRows(qChildList);
@@ -84,6 +101,11 @@ void Controller::StartController()
 
 void Controller::OnComputerDMIOptClickedSlot()
 {
+    if (m_pDMIManager)
+    {
+        delete m_pDMIManager;
+        m_pDMIManager = 0;
+    }
     m_pDMIManager = new CSMBiosEntryPoint();
     QStandardItemModel *pModel = m_pDMIManager->GetItemsModel();
 
@@ -117,13 +139,47 @@ void Controller::OnProcessesOptClickedSlot()
 
 void Controller::OnSystemDriversOptClickedSlot()
 {
-    qDebug() << __FUNCTION__;
+    if( m_pSystemDriversManager )
+    {
+        delete m_pSystemDriversManager;
+        m_pSystemDriversManager = 0;
+    }
+
+    m_pSystemDriversManager = new SystemDrivers;
+
+    QStandardItemModel *pModel = m_pSystemDriversManager->GetSystemDriversInformation();
+
+    if( 0 != pModel )
+        emit OnSetSystemDriversModelInformation(pModel);
+}
+
+void Controller::OnStorageATAOptClickedSlot()
+{
+    QStandardItemModel *pModel = new QStandardItemModel();
+    QStringList List = GetPhysicalDrivesList();
+
+    pModel->setColumnCount(1);
+    pModel->setRowCount(List.count());
+    pModel->setHorizontalHeaderLabels(QStringList() << "Device description");
+    for(int i = 0; i < List.count(); i++)
+    {
+        ATADeviceProperties *pProp = GetATADeviceProperties(List.at(i).toStdWString().c_str());
+        m_HDDModelToPhysicalDrive.insert(pProp->Model, List.at(i));
+        pModel->setItem(i, 0, new QStandardItem(pProp->Model));
+        delete pProp;
+    }
+
+    emit OnSetATAHDDItemsInformation(pModel);
 }
 
 void Controller::OnStorageSmartOptClickedSlot()
 {
+    if (m_pSmartManager)
+    {
+        delete m_pSmartManager;
+        m_pSmartManager = 0;
+    }
     m_pSmartManager = new CSmartInfo();
-
     QStandardItemModel *pModel = m_pSmartManager->GetAvailableHDD();
 
     if (0 != pModel)
@@ -150,12 +206,103 @@ void Controller::OnStartupApplicationsOptClickedSlot()
     qDebug() << __FUNCTION__;
 }
 
+void Controller::OnActiveConnectionsOptClickedSlot()
+{
+    if (m_pActiveConnectionsManager)
+    {
+        delete m_pActiveConnectionsManager;
+        m_pActiveConnectionsManager = 0;
+    }
+
+    m_pActiveConnectionsManager = new CActiveConnections;
+
+    QStandardItemModel *pModel = m_pActiveConnectionsManager->GetActiveConnections();
+
+    if (0 != pModel)
+        emit OnSetActiveConnectionsInformation(pModel);
+}
+
 void Controller::OnRequestDMIItemProperties(DMIModuleType ItemType)
 {
     QStandardItemModel *pModel = m_pDMIManager->GetItemPropertiesModel(ItemType);
 
     if (0 != pModel)
         emit OnSetDMIPropertiesInfomation(pModel);
+}
+
+void Controller::OnRequestATAItemProperties(QString qzModel)
+{
+    QString qzDrive = m_HDDModelToPhysicalDrive.value(qzModel);
+    ATADeviceProperties *pProp = GetATADeviceProperties(qzDrive.toStdWString().c_str());
+    QStandardItemModel *pModel = new QStandardItemModel();
+    QStandardItem *pItem = 0;
+
+    pModel->setColumnCount(2);
+    pModel->setRowCount(15);
+    pModel->setHorizontalHeaderLabels(QStringList() << "Field" << "Value");
+
+    pItem = new QStandardItem("Model:");
+    pModel->setItem(0, 0, pItem);
+    pItem = new QStandardItem(pProp->Model);
+    pModel->setItem(0, 1, pItem);
+    pItem = new QStandardItem("Firmware revision:");
+    pModel->setItem(1, 0, pItem);
+    pItem = new QStandardItem(pProp->FirmwareRevision);
+    pModel->setItem(1, 1, pItem);
+    pItem = new QStandardItem("Serial number:");
+    pModel->setItem(2, 0, pItem);
+    pItem = new QStandardItem(pProp->SerialNumber);
+    pModel->setItem(2, 1, pItem);
+    pItem = new QStandardItem("Rotation speed:");
+    pModel->setItem(3, 0, pItem);
+    pItem = new QStandardItem(pProp->RotationSpeed);
+    pModel->setItem(3, 1, pItem);
+    pItem = new QStandardItem("Buffer size:");
+    pModel->setItem(4, 0, pItem);
+    pItem = new QStandardItem(pProp->BufferSize);
+    pModel->setItem(4, 1, pItem);
+    pItem = new QStandardItem("Type:");
+    pModel->setItem(5, 0, pItem);
+    pItem = new QStandardItem(pProp->DeviceType);
+    pModel->setItem(5, 1, pItem);
+    pItem = new QStandardItem("Cylinders:");
+    pModel->setItem(6, 0, pItem);
+    pItem = new QStandardItem(pProp->Cylinders);
+    pModel->setItem(6, 1, pItem);
+    pItem = new QStandardItem("Heads:");
+    pModel->setItem(7, 0, pItem);
+    pItem = new QStandardItem(pProp->Heads);
+    pModel->setItem(7, 1, pItem);
+    pItem = new QStandardItem("Sectors per track:");
+    pModel->setItem(8, 0, pItem);
+    pItem = new QStandardItem(pProp->SectorPerTrack);
+    pModel->setItem(8, 1, pItem);
+    pItem = new QStandardItem("Bytes per sector:");
+    pModel->setItem(9, 0, pItem);
+    pItem = new QStandardItem(pProp->BytesPerSector);
+    pModel->setItem(9, 1, pItem);
+    pItem = new QStandardItem("ATA standard:");
+    pModel->setItem(10, 0, pItem);
+    pItem = new QStandardItem(pProp->ATAStandard);
+    pModel->setItem(10, 1, pItem);
+    pItem = new QStandardItem("UDMA transfer mode:");
+    pModel->setItem(11, 0, pItem);
+    pItem = new QStandardItem(pProp->UDMATransferMode);
+    pModel->setItem(11, 1, pItem);
+    pItem = new QStandardItem("Active UDMA transfer mode:");
+    pModel->setItem(12, 0, pItem);
+    pItem = new QStandardItem(pProp->ActiveUDMATransferMode);
+    pModel->setItem(12, 1, pItem);
+    pItem = new QStandardItem("PIO transfer mode");
+    pModel->setItem(13, 0, pItem);
+    pItem = new QStandardItem(pProp->PIOTransferMode);
+    pModel->setItem(13, 1, pItem);
+    pItem = new QStandardItem("MWDMA transfer mode:");
+    pModel->setItem(14, 0, pItem);
+    pItem = new QStandardItem(pProp->MWDMATransferMode);
+    pModel->setItem(14, 1, pItem);
+
+    emit OnSetATAItemPropertiesInformation(pModel);
 }
 
 void Controller::OnRequestSMARTProperties(QString qzModel)

@@ -7,7 +7,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     m_pController(NULL),
     m_pItemTreeModel(NULL), m_pPowerManagementWidget(NULL),
     m_pApplicationManagerWidget(NULL), m_pDMIManagerWidget(NULL),
-    m_pSMARTManagerWidget(NULL)
+    m_pSMARTManagerWidget(NULL), m_pATAManagerWidget(NULL),
+    m_pSystemDriversWidget(NULL), m_pActiveConnectionsWidget(NULL)
 {
     ui->setupUi(this);
     this->setMinimumWidth(1000);
@@ -31,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
             m_pController, SLOT(OnProcessesOptClickedSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnSystemDriversOptClickedSignal()),
             m_pController, SLOT(OnSystemDriversOptClickedSlot()), Qt::QueuedConnection);
+    connect(this, SIGNAL(OnStorageATAOptClickedSignal()),
+            m_pController, SLOT(OnStorageATAOptClickedSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnStorageSmartOptClickedSignal()),
             m_pController, SLOT(OnStorageSmartOptClickedSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnSmbiosOptClickedSignal()),
@@ -39,6 +42,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
             m_pController, SLOT(OnApplicationManagerOptClickedSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnStartupApplicationsOptClickedSignal()),
             m_pController, SLOT(OnStartupApplicationsOptClickedSlot()), Qt::QueuedConnection);
+    connect(this, SIGNAL(OnActiveConnectionsOptClickedSignal()),
+            m_pController, SLOT(OnActiveConnectionsOptClickedSlot()), Qt::QueuedConnection);
 
     InitializeStackedWidget();
 }
@@ -63,11 +68,23 @@ void MainWindow::InitializeStackedWidget()
     m_pSMARTManagerWidget = new CSmartWidget(ui->stackedWidget, m_pController);
     connect(m_pSMARTManagerWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
 
+    m_pATAManagerWidget = new CATAWidget(ui->stackedWidget, m_pController);
+    connect(m_pATAManagerWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
+
+    m_pSystemDriversWidget = new CSystemDriversWidget(ui->stackedWidget, m_pController);
+    connect(m_pSystemDriversWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
+
+    m_pActiveConnectionsWidget = new CActiveConnectionsWidget(ui->stackedWidget, m_pController);
+    connect(m_pActiveConnectionsWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
+
     // Add widget to the stacked widget
     ui->stackedWidget->addWidget(m_pDMIManagerWidget);
     ui->stackedWidget->addWidget(m_pPowerManagementWidget);
     ui->stackedWidget->addWidget(m_pApplicationManagerWidget);
     ui->stackedWidget->addWidget(m_pSMARTManagerWidget);
+    ui->stackedWidget->addWidget(m_pATAManagerWidget);
+    ui->stackedWidget->addWidget(m_pSystemDriversWidget);
+    ui->stackedWidget->addWidget(m_pActiveConnectionsWidget);
 
     // remove first to pages
     ui->stackedWidget->removeWidget(ui->page_2);
@@ -106,6 +123,11 @@ void MainWindow::OnItemsTreeClickedSlot(QModelIndex index)
         qDebug() << "System drivers clicked";
         emit OnSystemDriversOptClickedSignal();
     }
+    if( "ATA" == qzItemText)
+    {
+        qDebug() << "ATA clicked";
+        emit OnStorageATAOptClickedSignal();
+    }
     if( "SMART" == qzItemText )
     {
         qDebug() << "SMART";
@@ -113,7 +135,7 @@ void MainWindow::OnItemsTreeClickedSlot(QModelIndex index)
     }
     if( "Startup applications" == qzItemText )
     {
-        qDebug() << "tartup applications clicked";
+        qDebug() << "Startup applications clicked";
         emit OnStartupApplicationsOptClickedSignal();
     }
     if( "Application manager" == qzItemText )
@@ -121,11 +143,15 @@ void MainWindow::OnItemsTreeClickedSlot(QModelIndex index)
         qDebug() << "Application manager clicked";
         emit OnApplicationManagerOptClickedSignal();
     }
+    if( "Connections" == qzItemText )
+    {
+        qDebug() << "Connections clicked";
+        emit OnActiveConnectionsOptClickedSignal();
+    }
 }
 
 void MainWindow::OnPopulateMenuTreeSlot(QStandardItemModel *pModel)
 {
-    qDebug() << __FUNCTION__;
     ui->menuTreeView->setModel(pModel);
     m_pItemTreeModel = pModel;
 

@@ -6,6 +6,8 @@
 #include "../modules/software/applications-manager/headers/application_manager.h"
 #include "../modules/computer/dmi/headers/smbios_entry_point.h"
 #include "../modules/storage/smart/headers/csmartinfo.h"
+#include "../modules/operating-system/system-drivers/headers/system_drivers.h"
+#include "../modules/network/active-connections/active_connections.h"
 
 #include <QDebug>
 
@@ -17,6 +19,9 @@ private: // internal objects
     CApplicationManager *m_pApplicationManager;
     CSMBiosEntryPoint *m_pDMIManager;
     CSmartInfo *m_pSmartManager;
+    SystemDrivers *m_pSystemDriversManager;
+    CActiveConnections *m_pActiveConnectionsManager;
+    QMap<QString, QString> m_HDDModelToPhysicalDrive;
 
 public:
     Controller();
@@ -30,13 +35,18 @@ public slots:
     virtual void OnOperatingSystemOptClickedSlot();
     virtual void OnProcessesOptClickedSlot();
     virtual void OnSystemDriversOptClickedSlot();
+    virtual void OnStorageATAOptClickedSlot();
     virtual void OnStorageSmartOptClickedSlot();
     virtual void OnSmbiosOptClickedSlot();
     virtual void OnApplicationManagerOptClickedSlot();
     virtual void OnStartupApplicationsOptClickedSlot();
+    virtual void OnActiveConnectionsOptClickedSlot();
 
     // DMI slots()
     virtual void OnRequestDMIItemProperties(DMIModuleType);
+
+    // ATA slots()
+    virtual void OnRequestATAItemProperties(QString);
 
     // SMART slots()
     virtual void OnRequestSMARTProperties(QString);

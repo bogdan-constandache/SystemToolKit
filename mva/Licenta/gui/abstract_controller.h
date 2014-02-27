@@ -19,10 +19,16 @@ signals:
 
     void OnSetDMIItemsInformation(QStandardItemModel*);
     void OnSetDMIPropertiesInfomation(QStandardItemModel*);
+    void OnSetATAHDDItemsInformation(QStandardItemModel*);
+    void OnSetATAItemPropertiesInformation(QStandardItemModel*);
     void OnSetSMARTHDDItemsInformation(QStandardItemModel*);
     void OnSetSMARTItemPropertiesInformation(QStandardItemModel*);
     void OnSetPowerManagementInformation(QStandardItemModel *);
     void OnSetApplicationManagerInformation(QStandardItemModel *);
+
+    void OnSetSystemDriversModelInformation(QStandardItemModel *);
+
+    void OnSetActiveConnectionsInformation(QStandardItemModel *);
 
 public slots:
     virtual void OnComputerDMIOptClickedSlot() = 0;
@@ -31,13 +37,18 @@ public slots:
     virtual void OnOperatingSystemOptClickedSlot() = 0;
     virtual void OnProcessesOptClickedSlot() = 0;
     virtual void OnSystemDriversOptClickedSlot() = 0;
+    virtual void OnStorageATAOptClickedSlot() = 0;
     virtual void OnStorageSmartOptClickedSlot() = 0;
     virtual void OnSmbiosOptClickedSlot() = 0;
     virtual void OnApplicationManagerOptClickedSlot() = 0;
     virtual void OnStartupApplicationsOptClickedSlot() = 0;
+    virtual void OnActiveConnectionsOptClickedSlot() = 0;
 
     // DMI slots
     virtual void OnRequestDMIItemProperties(DMIModuleType) = 0;
+
+    // ATA slots
+    virtual void OnRequestATAItemProperties(QString) = 0;
 
     // SMART slots
     virtual void OnRequestSMARTProperties(QString) = 0;

@@ -7,7 +7,6 @@ CSmartInfo::CSmartInfo():
     ReadSMARTDetailsFromDB();
     // get physical drives list (e.g. PhysicalDrive0, PhysicalDrive1, etc..)
     m_PhysicalDrives = GetPhysicalDrivesList();
-
     for(int i = 0; i < m_PhysicalDrives.count(); i++)
     {
         ATADeviceProperties *pProp = GetATADeviceProperties(m_PhysicalDrives.at(i).toStdWString().c_str());

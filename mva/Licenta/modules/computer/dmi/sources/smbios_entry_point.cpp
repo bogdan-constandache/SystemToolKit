@@ -453,7 +453,9 @@ int CSMBiosEntryPoint::ParseData()
     }
     pTable.clear();
 
-    pTable = ReturnTableOfTypeAndLength(BASEBOARD_INFORMATION_TYPE, 0x10);
+    pTable = ReturnTableOfTypeAndLength(BASEBOARD_INFORMATION_TYPE, 0x0f);
+    if( 0 == pTable.count() )
+        pTable = ReturnTableOfTypeAndLength(BASEBOARD_INFORMATION_TYPE, 0x10);
     for(int k = 0; k < pTable.count(); k++)
     {
         pItem = new CType2BaseBoardInformation;
