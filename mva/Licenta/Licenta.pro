@@ -37,7 +37,9 @@ SOURCES += main/main.cpp \
         gui/sources/smart_widget.cpp \
         gui/sources/ata_widget.cpp \
         gui/sources/system_drivers_widget.cpp \
-        gui/sources/active_connections_widget.cpp
+        gui/sources/active_connections_widget.cpp \
+    modules/computer/sensors/sources/stk_driver_wrapper.cpp \
+    modules/computer/sensors/sources/it87.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -69,7 +71,12 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/smart_widget.h \
         gui/headers/ata_widget.h \
         gui/headers/system_drivers_widget.h \
-        gui/headers/active_connections_widget.h
+        gui/headers/active_connections_widget.h \
+    modules/computer/sensors/driver/driver_defines.h \
+    modules/computer/sensors/headers/stk_driver_wrapper.h \
+    modules/computer/sensors/interfaces/isensor.h \
+    modules/computer/sensors/headers/it87.h \
+    modules/computer/sensors/headers/sensor_defines.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
