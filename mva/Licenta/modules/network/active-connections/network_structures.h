@@ -13,7 +13,28 @@ typedef struct _ACTIVE_CONNECTIONS_
     QString qzRemoteAddress;
     QString qzRemotePort;
     QString qzCreationTime;
+    QString qzConnectionType;
 }ActiveConnectionsStruct;
+
+
+typedef struct _NETWORK_ADAPTER_INFO_
+{
+    QString qzAdapterName;
+    QString qzDescription;
+    QString qzMACAddress;
+    QString qzIndex;
+    QString qzAdaptorType;
+    QString qzDHCPEnabled;
+    QString qzIPAddress;
+    QString qzIPMask;
+    QString qzGateway;
+    QString qzDHCPServer;
+    QString qzHaveWINS; // WINDOWS INTERNET NAME SERVICE
+    QString qzPrimaryWINSServer;
+    QString qzSecondaryWINSServer;
+    QString qzDHCPLeaseObtained;
+    QString qzDHCPLeaseExpires;
+}NetworkAdapterInfo;
 
 
 #endif // NETWORK_STRUCTURES_H

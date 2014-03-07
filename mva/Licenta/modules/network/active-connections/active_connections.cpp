@@ -14,7 +14,7 @@ CActiveConnections::~CActiveConnections()
     m_Connections.clear();
 }
 
-int CActiveConnections::GetAllConnections()
+int CActiveConnections::GetAllTCPConnections()
 {
     PMIB_TCPTABLE_OWNER_MODULE pTcpTable = 0;
     DWORD dwSize = 0;
@@ -48,6 +48,8 @@ int CActiveConnections::GetAllConnections()
         for(int i = 0; i < (int) pTcpTable->dwNumEntries; i++)
         {
             pStruct = new ActiveConnectionsStruct;
+
+            pStruct->qzConnectionType = "TCP";
 
             switch (pTcpTable->table[i].dwState) {
             case MIB_TCP_STATE_CLOSED:
@@ -118,9 +120,9 @@ int CActiveConnections::GetAllConnections()
             if (pTime.wYear > 2000 && bResult == TRUE )
             {
                 qzCreationTime += QString::number(pTime.wDay);
-                qzCreationTime += "-";
+                qzCreationTime += "/";
                 qzCreationTime += QString::number(pTime.wMonth);
-                qzCreationTime += "-";
+                qzCreationTime += "/";
                 qzCreationTime += QString::number(pTime.wYear);
                 qzCreationTime += " ";
                 qzCreationTime += QString::number(pTime.wHour);
@@ -139,6 +141,93 @@ int CActiveConnections::GetAllConnections()
             m_Connections.append(pStruct);
         }
         free(pTcpTable);
+    }
+
+    return Success;
+}
+
+int CActiveConnections::GetAllUDPConnections()
+{
+    PMIB_UDPTABLE_OWNER_MODULE pUdpTable = 0;
+    DWORD dwSize = 0;
+    DWORD dwRetVal = 0;
+
+    struct in_addr IpAddr;
+
+    ActiveConnectionsStruct *pStruct = 0;
+
+    pUdpTable = (PMIB_UDPTABLE_OWNER_MODULE) malloc (sizeof(MIB_UDPTABLE_OWNER_MODULE));
+    if( NULL == pUdpTable )
+    {
+        return NotAllocated;
+    }
+
+    dwSize = sizeof(MIB_UDPTABLE_OWNER_MODULE);
+
+    if( (dwRetVal = GetExtendedUdpTable(pUdpTable, &dwSize, TRUE, AF_INET,
+                                        UDP_TABLE_OWNER_MODULE, 0)) == ERROR_INSUFFICIENT_BUFFER )
+    {
+        free(pUdpTable);
+        pUdpTable = (PMIB_UDPTABLE_OWNER_MODULE) malloc (dwSize);
+        if( NULL == pUdpTable )
+        {
+            return NotAllocated;
+        }
+    }
+
+    if( (dwRetVal = GetExtendedUdpTable(pUdpTable, &dwSize, TRUE, AF_INET, UDP_TABLE_OWNER_MODULE, 0)) == NO_ERROR )
+    {
+        for(int i = 0; i < (int) pUdpTable->dwNumEntries; i++)
+        {
+            pStruct = new ActiveConnectionsStruct;
+
+            pStruct->qzConnectionType = "UDP";
+            pStruct->qzState = "N/A";
+
+            IpAddr.S_un.S_addr = (ULONG) pUdpTable->table[i].dwLocalAddr;
+            char szAddress[128] = {0};
+            strcpy_s(szAddress, sizeof(szAddress), inet_ntoa(IpAddr));
+            pStruct->qzLocalAddress = szAddress;
+
+            pStruct->qzLocalPort = QString::number(ntohs((USHORT)pUdpTable->table[i].dwLocalPort));
+
+            pStruct->qzRemoteAddress = "N/A";
+            pStruct->qzRemotePort = "N/A";
+
+            pStruct->qzProcessPid = QString::number(pUdpTable->table[i].dwOwningPid);
+
+            pStruct->qzProcessName = this->GetProcessNameFromPID(pUdpTable->table[i].dwOwningPid);
+
+            QString qzCreationTime = "";
+
+            SYSTEMTIME pTime;
+
+            BOOL bResult = FileTimeToSystemTime((FILETIME*)&pUdpTable->table[i].liCreateTimestamp, &pTime);
+
+            if (pTime.wYear > 2000 && bResult == TRUE )
+            {
+                qzCreationTime += QString::number(pTime.wDay);
+                qzCreationTime += "/";
+                qzCreationTime += QString::number(pTime.wMonth);
+                qzCreationTime += "/";
+                qzCreationTime += QString::number(pTime.wYear);
+                qzCreationTime += " ";
+                qzCreationTime += QString::number(pTime.wHour);
+                qzCreationTime += ":";
+                qzCreationTime += QString::number(pTime.wMinute);
+                qzCreationTime += ":";
+                qzCreationTime += QString::number(pTime.wSecond);
+            }
+            else
+            {
+                qzCreationTime = "N/A";
+            }
+
+            pStruct->qzCreationTime = qzCreationTime;
+
+            m_Connections.append(pStruct);
+        }
+        free(pUdpTable);
     }
 
     return Success;
@@ -173,13 +262,14 @@ QStandardItemModel *CActiveConnections::GetActiveConnections()
     QStandardItemModel *pModel = new QStandardItemModel;
     QStandardItem *pItem = 0;
 
-    this->GetAllConnections();
+    this->GetAllTCPConnections();
+    this->GetAllUDPConnections();
 
-    pModel->setColumnCount(8);
+    pModel->setColumnCount(9);
     pModel->setRowCount(m_Connections.count());
 
 
-    pModel->setHorizontalHeaderLabels(QStringList() << "Process name" << "PID" << "State" << "Local address" << "Local port"
+    pModel->setHorizontalHeaderLabels(QStringList() << "Process name" << "PID" << "Connection type" << "State" << "Local address" << "Local port"
                                       << "Remote address" << "Remote port" << "Creation time");
 
     for(int i = 0; i < m_Connections.count(); i++)
@@ -192,23 +282,26 @@ QStandardItemModel *CActiveConnections::GetActiveConnections()
         pItem = new QStandardItem(pStruct->qzProcessPid);
         pModel->setItem(i, 1, pItem);
 
-        pItem = new QStandardItem(pStruct->qzState);
+        pItem = new QStandardItem(pStruct->qzConnectionType);
         pModel->setItem(i, 2, pItem);
 
-        pItem = new QStandardItem(pStruct->qzLocalAddress);
+        pItem = new QStandardItem(pStruct->qzState);
         pModel->setItem(i, 3, pItem);
 
-        pItem = new QStandardItem(pStruct->qzLocalPort);
+        pItem = new QStandardItem(pStruct->qzLocalAddress);
         pModel->setItem(i, 4, pItem);
 
-        pItem = new QStandardItem(pStruct->qzRemoteAddress);
+        pItem = new QStandardItem(pStruct->qzLocalPort);
         pModel->setItem(i, 5, pItem);
 
-        pItem = new QStandardItem(pStruct->qzRemotePort);
+        pItem = new QStandardItem(pStruct->qzRemoteAddress);
         pModel->setItem(i, 6, pItem);
 
-        pItem = new QStandardItem(pStruct->qzCreationTime);
+        pItem = new QStandardItem(pStruct->qzRemotePort);
         pModel->setItem(i, 7, pItem);
+
+        pItem = new QStandardItem(pStruct->qzCreationTime);
+        pModel->setItem(i, 8, pItem);
     }
 
     return pModel;

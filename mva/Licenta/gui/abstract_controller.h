@@ -30,6 +30,9 @@ signals:
 
     void OnSetActiveConnectionsInformation(QStandardItemModel *);
 
+    void OnSetNetworkDevicesNames(QStandardItemModel *);
+    void OnSetNetworkDeviceInformation(QStandardItemModel *);
+
 public slots:
     virtual void OnComputerDMIOptClickedSlot() = 0;
     virtual void OnComputerPowerManagementOptClickedSlot() = 0;
@@ -43,6 +46,7 @@ public slots:
     virtual void OnApplicationManagerOptClickedSlot() = 0;
     virtual void OnStartupApplicationsOptClickedSlot() = 0;
     virtual void OnActiveConnectionsOptClickedSlot() = 0;
+    virtual void OnNetworkDevicesOptClickedSlot() = 0;
 
     // DMI slots
     virtual void OnRequestDMIItemProperties(DMIModuleType) = 0;
@@ -57,6 +61,9 @@ public slots:
 
     // Application manager slots
     virtual void OnUninstallApplicationSlot() = 0;
+
+    // Network devices manager slots
+    virtual void OnRequestNetworkDeviceInfomationsSlot(QString) = 0;
 };
 
 #endif // ABSTRACT_CONTROLLER_H

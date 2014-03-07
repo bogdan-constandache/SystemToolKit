@@ -8,6 +8,7 @@
 #include "../modules/storage/smart/headers/csmartinfo.h"
 #include "../modules/operating-system/system-drivers/headers/system_drivers.h"
 #include "../modules/network/active-connections/active_connections.h"
+#include "../modules/network/network-devices/headers/network_devices.h"
 
 #include <QDebug>
 
@@ -20,6 +21,7 @@ private: // internal objects
     CSMBiosEntryPoint *m_pDMIManager;
     CSmartInfo *m_pSmartManager;
     SystemDrivers *m_pSystemDriversManager;
+    CNetworkDevices *m_pNetworkDevicesManager;
     CActiveConnections *m_pActiveConnectionsManager;
     QMap<QString, QString> m_HDDModelToPhysicalDrive;
 
@@ -41,6 +43,7 @@ public slots:
     virtual void OnApplicationManagerOptClickedSlot();
     virtual void OnStartupApplicationsOptClickedSlot();
     virtual void OnActiveConnectionsOptClickedSlot();
+    virtual void OnNetworkDevicesOptClickedSlot();
 
     // DMI slots()
     virtual void OnRequestDMIItemProperties(DMIModuleType);
@@ -55,6 +58,9 @@ public slots:
 
     // Application manager slots()
     virtual void OnUninstallApplicationSlot();
+
+    // Network devices manager slots()
+    virtual void OnRequestNetworkDeviceInfomationsSlot(QString);
 };
 
 #endif // CONTROLLER_H

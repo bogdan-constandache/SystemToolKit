@@ -2,7 +2,7 @@
 
 Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pDMIManager(NULL), m_pSmartManager(NULL), m_pSystemDriversManager(NULL),
-    m_pActiveConnectionsManager(NULL)
+    m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL)
 {
 }
 
@@ -20,6 +20,8 @@ Controller::~Controller()
         delete m_pSystemDriversManager;
     if (m_pActiveConnectionsManager)
         delete m_pActiveConnectionsManager;
+    if (m_pNetworkDevicesManager)
+        delete m_pNetworkDevicesManager;
 }
 
 void Controller::StartController()
@@ -73,6 +75,9 @@ void Controller::StartController()
 
     pDataItem = new QStandardItem(QString("Network"));
     qList.append(pDataItem);
+
+    pChildItem = new QStandardItem(QString("Network devices"));
+    qChildList.append(pChildItem);
 
     pChildItem = new QStandardItem(QString("Connections"));
     qChildList.append(pChildItem);
@@ -222,6 +227,22 @@ void Controller::OnActiveConnectionsOptClickedSlot()
         emit OnSetActiveConnectionsInformation(pModel);
 }
 
+void Controller::OnNetworkDevicesOptClickedSlot()
+{
+    if (m_pNetworkDevicesManager)
+    {
+        delete m_pNetworkDevicesManager;
+        m_pNetworkDevicesManager = 0;
+    }
+
+    m_pNetworkDevicesManager = new CNetworkDevices;
+
+    QStandardItemModel *pModel = m_pNetworkDevicesManager->GetAdapterNames();
+
+    if (0 != pModel)
+        emit OnSetNetworkDevicesNames(pModel);
+}
+
 void Controller::OnRequestDMIItemProperties(DMIModuleType ItemType)
 {
     QStandardItemModel *pModel = m_pDMIManager->GetItemPropertiesModel(ItemType);
@@ -316,4 +337,15 @@ void Controller::OnRequestSMARTProperties(QString qzModel)
 void Controller::OnUninstallApplicationSlot()
 {
     qDebug() << __FUNCTION__;
+}
+
+void Controller::OnRequestNetworkDeviceInfomationsSlot(QString qzAdapterName)
+{
+    if (m_pNetworkDevicesManager)
+    {
+       QStandardItemModel *pModel = m_pNetworkDevicesManager->GetAdapterInformations(qzAdapterName);
+
+       if (pModel)
+           emit OnSetNetworkDeviceInformation(pModel);
+    }
 }

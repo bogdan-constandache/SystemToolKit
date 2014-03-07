@@ -31,6 +31,9 @@ SOURCES += main/main.cpp \
         modules/storage/smart/sources/csmartinfo.cpp \
         modules/operating-system/system-drivers/sources/system-drivers.cpp \
         modules/network/active-connections/active_connections.cpp \
+        modules/computer/sensors/sources/stk_driver_wrapper.cpp \
+        modules/computer/sensors/sources/it87.cpp \
+        modules/network/network-devices/sources/network_devices.cpp \
         gui/sources/battery_status_widget.cpp \
         gui/sources/application_manager_widget.cpp \
         gui/sources/dmi_widget.cpp \
@@ -38,8 +41,7 @@ SOURCES += main/main.cpp \
         gui/sources/ata_widget.cpp \
         gui/sources/system_drivers_widget.cpp \
         gui/sources/active_connections_widget.cpp \
-    modules/computer/sensors/sources/stk_driver_wrapper.cpp \
-    modules/computer/sensors/sources/it87.cpp
+        gui/sources/network_devices_widget.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -65,6 +67,12 @@ HEADERS  += gui/abstract_controller.h \
         modules/operating-system/system-drivers/headers/system_drivers.h \
         modules/network/active-connections/active_connections.h \
         modules/network/active-connections/network_structures.h \
+        modules/computer/sensors/driver/driver_defines.h \
+        modules/computer/sensors/headers/stk_driver_wrapper.h \
+        modules/computer/sensors/interfaces/isensor.h \
+        modules/computer/sensors/headers/it87.h \
+        modules/computer/sensors/headers/sensor_defines.h \
+        modules/network/network-devices/headers/network_devices.h \
         gui/headers/battery_status_widget.h \
         gui/headers/application_manager_widget.h \
         gui/headers/dmi_widget.h \
@@ -72,11 +80,7 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/ata_widget.h \
         gui/headers/system_drivers_widget.h \
         gui/headers/active_connections_widget.h \
-    modules/computer/sensors/driver/driver_defines.h \
-    modules/computer/sensors/headers/stk_driver_wrapper.h \
-    modules/computer/sensors/interfaces/isensor.h \
-    modules/computer/sensors/headers/it87.h \
-    modules/computer/sensors/headers/sensor_defines.h
+        gui/headers/network_devices_widget.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
@@ -86,4 +90,5 @@ FORMS    += \
         gui/forms/smart_widget.ui \
         gui/forms/ata_widget.ui \
         gui/forms/system_drivers_widget.ui \
-        gui/forms/active_connections_widget.ui
+        gui/forms/active_connections_widget.ui \
+        gui/forms/network_devices_widget.ui

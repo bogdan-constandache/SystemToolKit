@@ -21,6 +21,7 @@
 #include "ata_widget.h"
 #include "system_drivers_widget.h"
 #include "active_connections_widget.h"
+#include "network_devices_widget.h"
 
 namespace Ui {
 class MainWindow;
@@ -43,6 +44,7 @@ private:
     CATAWidget *m_pATAManagerWidget;
     CSystemDriversWidget *m_pSystemDriversWidget;
     CActiveConnectionsWidget *m_pActiveConnectionsWidget;
+    CNetworkDevicesWidget *m_pNetworkDevicesWidget;
 
     void InitializeStackedWidget();
 
@@ -68,6 +70,7 @@ signals:
     void OnApplicationManagerOptClickedSignal();
     void OnStartupApplicationsOptClickedSignal();
     void OnActiveConnectionsOptClickedSignal();
+    void OnNetworkDevicesOptClickedSignal();
 };
 
 #endif // MAINWINDOW_H

@@ -21,7 +21,8 @@ class CActiveConnections
 private:
     QList<ActiveConnectionsStruct*> m_Connections;
 
-    int GetAllConnections();
+    int GetAllTCPConnections();
+    int GetAllUDPConnections();
     QString GetProcessNameFromPID(int nPID);
 
 public:
