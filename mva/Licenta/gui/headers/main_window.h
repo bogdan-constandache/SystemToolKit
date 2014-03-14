@@ -22,6 +22,7 @@
 #include "system_drivers_widget.h"
 #include "active_connections_widget.h"
 #include "network_devices_widget.h"
+#include "cpuid_widget.h"
 
 namespace Ui {
 class MainWindow;
@@ -45,6 +46,7 @@ private:
     CSystemDriversWidget *m_pSystemDriversWidget;
     CActiveConnectionsWidget *m_pActiveConnectionsWidget;
     CNetworkDevicesWidget *m_pNetworkDevicesWidget;
+    CCPUIDWidget *m_pCPUIDWidget;
 
     void InitializeStackedWidget();
 
@@ -71,6 +73,8 @@ signals:
     void OnStartupApplicationsOptClickedSignal();
     void OnActiveConnectionsOptClickedSignal();
     void OnNetworkDevicesOptClickedSignal();
+    void OnCPUOptClickedSignal();
+    void OnCPUIDOptClickedSignal();
 };
 
 #endif // MAINWINDOW_H

@@ -34,6 +34,7 @@ SOURCES += main/main.cpp \
         modules/computer/sensors/sources/stk_driver_wrapper.cpp \
         modules/computer/sensors/sources/it87.cpp \
         modules/network/network-devices/sources/network_devices.cpp \
+        modules/motherboard/cpu/sources/intel_cpuid.cpp \
         gui/sources/battery_status_widget.cpp \
         gui/sources/application_manager_widget.cpp \
         gui/sources/dmi_widget.cpp \
@@ -41,7 +42,8 @@ SOURCES += main/main.cpp \
         gui/sources/ata_widget.cpp \
         gui/sources/system_drivers_widget.cpp \
         gui/sources/active_connections_widget.cpp \
-        gui/sources/network_devices_widget.cpp
+        gui/sources/network_devices_widget.cpp \
+        gui/sources/cpuid_widget.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -73,6 +75,8 @@ HEADERS  += gui/abstract_controller.h \
         modules/computer/sensors/headers/it87.h \
         modules/computer/sensors/headers/sensor_defines.h \
         modules/network/network-devices/headers/network_devices.h \
+        modules/motherboard/cpu/headers/cpuid_defines.h \
+        modules/motherboard/cpu/headers/intel_cpuid.h \
         gui/headers/battery_status_widget.h \
         gui/headers/application_manager_widget.h \
         gui/headers/dmi_widget.h \
@@ -80,7 +84,8 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/ata_widget.h \
         gui/headers/system_drivers_widget.h \
         gui/headers/active_connections_widget.h \
-        gui/headers/network_devices_widget.h
+        gui/headers/network_devices_widget.h \
+        gui/headers/cpuid_widget.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
@@ -91,4 +96,5 @@ FORMS    += \
         gui/forms/ata_widget.ui \
         gui/forms/system_drivers_widget.ui \
         gui/forms/active_connections_widget.ui \
-        gui/forms/network_devices_widget.ui
+        gui/forms/network_devices_widget.ui \
+        gui/forms/cpuid_widget.ui

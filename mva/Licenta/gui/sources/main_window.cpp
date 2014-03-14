@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     m_pApplicationManagerWidget(NULL), m_pDMIManagerWidget(NULL),
     m_pSMARTManagerWidget(NULL), m_pATAManagerWidget(NULL),
     m_pSystemDriversWidget(NULL), m_pActiveConnectionsWidget(NULL),
-    m_pNetworkDevicesWidget(NULL)
+    m_pNetworkDevicesWidget(NULL), m_pCPUIDWidget(NULL)
 {
     ui->setupUi(this);
     this->setMinimumWidth(1000);
@@ -47,6 +47,10 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
             m_pController, SLOT(OnActiveConnectionsOptClickedSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnNetworkDevicesOptClickedSignal()),
             m_pController, SLOT(OnNetworkDevicesOptClickedSlot()), Qt::QueuedConnection);
+    connect(this, SIGNAL(OnCPUOptClickedSignal()),
+            m_pController, SLOT(OnCPUOptClickedSlot()), Qt::QueuedConnection);
+    connect(this, SIGNAL(OnCPUIDOptClickedSignal()),
+            m_pController, SLOT(OnCPUIDOptClickedSlot()), Qt::QueuedConnection);
 
     InitializeStackedWidget();
 }
@@ -83,6 +87,9 @@ void MainWindow::InitializeStackedWidget()
     m_pNetworkDevicesWidget = new CNetworkDevicesWidget(ui->stackedWidget, m_pController);
     connect(m_pNetworkDevicesWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
 
+    m_pCPUIDWidget = new CCPUIDWidget(ui->stackedWidget, m_pController);
+    connect(m_pCPUIDWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
+
     // Add widget to the stacked widget
     ui->stackedWidget->addWidget(m_pDMIManagerWidget);
     ui->stackedWidget->addWidget(m_pPowerManagementWidget);
@@ -92,6 +99,7 @@ void MainWindow::InitializeStackedWidget()
     ui->stackedWidget->addWidget(m_pSystemDriversWidget);
     ui->stackedWidget->addWidget(m_pActiveConnectionsWidget);
     ui->stackedWidget->addWidget(m_pNetworkDevicesWidget);
+    ui->stackedWidget->addWidget(m_pCPUIDWidget);
 
     // remove first to pages
     ui->stackedWidget->removeWidget(ui->page_2);
@@ -159,6 +167,16 @@ void MainWindow::OnItemsTreeClickedSlot(QModelIndex index)
     {
         qDebug() << "Network devices clicked";
         emit OnNetworkDevicesOptClickedSignal();
+    }
+    if( "CPU" == qzItemText )
+    {
+        qDebug() << "CPU clicked";
+        emit OnCPUOptClickedSignal();
+    }
+    if( "CPUID" == qzItemText )
+    {
+        qDebug() << "CPUID clicked";
+        emit OnCPUIDOptClickedSignal();
     }
 }
 

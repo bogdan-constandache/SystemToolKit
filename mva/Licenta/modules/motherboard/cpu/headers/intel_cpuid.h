@@ -10,10 +10,11 @@
 #include <QList>
 #include <QStringList>
 #include <QDebug>
+#include <QStandardItemModel>
 
 // My includes
 #include "cpuid_defines.h"
-#include "../utils/utils.h"
+#include "../../../../utils/headers/utils.h"
 
 // defines
 
@@ -24,12 +25,15 @@ private:
 
 private:
     int GetCacheInformation(int *pData);
+    int GetSecondCacheInformation();
     PCacheInformation GetRegisterCacheInformation(int nByte);
+    int Initialize();
+
 public:
     CIntelCpuID();
     ~CIntelCpuID();
-    int GetCpuIDInformation();
-    PCpuIDInformation GetData();
+    QStandardItemModel* GetCPUIDInformations();
+
 };
 
 #endif // INTEL_CPUID_H

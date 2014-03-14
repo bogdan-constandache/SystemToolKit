@@ -33,6 +33,8 @@ signals:
     void OnSetNetworkDevicesNames(QStandardItemModel *);
     void OnSetNetworkDeviceInformation(QStandardItemModel *);
 
+    void OnSetCPUIDInformations(QStandardItemModel*);
+
 public slots:
     virtual void OnComputerDMIOptClickedSlot() = 0;
     virtual void OnComputerPowerManagementOptClickedSlot() = 0;
@@ -47,6 +49,8 @@ public slots:
     virtual void OnStartupApplicationsOptClickedSlot() = 0;
     virtual void OnActiveConnectionsOptClickedSlot() = 0;
     virtual void OnNetworkDevicesOptClickedSlot() = 0;
+    virtual void OnCPUOptClickedSlot() = 0;
+    virtual void OnCPUIDOptClickedSlot() = 0;
 
     // DMI slots
     virtual void OnRequestDMIItemProperties(DMIModuleType) = 0;

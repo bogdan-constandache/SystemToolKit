@@ -9,6 +9,17 @@ typedef struct _CACHE_INFORMATION
     QString Descriptor;
 }CacheInformation, *PCacheInformation;
 
+typedef struct _CPU_INSTRUCTIONS
+{
+    QString qzName;
+    QString qzDescription;
+    _CPU_INSTRUCTIONS(QString qzN, QString qzD)
+    {
+        qzName = qzN;
+        qzDescription = qzD;
+    }
+}CpuInstruction;
+
 typedef struct _CPUID_INFORMATION
 {
     QString Manufacturer;
@@ -17,7 +28,7 @@ typedef struct _CPUID_INFORMATION
     QString Stepping;
     QString MaxMultiplier;
     QString MinMultiplier;
-    QStringList Instructions;
+    QList<CpuInstruction*> Instructions;
     QString Family;
     QString Model;
     QString ExtendedFamily;

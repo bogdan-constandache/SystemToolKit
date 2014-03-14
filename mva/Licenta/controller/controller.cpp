@@ -2,7 +2,7 @@
 
 Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pDMIManager(NULL), m_pSmartManager(NULL), m_pSystemDriversManager(NULL),
-    m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL)
+    m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL)
 {
 }
 
@@ -22,6 +22,8 @@ Controller::~Controller()
         delete m_pActiveConnectionsManager;
     if (m_pNetworkDevicesManager)
         delete m_pNetworkDevicesManager;
+    if (m_pCPUIDManager)
+        delete m_pCPUIDManager;
 }
 
 void Controller::StartController()
@@ -43,6 +45,17 @@ void Controller::StartController()
     pChildItem = new QStandardItem(QString("DMI"));
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("Power management"));
+    qChildList.append(pChildItem);
+
+    pDataItem->appendRows(qChildList);
+    qChildList.clear();
+
+    pDataItem = new QStandardItem(QString("Motherboard"));
+    qList.append(pDataItem);
+
+    pChildItem = new QStandardItem(QString("CPU"));
+    qChildList.append(pChildItem);
+    pChildItem = new QStandardItem(QString("CPUID"));
     qChildList.append(pChildItem);
 
     pDataItem->appendRows(qChildList);
@@ -241,6 +254,27 @@ void Controller::OnNetworkDevicesOptClickedSlot()
 
     if (0 != pModel)
         emit OnSetNetworkDevicesNames(pModel);
+}
+
+void Controller::OnCPUOptClickedSlot()
+{
+
+}
+
+void Controller::OnCPUIDOptClickedSlot()
+{
+    if(m_pCPUIDManager)
+    {
+        delete m_pCPUIDManager;
+        m_pCPUIDManager = 0;
+    }
+
+    m_pCPUIDManager = new CIntelCpuID;
+
+    QStandardItemModel *pModel = m_pCPUIDManager->GetCPUIDInformations();
+
+    if (0 != pModel )
+        emit OnSetCPUIDInformations(pModel);
 }
 
 void Controller::OnRequestDMIItemProperties(DMIModuleType ItemType)

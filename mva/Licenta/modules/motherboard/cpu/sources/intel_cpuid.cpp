@@ -1,4 +1,4 @@
-#include "../../include/hardware/intel_cpuid.h"
+#include "../headers/intel_cpuid.h"
 
 
 CIntelCpuID::CIntelCpuID() : m_data(0)
@@ -8,15 +8,109 @@ CIntelCpuID::CIntelCpuID() : m_data(0)
 
 CIntelCpuID::~CIntelCpuID()
 {
-    if( 0 != m_data )
+    if (0 != m_data)
     {
+        for(int i = 0; i < m_data->CacheInformation.count(); i++)
+        {
+            delete m_data->CacheInformation.at(i);
+        }
+        for(int i = 0; i < m_data->Instructions.count(); i++)
+        {
+            delete m_data->Instructions.at(i);
+        }
+        m_data->CacheInformation.clear();
         m_data->Instructions.clear();
         delete m_data;
         m_data = 0;
     }
 }
 
-int CIntelCpuID::GetCpuIDInformation()
+QStandardItemModel *CIntelCpuID::GetCPUIDInformations()
+{
+    // delete internal object
+    if (0 != m_data)
+    {
+        for(int i = 0; i < m_data->CacheInformation.count(); i++)
+        {
+            delete m_data->CacheInformation.at(i);
+        }
+        for(int i = 0; i < m_data->Instructions.count(); i++)
+        {
+            delete m_data->Instructions.at(i);
+        }
+        m_data->CacheInformation.clear();
+        m_data->Instructions.clear();
+        delete m_data;
+        m_data = 0;
+    }
+
+    m_data = new CpuIDInformation;
+
+    if (Success != Initialize())
+        return 0;
+
+    QStandardItemModel *pModel = new QStandardItemModel;
+
+    pModel->setColumnCount(2);
+    pModel->setRowCount(14 + m_data->Instructions.count() + m_data->CacheInformation.count());
+
+    pModel->setHorizontalHeaderLabels(QStringList() << "Field" << "Value");
+
+    pModel->setItem(0, 0, new QStandardItem("Processor type: "));
+    pModel->setItem(0, 1, new QStandardItem(m_data->ProcessorType));
+
+    pModel->setItem(1, 0, new QStandardItem("Manufacturer: "));
+    pModel->setItem(1, 1, new QStandardItem(m_data->Manufacturer));
+
+    pModel->setItem(2, 0, new QStandardItem("Name: "));
+    pModel->setItem(2, 1, new QStandardItem(m_data->CPUName));
+
+    pModel->setItem(3, 0, new QStandardItem("Stepping: "));
+    pModel->setItem(3, 1, new QStandardItem(m_data->Stepping));
+
+    pModel->setItem(4, 0, new QStandardItem("Revision: "));
+    pModel->setItem(4, 1, new QStandardItem(m_data->Revision));
+
+    pModel->setItem(5, 0, new QStandardItem("Family: "));
+    pModel->setItem(5, 1, new QStandardItem(m_data->Family));
+
+    pModel->setItem(6, 0, new QStandardItem("Model: "));
+    pModel->setItem(6, 1, new QStandardItem(m_data->Model));
+
+    pModel->setItem(7, 0, new QStandardItem("Extended family: "));
+    pModel->setItem(7, 1, new QStandardItem(m_data->ExtendedFamily));
+
+    pModel->setItem(8, 0, new QStandardItem("Extended model: "));
+    pModel->setItem(8, 1, new QStandardItem(m_data->ExtendedModel));
+
+    pModel->setItem(9, 0, new QStandardItem("Max clock: "));
+    pModel->setItem(9, 1, new QStandardItem(m_data->MaxClock));
+
+    pModel->setItem(10, 0, new QStandardItem("Min multiplier: "));
+    pModel->setItem(10, 1, new QStandardItem(m_data->MinMultiplier));
+
+    pModel->setItem(11, 0, new QStandardItem("Max multiplier: "));
+    pModel->setItem(11, 1, new QStandardItem(m_data->MaxMultiplier));
+
+    for(int i = 0; i < m_data->CacheInformation.count(); i++)
+    {
+        PCacheInformation pInf = m_data->CacheInformation.at(i);
+        pModel->setItem(i + 13, 0, new QStandardItem(pInf->Level + ", " +
+                                                     pInf->Type));
+        pModel->setItem(i + 13, 1, new QStandardItem(pInf->Size + ", " +
+                                                     pInf->Descriptor));
+    }
+
+    for(int i = 0; i < m_data->Instructions.count(); i++)
+    {
+        pModel->setItem(i + 14 + m_data->CacheInformation.count(), 0, new QStandardItem(m_data->Instructions.at(i)->qzName));
+        pModel->setItem(i + 14 + m_data->CacheInformation.count(), 1, new QStandardItem(m_data->Instructions.at(i)->qzDescription));
+    }
+
+    return pModel;
+}
+
+int CIntelCpuID::Initialize()
 {
     int nStatus = Uninitialized;
     int CPUInfo[4];
@@ -90,137 +184,136 @@ int CIntelCpuID::GetCpuIDInformation()
 
     // getting instructions from ECX register
     if((CPUInfo[2]) & 0x1)
-        m_data->Instructions.append("SSE3");
+        m_data->Instructions.append(new CpuInstruction("SSE3", "SSE3 new instructions"));
     if((CPUInfo[2] >> 1) & 0x1)
-        m_data->Instructions.append("PCLMULQDQ");
+        m_data->Instructions.append(new CpuInstruction("PCLMULQDQ", "Carryless Multiplication"));
     if((CPUInfo[2] >> 2) & 0x1)
-        m_data->Instructions.append("DTES64");
+        m_data->Instructions.append(new CpuInstruction("DTES64", "64-bit DS Area"));
     if((CPUInfo[2] >> 3) & 0x1)
-        m_data->Instructions.append("MONITOR");
+        m_data->Instructions.append(new CpuInstruction("MONITOR", "Monitor/MWAIT"));
     if((CPUInfo[2] >> 4) & 0x1)
-        m_data->Instructions.append("DS-CPL");
+        m_data->Instructions.append(new CpuInstruction("DS-CPL", "CPL Qualified Debug Store"));
     if((CPUInfo[2] >> 5) & 0x1)
-        m_data->Instructions.append("VMX");
+        m_data->Instructions.append(new CpuInstruction("VMX", "Virtual Machine Extensions"));
     if((CPUInfo[2] >> 6) & 0x1)
-        m_data->Instructions.append("SMX");
+        m_data->Instructions.append(new CpuInstruction("SMX", "Safer Mode Extensions"));
     if((CPUInfo[2] >> 7) & 0x1)
-        m_data->Instructions.append("EIST");
+        m_data->Instructions.append(new CpuInstruction("EIST", "Enhanced INTEL SpeedStep technology"));
     if((CPUInfo[2] >> 8) & 0x1)
-        m_data->Instructions.append("TM2");
+        m_data->Instructions.append(new CpuInstruction("TM2", "Thermal Monitor 2"));
     if((CPUInfo[2] >> 9) & 0x1)
-        m_data->Instructions.append("SSSE3");
+        m_data->Instructions.append(new CpuInstruction("SSSE3", "SSSE3 Extensions"));
     if((CPUInfo[2] >> 10) & 0x1)
-        m_data->Instructions.append("CNXT-ID");
+        m_data->Instructions.append(new CpuInstruction("CNXT-ID", "L1 Context ID"));
     if((CPUInfo[2] >> 12) & 0x1)
-        m_data->Instructions.append("FMA");
+        m_data->Instructions.append(new CpuInstruction("FMA", "Fused Multiply Add"));
     if((CPUInfo[2] >> 13) & 0x1)
-        m_data->Instructions.append("CMPXCHG16B");
+        m_data->Instructions.append(new CpuInstruction("CMPXCHG16B", "CMPXCHG16B Available"));
     if((CPUInfo[2] >> 14) & 0x1)
-        m_data->Instructions.append("xTPR Update Control");
+        m_data->Instructions.append(new CpuInstruction("xTPR Update Control", "xTPR Update Control"));
     if((CPUInfo[2] >> 15) & 0x1)
-        m_data->Instructions.append("PDCM");
+        m_data->Instructions.append(new CpuInstruction("PDCM", "Perf/Debug Capability MSR"));
     if((CPUInfo[2] >> 17) & 0x1)
-        m_data->Instructions.append("PCID");
+        m_data->Instructions.append(new CpuInstruction("PCID", "Process-context Identifiers"));
     if((CPUInfo[2] >> 18) & 0x1)
-        m_data->Instructions.append("DCA");
+        m_data->Instructions.append(new CpuInstruction("DCA", "Direct Cache Access"));
     if((CPUInfo[2] >> 19) & 0x1)
-        m_data->Instructions.append("SSE4.1");
+        m_data->Instructions.append(new CpuInstruction("SSE4.1", "SSE4.1 Extensions"));
     if((CPUInfo[2] >> 20) & 0x1)
-        m_data->Instructions.append("SSE4.2");
+        m_data->Instructions.append(new CpuInstruction("SSE4.2", "SSE4.2 Extensions"));
     if((CPUInfo[2] >> 21) & 0x1)
-        m_data->Instructions.append("x2APIC");
+        m_data->Instructions.append(new CpuInstruction("x2APIC", "x2APIC Instruction"));
     if((CPUInfo[2] >> 22) & 0x1)
-        m_data->Instructions.append("MOVBE");
+        m_data->Instructions.append(new CpuInstruction("MOVBE", "MOVBE Instruction"));
     if((CPUInfo[2] >> 23) & 0x1)
-        m_data->Instructions.append("POPCNT");
+        m_data->Instructions.append(new CpuInstruction("POPCNT", "POPCNT Instruction"));
     if((CPUInfo[2] >> 24) & 0x1)
-        m_data->Instructions.append("TSC-Deadline");
+        m_data->Instructions.append(new CpuInstruction("TSC-Deadline", "TSC-Deadline Instruction"));
     if((CPUInfo[2] >> 25) & 0x1)
-        m_data->Instructions.append("AESNI");
+        m_data->Instructions.append(new CpuInstruction("AESNI", "AESNI Instruction"));
     if((CPUInfo[2] >> 26) & 0x1)
-        m_data->Instructions.append("XSAVE");
+        m_data->Instructions.append(new CpuInstruction("XSAVE", "XSAVE Instruction"));
     if((CPUInfo[2] >> 27) & 0x1)
-        m_data->Instructions.append("OSXSAVE");
+        m_data->Instructions.append(new CpuInstruction("OSXSAVE", "OSXSAVE Instruction"));
     if((CPUInfo[2] >> 28) & 0x1)
-        m_data->Instructions.append("AVX");
+        m_data->Instructions.append(new CpuInstruction("AVX", "AVX Instruction"));
     if((CPUInfo[2] >> 29) & 0x1)
-        m_data->Instructions.append("F16C");
+        m_data->Instructions.append(new CpuInstruction("F16C", "F16C Instruction"));
     if((CPUInfo[2] >> 30) & 0x1)
-        m_data->Instructions.append("RDRAND");
+        m_data->Instructions.append(new CpuInstruction("RDRAND", "RDRAND Instruction"));
 
     // getting processor features from EDX register
     if((CPUInfo[3]) & 0x1)
-        m_data->Instructions.append("FPU");
+        m_data->Instructions.append(new CpuInstruction("FPU", "Floating Point Unit On-Chip"));
     if((CPUInfo[3] >> 1) & 0x1)
-        m_data->Instructions.append("VME");
+        m_data->Instructions.append(new CpuInstruction("VME", "Virtual 8086 Mode Enhancements"));
     if((CPUInfo[3] >> 2) & 0x1)
-        m_data->Instructions.append("DE");
+        m_data->Instructions.append(new CpuInstruction("DE", "Debugging Extensions"));
     if((CPUInfo[3] >> 3) & 0x1)
-        m_data->Instructions.append("PSE");
+        m_data->Instructions.append(new CpuInstruction("PSE", "Page Size Extensions"));
     if((CPUInfo[3] >> 4) & 0x1)
-        m_data->Instructions.append("TSC");
+        m_data->Instructions.append(new CpuInstruction("TSC", "Time Stamp Counter"));
     if((CPUInfo[3] >> 5) & 0x1)
-        m_data->Instructions.append("MSR");
+        m_data->Instructions.append(new CpuInstruction("MSR", "Model Specific Registers RDMSR and WRMSR Instructions"));
     if((CPUInfo[3] >> 6) & 0x1)
-        m_data->Instructions.append("PAE");
+        m_data->Instructions.append(new CpuInstruction("PAE", "Physical Address Extension"));
     if((CPUInfo[3] >> 7) & 0x1)
-        m_data->Instructions.append("MCE");
+        m_data->Instructions.append(new CpuInstruction("MCE", "Machine Check Exception"));
     if((CPUInfo[3] >> 8) & 0x1)
-        m_data->Instructions.append("CX8");
+        m_data->Instructions.append(new CpuInstruction("CX8", "CMPXCHG8B Instruction"));
     if((CPUInfo[3] >> 9) & 0x1)
-        m_data->Instructions.append("APIC");
+        m_data->Instructions.append(new CpuInstruction("APIC", "APIC On-Chip"));
     if((CPUInfo[3] >> 11) & 0x1)
-        m_data->Instructions.append("SEP");
+        m_data->Instructions.append(new CpuInstruction("SEP", "SYSENTER and SYSEXIT Instructions"));
     if((CPUInfo[3] >> 12) & 0x1)
-        m_data->Instructions.append("MTRR");
+        m_data->Instructions.append(new CpuInstruction("MTRR", "Memory Type Range Registers"));
     if((CPUInfo[3] >> 13) & 0x1)
-        m_data->Instructions.append("PGE");
+        m_data->Instructions.append(new CpuInstruction("PGE", "Page Global Bit"));
     if((CPUInfo[3] >> 14) & 0x1)
-        m_data->Instructions.append("MCA");
+        m_data->Instructions.append(new CpuInstruction("MCA", "Machine Check Architecture"));
     if((CPUInfo[3] >> 15) & 0x1)
-        m_data->Instructions.append("CMOV");
+        m_data->Instructions.append(new CpuInstruction("CMOV", "Conditional Move Intructions"));
     if((CPUInfo[3] >> 16) & 0x1)
-        m_data->Instructions.append("PAT");
+        m_data->Instructions.append(new CpuInstruction("PAT", "Page Attribute Table"));
     if((CPUInfo[3] >> 17) & 0x1)
-        m_data->Instructions.append("PSE-36");
+        m_data->Instructions.append(new CpuInstruction("PSE-36", "36-bit Page Size Extension"));
     if((CPUInfo[3] >> 18) & 0x1)
-        m_data->Instructions.append("PSN");
+        m_data->Instructions.append(new CpuInstruction("PSN", "Processor Serial Number"));
     if((CPUInfo[3] >> 19) & 0x1)
-        m_data->Instructions.append("CLFSH");
+        m_data->Instructions.append(new CpuInstruction("CLFSH", "CLFLUSH Instruction"));
     if((CPUInfo[3] >> 21) & 0x1)
-        m_data->Instructions.append("DS");
+        m_data->Instructions.append(new CpuInstruction("DS", "Debug Store"));
     if((CPUInfo[3] >> 22) & 0x1)
-        m_data->Instructions.append("ACPI");
+        m_data->Instructions.append(new CpuInstruction("ACPI", "Thermal Monitor and Software Controlled Clock Facilities"));
     if((CPUInfo[3] >> 23) & 0x1)
-        m_data->Instructions.append("MMX");
+        m_data->Instructions.append(new CpuInstruction("MMX", "Intel MMX Technology"));
     if((CPUInfo[3] >> 24) & 0x1)
-        m_data->Instructions.append("FXSR");
+        m_data->Instructions.append(new CpuInstruction("FXSR", "FXSAVE and FXRSTOR Instructions"));
     if((CPUInfo[3] >> 25) & 0x1)
-        m_data->Instructions.append("SSE");
+        m_data->Instructions.append(new CpuInstruction("SSE", "SSE Extensions"));
     if((CPUInfo[3] >> 26) & 0x1)
-        m_data->Instructions.append("SSE2");
+        m_data->Instructions.append(new CpuInstruction("SSE2", "SSE2 Extensions"));
     if((CPUInfo[3] >> 27) & 0x1)
-        m_data->Instructions.append("SS");
+        m_data->Instructions.append(new CpuInstruction("SS", "Self Snoop"));
     if((CPUInfo[3] >> 28) & 0x1)
-        m_data->Instructions.append("HTT");
+        m_data->Instructions.append(new CpuInstruction("HTT", "Max APIC IDs reserved field is Valid"));
     if((CPUInfo[3] >> 29) & 0x1)
-        m_data->Instructions.append("TM");
+        m_data->Instructions.append(new CpuInstruction("TM", "Thermal Monitor"));
     if((CPUInfo[3] >> 31) & 0x1)
-        m_data->Instructions.append("PBE");
+        m_data->Instructions.append(new CpuInstruction("PBE", "Pending Break Enable"));
 
 
     // determine information about cache
     __cpuid(CPUInfo, 2);
     GetCacheInformation(CPUInfo);
 
+    if(m_data->CacheInformation.count())
+        return Success;
+
+    GetSecondCacheInformation();
 
     nStatus = Success;
     return nStatus;
-}
-
-PCpuIDInformation CIntelCpuID::GetData()
-{
-    return m_data;
 }
 
 int CIntelCpuID::GetCacheInformation(int* pData)
@@ -257,6 +350,68 @@ int CIntelCpuID::GetCacheInformation(int* pData)
         {
             m_data->CacheInformation.append(pCacheInfo);
         }
+    }
+
+    nStatus = Success;
+    return nStatus;
+}
+
+int CIntelCpuID::GetSecondCacheInformation()
+{
+    int nStatus = Uninitialized;
+    PCacheInformation pCacheInfo = 0;
+    int CPUInfo[4];
+    for(int i = 0; i < 4; i++)
+    {
+        QString qzLvl = "", qzType = "", qzSize = "", qzDesc = "";
+
+        __cpuidex(CPUInfo, 4, i);
+        if((CPUInfo[0] & 0x1) == 0)
+            continue;
+        if((CPUInfo[0] >> 1) & 0x1)
+            qzType = "Data cache";
+        if((CPUInfo[0] >> 2) & 0x1)
+            qzType = "Instruction cache";
+        if((CPUInfo[0] >> 3) & 0x1)
+            qzType = "Unified cache";
+
+        if( qzType.isEmpty() )
+            qzType = "Data/Instruction cache";
+
+        BYTE bLvl = (CPUInfo[0] >> 5) & 0x7;
+        qzLvl = "L" + QString::number(bLvl);
+
+        int nWay = 0;
+        nWay = CPUInfo[1] & 0xFFF;
+        nWay++;
+        int nPart = 0;
+        nPart = (CPUInfo[1] >> 12) & 0x3FF;
+        nPart++;
+        int nLineS = 0;
+        nLineS = (CPUInfo[1] >> 22) & 0x3FF;
+        nLineS++;
+        int nSets = 0;
+        nSets = CPUInfo[2];
+        nSets++;
+
+        long nSize = (nWay * nPart * nLineS * nSets) / 1024;
+
+        qzSize = QString::number(nSize);
+        qzSize += " KBytes";
+
+        qzDesc = QString("%1-way associative, %2 byte line size").arg(QString::number(nLineS), QString::number(nWay));
+
+        if( qzLvl.isEmpty() || qzSize.isEmpty() )
+            continue;
+
+        pCacheInfo = new CacheInformation;
+
+        pCacheInfo->Type = qzType;
+        pCacheInfo->Descriptor = qzDesc;
+        pCacheInfo->Level = qzLvl;
+        pCacheInfo->Size = qzSize;
+
+        m_data->CacheInformation.append(pCacheInfo);
     }
 
     nStatus = Success;

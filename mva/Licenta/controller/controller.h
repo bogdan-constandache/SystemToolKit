@@ -9,6 +9,7 @@
 #include "../modules/operating-system/system-drivers/headers/system_drivers.h"
 #include "../modules/network/active-connections/active_connections.h"
 #include "../modules/network/network-devices/headers/network_devices.h"
+#include "../modules/motherboard/cpu/headers/intel_cpuid.h"
 
 #include <QDebug>
 
@@ -23,6 +24,7 @@ private: // internal objects
     SystemDrivers *m_pSystemDriversManager;
     CNetworkDevices *m_pNetworkDevicesManager;
     CActiveConnections *m_pActiveConnectionsManager;
+    CIntelCpuID *m_pCPUIDManager;
     QMap<QString, QString> m_HDDModelToPhysicalDrive;
 
 public:
@@ -44,6 +46,8 @@ public slots:
     virtual void OnStartupApplicationsOptClickedSlot();
     virtual void OnActiveConnectionsOptClickedSlot();
     virtual void OnNetworkDevicesOptClickedSlot();
+    virtual void OnCPUOptClickedSlot();
+    virtual void OnCPUIDOptClickedSlot();
 
     // DMI slots()
     virtual void OnRequestDMIItemProperties(DMIModuleType);
