@@ -75,6 +75,7 @@ signals:
     void OnNetworkDevicesOptClickedSignal();
     void OnCPUOptClickedSignal();
     void OnCPUIDOptClickedSignal();
+    void OnSensorsOptClickedSignal();
 };
 
 #endif // MAINWINDOW_H

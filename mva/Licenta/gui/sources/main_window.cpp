@@ -178,6 +178,11 @@ void MainWindow::OnItemsTreeClickedSlot(QModelIndex index)
         qDebug() << "CPUID clicked";
         emit OnCPUIDOptClickedSignal();
     }
+    if( "Sensors" == qzItemText )
+    {
+        qDebug() << "Sensors clicked";
+        emit OnSensorsOptClickedSignal();
+    }
 }
 
 void MainWindow::OnPopulateMenuTreeSlot(QStandardItemModel *pModel)

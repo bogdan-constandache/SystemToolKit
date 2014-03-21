@@ -19,8 +19,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_MainWindow_t {
-    QByteArrayData data[25];
-    char stringdata[596];
+    QByteArrayData data[26];
+    char stringdata[622];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -46,14 +46,15 @@ QT_MOC_LITERAL(13, 371, 35),
 QT_MOC_LITERAL(14, 407, 32),
 QT_MOC_LITERAL(15, 440, 21),
 QT_MOC_LITERAL(16, 462, 23),
-QT_MOC_LITERAL(17, 486, 22),
-QT_MOC_LITERAL(18, 509, 5),
-QT_MOC_LITERAL(19, 515, 22),
-QT_MOC_LITERAL(20, 538, 19),
-QT_MOC_LITERAL(21, 558, 6),
-QT_MOC_LITERAL(22, 565, 12),
-QT_MOC_LITERAL(23, 578, 8),
-QT_MOC_LITERAL(24, 587, 7)
+QT_MOC_LITERAL(17, 486, 25),
+QT_MOC_LITERAL(18, 512, 22),
+QT_MOC_LITERAL(19, 535, 5),
+QT_MOC_LITERAL(20, 541, 22),
+QT_MOC_LITERAL(21, 564, 19),
+QT_MOC_LITERAL(22, 584, 6),
+QT_MOC_LITERAL(23, 591, 12),
+QT_MOC_LITERAL(24, 604, 8),
+QT_MOC_LITERAL(25, 613, 7)
     },
     "MainWindow\0OnComputerDMIOptClickedSignal\0"
     "\0OnComputerPowerManagementOptClickedSignal\0"
@@ -69,6 +70,7 @@ QT_MOC_LITERAL(24, 587, 7)
     "OnActiveConnectionsOptClickedSignal\0"
     "OnNetworkDevicesOptClickedSignal\0"
     "OnCPUOptClickedSignal\0OnCPUIDOptClickedSignal\0"
+    "OnSensorsOptClickedSignal\0"
     "OnItemsTreeClickedSlot\0index\0"
     "OnPopulateMenuTreeSlot\0QStandardItemModel*\0"
     "pModel\0OnShowWidget\0QWidget*\0pWidget\0"
@@ -81,34 +83,35 @@ static const uint qt_meta_data_MainWindow[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-      18,   14, // methods
+      19,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
-      15,       // signalCount
+      16,       // signalCount
 
  // signals: name, argc, parameters, tag, flags
-       1,    0,  104,    2, 0x05,
-       3,    0,  105,    2, 0x05,
-       4,    0,  106,    2, 0x05,
-       5,    0,  107,    2, 0x05,
-       6,    0,  108,    2, 0x05,
-       7,    0,  109,    2, 0x05,
-       8,    0,  110,    2, 0x05,
-       9,    0,  111,    2, 0x05,
-      10,    0,  112,    2, 0x05,
-      11,    0,  113,    2, 0x05,
-      12,    0,  114,    2, 0x05,
-      13,    0,  115,    2, 0x05,
-      14,    0,  116,    2, 0x05,
-      15,    0,  117,    2, 0x05,
-      16,    0,  118,    2, 0x05,
+       1,    0,  109,    2, 0x05,
+       3,    0,  110,    2, 0x05,
+       4,    0,  111,    2, 0x05,
+       5,    0,  112,    2, 0x05,
+       6,    0,  113,    2, 0x05,
+       7,    0,  114,    2, 0x05,
+       8,    0,  115,    2, 0x05,
+       9,    0,  116,    2, 0x05,
+      10,    0,  117,    2, 0x05,
+      11,    0,  118,    2, 0x05,
+      12,    0,  119,    2, 0x05,
+      13,    0,  120,    2, 0x05,
+      14,    0,  121,    2, 0x05,
+      15,    0,  122,    2, 0x05,
+      16,    0,  123,    2, 0x05,
+      17,    0,  124,    2, 0x05,
 
  // slots: name, argc, parameters, tag, flags
-      17,    1,  119,    2, 0x08,
-      19,    1,  122,    2, 0x08,
-      22,    1,  125,    2, 0x08,
+      18,    1,  125,    2, 0x08,
+      20,    1,  128,    2, 0x08,
+      23,    1,  131,    2, 0x08,
 
  // signals: parameters
     QMetaType::Void,
@@ -126,11 +129,12 @@ static const uint qt_meta_data_MainWindow[] = {
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
+    QMetaType::Void,
 
  // slots: parameters
-    QMetaType::Void, QMetaType::QModelIndex,   18,
-    QMetaType::Void, 0x80000000 | 20,   21,
-    QMetaType::Void, 0x80000000 | 23,   24,
+    QMetaType::Void, QMetaType::QModelIndex,   19,
+    QMetaType::Void, 0x80000000 | 21,   22,
+    QMetaType::Void, 0x80000000 | 24,   25,
 
        0        // eod
 };
@@ -155,22 +159,23 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 12: _t->OnNetworkDevicesOptClickedSignal(); break;
         case 13: _t->OnCPUOptClickedSignal(); break;
         case 14: _t->OnCPUIDOptClickedSignal(); break;
-        case 15: _t->OnItemsTreeClickedSlot((*reinterpret_cast< QModelIndex(*)>(_a[1]))); break;
-        case 16: _t->OnPopulateMenuTreeSlot((*reinterpret_cast< QStandardItemModel*(*)>(_a[1]))); break;
-        case 17: _t->OnShowWidget((*reinterpret_cast< QWidget*(*)>(_a[1]))); break;
+        case 15: _t->OnSensorsOptClickedSignal(); break;
+        case 16: _t->OnItemsTreeClickedSlot((*reinterpret_cast< QModelIndex(*)>(_a[1]))); break;
+        case 17: _t->OnPopulateMenuTreeSlot((*reinterpret_cast< QStandardItemModel*(*)>(_a[1]))); break;
+        case 18: _t->OnShowWidget((*reinterpret_cast< QWidget*(*)>(_a[1]))); break;
         default: ;
         }
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
         switch (_id) {
         default: *reinterpret_cast<int*>(_a[0]) = -1; break;
-        case 16:
+        case 17:
             switch (*reinterpret_cast<int*>(_a[1])) {
             default: *reinterpret_cast<int*>(_a[0]) = -1; break;
             case 0:
                 *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< QStandardItemModel* >(); break;
             }
             break;
-        case 17:
+        case 18:
             switch (*reinterpret_cast<int*>(_a[1])) {
             default: *reinterpret_cast<int*>(_a[0]) = -1; break;
             case 0:
@@ -271,6 +276,12 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
                 *result = 14;
             }
         }
+        {
+            typedef void (MainWindow::*_t)();
+            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&MainWindow::OnSensorsOptClickedSignal)) {
+                *result = 15;
+            }
+        }
     }
 }
 
@@ -299,13 +310,13 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 18)
+        if (_id < 19)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 18;
+        _id -= 19;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 18)
+        if (_id < 19)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 18;
+        _id -= 19;
     }
     return _id;
 }
@@ -398,5 +409,11 @@ void MainWindow::OnCPUOptClickedSignal()
 void MainWindow::OnCPUIDOptClickedSignal()
 {
     QMetaObject::activate(this, &staticMetaObject, 14, 0);
+}
+
+// SIGNAL 15
+void MainWindow::OnSensorsOptClickedSignal()
+{
+    QMetaObject::activate(this, &staticMetaObject, 15, 0);
 }
 QT_END_MOC_NAMESPACE

@@ -51,6 +51,7 @@ public slots:
     virtual void OnNetworkDevicesOptClickedSlot() = 0;
     virtual void OnCPUOptClickedSlot() = 0;
     virtual void OnCPUIDOptClickedSlot() = 0;
+    virtual void OnSensorsOptClickedSlot() = 0;
 
     // DMI slots
     virtual void OnRequestDMIItemProperties(DMIModuleType) = 0;

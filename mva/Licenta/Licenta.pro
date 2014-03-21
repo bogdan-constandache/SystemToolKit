@@ -13,6 +13,8 @@ LIBS += -lWbemuuid
 LIBS += -liphlpapi
 LIBS += -lws2_32
 
+DEFINES += STK_WINDOWS
+
 
 SOURCES += main/main.cpp \
         utils/sources/utils.cpp \
@@ -43,7 +45,8 @@ SOURCES += main/main.cpp \
         gui/sources/system_drivers_widget.cpp \
         gui/sources/active_connections_widget.cpp \
         gui/sources/network_devices_widget.cpp \
-        gui/sources/cpuid_widget.cpp
+        gui/sources/cpuid_widget.cpp \
+    modules/computer/sensors/sources/sensor_module.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -85,7 +88,8 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/system_drivers_widget.h \
         gui/headers/active_connections_widget.h \
         gui/headers/network_devices_widget.h \
-        gui/headers/cpuid_widget.h
+        gui/headers/cpuid_widget.h \
+    modules/computer/sensors/headers/sensor_module.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \

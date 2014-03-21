@@ -19,8 +19,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_AbstractController_t {
-    QByteArrayData data[40];
-    char stringdata[1112];
+    QByteArrayData data[41];
+    char stringdata[1136];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -63,12 +63,13 @@ QT_MOC_LITERAL(30, 846, 33),
 QT_MOC_LITERAL(31, 880, 30),
 QT_MOC_LITERAL(32, 911, 19),
 QT_MOC_LITERAL(33, 931, 21),
-QT_MOC_LITERAL(34, 953, 26),
-QT_MOC_LITERAL(35, 980, 13),
-QT_MOC_LITERAL(36, 994, 26),
-QT_MOC_LITERAL(37, 1021, 24),
-QT_MOC_LITERAL(38, 1046, 26),
-QT_MOC_LITERAL(39, 1073, 37)
+QT_MOC_LITERAL(34, 953, 23),
+QT_MOC_LITERAL(35, 977, 26),
+QT_MOC_LITERAL(36, 1004, 13),
+QT_MOC_LITERAL(37, 1018, 26),
+QT_MOC_LITERAL(38, 1045, 24),
+QT_MOC_LITERAL(39, 1070, 26),
+QT_MOC_LITERAL(40, 1097, 37)
     },
     "AbstractController\0OnCreateMainWindowSignal\0"
     "\0OnShowMainWindowSignal\0"
@@ -100,6 +101,7 @@ QT_MOC_LITERAL(39, 1073, 37)
     "OnActiveConnectionsOptClickedSlot\0"
     "OnNetworkDevicesOptClickedSlot\0"
     "OnCPUOptClickedSlot\0OnCPUIDOptClickedSlot\0"
+    "OnSensorsOptClickedSlot\0"
     "OnRequestDMIItemProperties\0DMIModuleType\0"
     "OnRequestATAItemProperties\0"
     "OnRequestSMARTProperties\0"
@@ -114,7 +116,7 @@ static const uint qt_meta_data_AbstractController[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-      36,   14, // methods
+      37,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -122,44 +124,45 @@ static const uint qt_meta_data_AbstractController[] = {
       16,       // signalCount
 
  // signals: name, argc, parameters, tag, flags
-       1,    0,  194,    2, 0x05,
-       3,    0,  195,    2, 0x05,
-       4,    1,  196,    2, 0x05,
-       6,    1,  199,    2, 0x05,
-       7,    1,  202,    2, 0x05,
-       8,    1,  205,    2, 0x05,
-       9,    1,  208,    2, 0x05,
-      10,    1,  211,    2, 0x05,
-      11,    1,  214,    2, 0x05,
-      12,    1,  217,    2, 0x05,
-      13,    1,  220,    2, 0x05,
-      14,    1,  223,    2, 0x05,
-      15,    1,  226,    2, 0x05,
-      16,    1,  229,    2, 0x05,
-      17,    1,  232,    2, 0x05,
-      18,    1,  235,    2, 0x05,
+       1,    0,  199,    2, 0x05,
+       3,    0,  200,    2, 0x05,
+       4,    1,  201,    2, 0x05,
+       6,    1,  204,    2, 0x05,
+       7,    1,  207,    2, 0x05,
+       8,    1,  210,    2, 0x05,
+       9,    1,  213,    2, 0x05,
+      10,    1,  216,    2, 0x05,
+      11,    1,  219,    2, 0x05,
+      12,    1,  222,    2, 0x05,
+      13,    1,  225,    2, 0x05,
+      14,    1,  228,    2, 0x05,
+      15,    1,  231,    2, 0x05,
+      16,    1,  234,    2, 0x05,
+      17,    1,  237,    2, 0x05,
+      18,    1,  240,    2, 0x05,
 
  // slots: name, argc, parameters, tag, flags
-      19,    0,  238,    2, 0x0a,
-      20,    0,  239,    2, 0x0a,
-      21,    0,  240,    2, 0x0a,
-      22,    0,  241,    2, 0x0a,
-      23,    0,  242,    2, 0x0a,
-      24,    0,  243,    2, 0x0a,
-      25,    0,  244,    2, 0x0a,
-      26,    0,  245,    2, 0x0a,
-      27,    0,  246,    2, 0x0a,
-      28,    0,  247,    2, 0x0a,
-      29,    0,  248,    2, 0x0a,
-      30,    0,  249,    2, 0x0a,
-      31,    0,  250,    2, 0x0a,
-      32,    0,  251,    2, 0x0a,
-      33,    0,  252,    2, 0x0a,
-      34,    1,  253,    2, 0x0a,
-      36,    1,  256,    2, 0x0a,
-      37,    1,  259,    2, 0x0a,
-      38,    0,  262,    2, 0x0a,
-      39,    1,  263,    2, 0x0a,
+      19,    0,  243,    2, 0x0a,
+      20,    0,  244,    2, 0x0a,
+      21,    0,  245,    2, 0x0a,
+      22,    0,  246,    2, 0x0a,
+      23,    0,  247,    2, 0x0a,
+      24,    0,  248,    2, 0x0a,
+      25,    0,  249,    2, 0x0a,
+      26,    0,  250,    2, 0x0a,
+      27,    0,  251,    2, 0x0a,
+      28,    0,  252,    2, 0x0a,
+      29,    0,  253,    2, 0x0a,
+      30,    0,  254,    2, 0x0a,
+      31,    0,  255,    2, 0x0a,
+      32,    0,  256,    2, 0x0a,
+      33,    0,  257,    2, 0x0a,
+      34,    0,  258,    2, 0x0a,
+      35,    1,  259,    2, 0x0a,
+      37,    1,  262,    2, 0x0a,
+      38,    1,  265,    2, 0x0a,
+      39,    0,  268,    2, 0x0a,
+      40,    1,  269,    2, 0x0a,
 
  // signals: parameters
     QMetaType::Void,
@@ -195,7 +198,8 @@ static const uint qt_meta_data_AbstractController[] = {
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void, 0x80000000 | 35,    2,
+    QMetaType::Void,
+    QMetaType::Void, 0x80000000 | 36,    2,
     QMetaType::Void, QMetaType::QString,    2,
     QMetaType::Void, QMetaType::QString,    2,
     QMetaType::Void,
@@ -240,11 +244,12 @@ void AbstractController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, i
         case 28: _t->OnNetworkDevicesOptClickedSlot(); break;
         case 29: _t->OnCPUOptClickedSlot(); break;
         case 30: _t->OnCPUIDOptClickedSlot(); break;
-        case 31: _t->OnRequestDMIItemProperties((*reinterpret_cast< DMIModuleType(*)>(_a[1]))); break;
-        case 32: _t->OnRequestATAItemProperties((*reinterpret_cast< QString(*)>(_a[1]))); break;
-        case 33: _t->OnRequestSMARTProperties((*reinterpret_cast< QString(*)>(_a[1]))); break;
-        case 34: _t->OnUninstallApplicationSlot(); break;
-        case 35: _t->OnRequestNetworkDeviceInfomationsSlot((*reinterpret_cast< QString(*)>(_a[1]))); break;
+        case 31: _t->OnSensorsOptClickedSlot(); break;
+        case 32: _t->OnRequestDMIItemProperties((*reinterpret_cast< DMIModuleType(*)>(_a[1]))); break;
+        case 33: _t->OnRequestATAItemProperties((*reinterpret_cast< QString(*)>(_a[1]))); break;
+        case 34: _t->OnRequestSMARTProperties((*reinterpret_cast< QString(*)>(_a[1]))); break;
+        case 35: _t->OnUninstallApplicationSlot(); break;
+        case 36: _t->OnRequestNetworkDeviceInfomationsSlot((*reinterpret_cast< QString(*)>(_a[1]))); break;
         default: ;
         }
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
@@ -476,13 +481,13 @@ int AbstractController::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 36)
+        if (_id < 37)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 36;
+        _id -= 37;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 36)
+        if (_id < 37)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 36;
+        _id -= 37;
     }
     return _id;
 }

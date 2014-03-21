@@ -2,7 +2,8 @@
 
 Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pDMIManager(NULL), m_pSmartManager(NULL), m_pSystemDriversManager(NULL),
-    m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL)
+    m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL),
+    m_pSensorsManager(NULL), m_pSensor(NULL)
 {
 }
 
@@ -24,6 +25,11 @@ Controller::~Controller()
         delete m_pNetworkDevicesManager;
     if (m_pCPUIDManager)
         delete m_pCPUIDManager;
+    if (m_pSensorsManager)
+    {
+        m_pSensorsManager->DestroySensor();
+        delete m_pSensorsManager;
+    }
 }
 
 void Controller::StartController()
@@ -46,6 +52,9 @@ void Controller::StartController()
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("Power management"));
     qChildList.append(pChildItem);
+    pChildItem = new QStandardItem(QString("Sensors"));
+    qChildList.append(pChildItem);
+
 
     pDataItem->appendRows(qChildList);
     qChildList.clear();
@@ -115,6 +124,10 @@ void Controller::StartController()
     emit OnPopulateMenuTreeSignal(pModel);
 
     emit OnShowMainWindowSignal();
+
+    // Create Sensor Object
+    m_pSensorsManager = new CSensorModule;
+    m_pSensor = m_pSensorsManager->DetectSensor();
 }
 
 void Controller::OnComputerDMIOptClickedSlot()
@@ -275,6 +288,11 @@ void Controller::OnCPUIDOptClickedSlot()
 
     if (0 != pModel )
         emit OnSetCPUIDInformations(pModel);
+}
+
+void Controller::OnSensorsOptClickedSlot()
+{
+
 }
 
 void Controller::OnRequestDMIItemProperties(DMIModuleType ItemType)

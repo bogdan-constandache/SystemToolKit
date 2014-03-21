@@ -10,6 +10,7 @@
 #include "../modules/network/active-connections/active_connections.h"
 #include "../modules/network/network-devices/headers/network_devices.h"
 #include "../modules/motherboard/cpu/headers/intel_cpuid.h"
+#include "../modules/computer/sensors/headers/sensor_module.h"
 
 #include <QDebug>
 
@@ -25,6 +26,10 @@ private: // internal objects
     CNetworkDevices *m_pNetworkDevicesManager;
     CActiveConnections *m_pActiveConnectionsManager;
     CIntelCpuID *m_pCPUIDManager;
+
+    CSensorModule *m_pSensorsManager;
+    ISensor *m_pSensor;
+
     QMap<QString, QString> m_HDDModelToPhysicalDrive;
 
 public:
@@ -48,6 +53,7 @@ public slots:
     virtual void OnNetworkDevicesOptClickedSlot();
     virtual void OnCPUOptClickedSlot();
     virtual void OnCPUIDOptClickedSlot();
+    virtual void OnSensorsOptClickedSlot();
 
     // DMI slots()
     virtual void OnRequestDMIItemProperties(DMIModuleType);

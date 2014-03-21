@@ -7,11 +7,15 @@ CIT87::CIT87(Chip eChip, USHORT usAddress)
     this->eChip = eChip;
     this->usAddressReg = usAddress + ADDRESS_REGISTER_OFFSET;
     this->usDataReg = usAddress + DATA_REGISTER_OFFSET;
+
+    m_pDriver = new CSTKDriverWrapper;
+    m_pDriver->Initialize();
 }
 
 CIT87::~CIT87()
 {
-
+    m_pDriver->Destroy();
+    delete m_pDriver;
 }
 
 int CIT87::Initialize()
