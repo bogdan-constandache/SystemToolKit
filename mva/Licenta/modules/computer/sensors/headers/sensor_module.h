@@ -3,9 +3,12 @@
 
 #include "it87.h"
 
+#define BASE_ADDRESS_REGISTER 0x60
+
 #define IT87_REGISTER_PORT 0x2E
 #define IT87_VALUE_PORT 0x2F
 #define IT87_CHIP_VERSION_REGISTER 0x22
+#define IT87_ENVIRONMENT_CONTROLLER 0x04
 
 class CSensorModule
 {

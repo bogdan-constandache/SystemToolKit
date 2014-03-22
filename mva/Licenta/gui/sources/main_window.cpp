@@ -51,6 +51,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
             m_pController, SLOT(OnCPUOptClickedSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnCPUIDOptClickedSignal()),
             m_pController, SLOT(OnCPUIDOptClickedSlot()), Qt::QueuedConnection);
+    connect(this, SIGNAL(OnSensorsOptClickedSignal()),
+            m_pController, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
 
     InitializeStackedWidget();
 }

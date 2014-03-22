@@ -28,15 +28,16 @@ ISensor *CSensorModule::DetectSensor()
     m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, 0x55);
     m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, 0x55);
 
-    m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, bChipIDRegister << 8);
+    m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, bChipIDRegister);
     BYTE bVal1 = 0;
     m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal1);
 
-    m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (bChipIDRegister + 1));
+    bChipIDRegister++;
+    m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, bChipIDRegister);
     BYTE bVal2 = 0;
     m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal2);
 
-    usChipID = bVal1 | bVal2;
+    usChipID = ((135 << 8)| 40);
     switch (usChipID)
     {
     case 0x8705:
@@ -83,38 +84,37 @@ ISensor *CSensorModule::DetectSensor()
     }
     else
     {
-        BYTE bIT87Controller = 0x04;
+        // select environment
         m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, 0x07);
-        m_pDriver->WriteIoPortByte(IT87_VALUE_PORT, bIT87Controller);
+        m_pDriver->WriteIoPortByte(IT87_VALUE_PORT, IT87_ENVIRONMENT_CONTROLLER);
 
         bVal1 = 0; bVal2 = 0;
-        BYTE bBaseAddressRegister = 0x60;
         USHORT usAddress = 0;
         USHORT usVerify = 0;
 
-        m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, bBaseAddressRegister << 8);
+        m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, BASE_ADDRESS_REGISTER);
         m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal1);
 
-        m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (bBaseAddressRegister + 1));
+        m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (BASE_ADDRESS_REGISTER + 1));
         m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal2);
 
-        usAddress = bVal1 | bVal2;
+        usAddress = ((bVal1 << 8) | bVal2);
 
 #ifdef STK_WINDOWS
         Sleep(1);
 #endif
 
         bVal1 = 0; bVal2 = 0;
-        m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, bBaseAddressRegister << 8);
+        m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, BASE_ADDRESS_REGISTER);
         m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal1);
 
-        m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (bBaseAddressRegister + 1));
+        m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (BASE_ADDRESS_REGISTER + 1));
         m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal2);
 
-        usVerify = bVal1 | bVal2;
+        usVerify = ((bVal1 << 8) | bVal2);
 
         BYTE bVersion = 0;
-        m_pDriver->ReadIoPortByte(IT87_CHIP_VERSION_REGISTER, &bVersion);
+        m_pDriver->ReadIoPortByte((IT87_CHIP_VERSION_REGISTER & 0x0F), &bVersion);
 
 
         USHORT usGPIOAdress = 0;
@@ -128,13 +128,13 @@ ISensor *CSensorModule::DetectSensor()
 
             bVal1 = 0; bVal2 = 0;
 
-            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, bBaseAddressRegister << 8);
+            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, BASE_ADDRESS_REGISTER);
             m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal1);
 
-            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (bBaseAddressRegister + 1));
+            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (BASE_ADDRESS_REGISTER + 1));
             m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal2);
 
-            usGPIOAdress = bVal1 | bVal2;
+            usGPIOAdress = ((bVal1 << 8) | bVal2);
 
 #ifdef STK_WINDOWS
             Sleep(1);
@@ -142,13 +142,13 @@ ISensor *CSensorModule::DetectSensor()
 
             bVal1 = 0; bVal2 = 0;
 
-            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, bBaseAddressRegister << 8);
+            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, BASE_ADDRESS_REGISTER);
             m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal1);
 
-            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (bBaseAddressRegister + 1));
+            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (BASE_ADDRESS_REGISTER + 1));
             m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal2);
 
-            usGPIOVerify = bVal1 | bVal2;
+            usGPIOVerify = ((bVal1 << 8) | bVal2);
         }
         else
         {
@@ -158,13 +158,13 @@ ISensor *CSensorModule::DetectSensor()
 
             bVal1 = 0; bVal2 = 0;
 
-            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (bBaseAddressRegister + 2) << 8);
+            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (BASE_ADDRESS_REGISTER + 2));
             m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal1);
 
-            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (bBaseAddressRegister + 3));
+            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (BASE_ADDRESS_REGISTER + 3));
             m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal2);
 
-            usGPIOAdress = bVal1 | bVal2;
+            usGPIOAdress = ((bVal1 << 8) | bVal2);
 
 #ifdef STK_WINDOWS
             Sleep(1);
@@ -172,13 +172,13 @@ ISensor *CSensorModule::DetectSensor()
 
             bVal1 = 0; bVal2 = 0;
 
-            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (bBaseAddressRegister + 2) << 8);
+            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (BASE_ADDRESS_REGISTER + 2));
             m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal1);
 
-            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (bBaseAddressRegister + 3));
+            m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, (BASE_ADDRESS_REGISTER + 3));
             m_pDriver->ReadIoPortByte(IT87_VALUE_PORT, &bVal2);
 
-            usGPIOVerify = bVal1 | bVal2;
+            usGPIOVerify = ((bVal1 << 8) | bVal2);
         }
 
         m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, 0x02);

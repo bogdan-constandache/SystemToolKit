@@ -48,7 +48,7 @@
         CTL_CODE(STK_TYPE, 0x852, METHOD_BUFFERED, FILE_WRITE_ACCESS)
 
 
-#pragma pack(push, 4)
+//#pragma pack(push, 4)
 
 typedef struct STK_MSR_INPUT
 {
@@ -58,15 +58,10 @@ typedef struct STK_MSR_INPUT
 
 typedef struct STK_IO_PORT_INPUT {
     ULONG   ulPort;
-    union
-    {
-        ULONG   LongData;
-        USHORT  ShortData;
-        UCHAR   CharData;
-    };
+    UCHAR   CharData;
 }STK_IO_PORT_INPUT;
 
-#pragma pack(pop)
+//#pragma pack(pop)
 
 
 #endif

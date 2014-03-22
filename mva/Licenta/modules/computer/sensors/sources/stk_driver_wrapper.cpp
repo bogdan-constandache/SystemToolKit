@@ -118,7 +118,7 @@ int CSTKDriverWrapper::ReadIoPortByte(ULONG ulPort, BYTE *bValue)
         return Unsuccessful;
     }
 
-    *bValue = (BYTE) bValue & 0xFF;
+    *bValue = (BYTE) ulBuffer & 0xFF;
 
     return Success;
 }
@@ -134,7 +134,7 @@ int CSTKDriverWrapper::WriteIoPortByte(ULONG ulPort, BYTE bValue)
     bResult = DeviceIoControl(m_hDriver,
                               IOCTL_STK_WRITE_IO_PORT_BYTE,
                               (LPVOID)pInput,
-                              sizeof(ULONG) + sizeof(BYTE),
+                              sizeof(STK_IO_PORT_INPUT),
                               NULL,
                               0,
                               NULL,

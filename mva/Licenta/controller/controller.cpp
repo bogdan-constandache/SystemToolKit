@@ -128,6 +128,8 @@ void Controller::StartController()
     // Create Sensor Object
     m_pSensorsManager = new CSensorModule;
     m_pSensor = m_pSensorsManager->DetectSensor();
+    if (m_pSensor)
+        m_pSensor->Initialize();
 }
 
 void Controller::OnComputerDMIOptClickedSlot()
@@ -292,7 +294,26 @@ void Controller::OnCPUIDOptClickedSlot()
 
 void Controller::OnSensorsOptClickedSlot()
 {
+    double *pResults = 0;
+    int i = 0;
+    if (m_pSensor)
+    {
+        while(i < 20)
+        {
+            m_pSensor->Update();
 
+            pResults = m_pSensor->GetTemps();
+
+            for(int j = 0; j < 3; j++)
+            {
+                qDebug() << pResults[j];
+            }
+
+            i++;
+
+            Sleep(1000);
+        }
+    }
 }
 
 void Controller::OnRequestDMIItemProperties(DMIModuleType ItemType)

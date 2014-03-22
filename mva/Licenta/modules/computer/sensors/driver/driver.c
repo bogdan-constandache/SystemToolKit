@@ -63,12 +63,12 @@ typedef struct STK_MSR_INPUT
 
 typedef struct STK_IO_PORT_INPUT {
     ULONG   ulPort; 
-    union 
-	{
-        ULONG   LongData;
-        USHORT  ShortData;
+ //   union
+	//{
+ //       ULONG   LongData;
+ //       USHORT  ShortData;
         UCHAR   CharData;
-    };
+    //} uData;
 }STK_IO_PORT_INPUT;
 
 #pragma pack(pop)
@@ -106,6 +106,7 @@ NTSTATUS Dispatcher(PDEVICE_OBJECT pDeviceObj, PIRP pIrp)
 {
 	NTSTATUS nStatus = STATUS_SUCCESS;
 	PIO_STACK_LOCATION pIrpStack;
+	UNREFERENCED_PARAMETER(pDeviceObj);
 
 	pIrp->IoStatus.Information = 0;
 	pIrpStack = IoGetCurrentIrpStackLocation(pIrp);
@@ -183,6 +184,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	NTSTATUS nStatus = STATUS_SUCCESS;
 	PDEVICE_OBJECT pDevObj = NULL;
 	UNICODE_STRING szDriverName, szDosDeviceName;
+	UNREFERENCED_PARAMETER(pRegistryPath);
 
 	RtlInitUnicodeString(&szDriverName, L"\\Device\\STKDriver");
 	RtlInitUnicodeString(&szDosDeviceName, L"\\DosDevices\\STKDriver");
@@ -212,6 +214,8 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 
 NTSTATUS ReadMsr(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned)
 {
+	UNREFERENCED_PARAMETER(nInBufferSize);
+	UNREFERENCED_PARAMETER(nOutBufferSize);
 	__try
 	{
 		ULONGLONG ullData = __readmsr(*(ULONG*)lpInBuffer);
@@ -229,6 +233,9 @@ NTSTATUS ReadMsr(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG
 
 NTSTATUS WriteMsr(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned)
 {
+	UNREFERENCED_PARAMETER(nInBufferSize);
+	UNREFERENCED_PARAMETER(nOutBufferSize);
+	UNREFERENCED_PARAMETER(lpOutBuffer);
 	__try
 	{
 		STK_MSR_INPUT *pInput = (STK_MSR_INPUT*)lpInBuffer;
@@ -246,18 +253,23 @@ NTSTATUS WriteMsr(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULON
 NTSTATUS ReadIOPort(ULONG nIoCode, VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned)
 {
 	ULONG ulPort = *(ULONG*)lpInBuffer;
+	UNREFERENCED_PARAMETER(nOutBufferSize);
 
 	switch(nIoCode)
 	{
 	case IOCTL_STK_READ_IO_PORT_BYTE:
+		DbgPrint("READ_IO_PORT : READ_BYTE");
 		*(PUCHAR)lpOutBuffer = READ_PORT_UCHAR((PUCHAR)(ULONG_PTR)ulPort);
+		DbgPrint("\nVALUE: %d", *(PUCHAR)lpOutBuffer);
 		break;
-	case IOCTL_STK_READ_IO_PORT_WORD:
-		*(PUSHORT)lpOutBuffer = READ_PORT_USHORT((PUSHORT)(ULONG_PTR)ulPort);
-		break;
-	case IOCTL_STK_READ_IO_PORT_DWORD:
-		*(PULONG)lpOutBuffer = READ_PORT_ULONG((PULONG)(ULONG_PTR)ulPort);
-		break;
+	//case IOCTL_STK_READ_IO_PORT_WORD:
+	//	DbgPrint("READ_IO_PORT : READ_WORD");
+	//	*(PUSHORT)lpOutBuffer = READ_PORT_USHORT((PUSHORT)(ULONG_PTR)ulPort);
+	//	break;
+	//case IOCTL_STK_READ_IO_PORT_DWORD:
+	//	DbgPrint("READ_IO_PORT : READ_DWORD");
+	//	*(PULONG)lpOutBuffer = READ_PORT_ULONG((PULONG)(ULONG_PTR)ulPort);
+	//	break;
 	default:
 		*lpBytesReturned = 0;
 		return STATUS_INVALID_PARAMETER;
@@ -271,18 +283,22 @@ NTSTATUS ReadIOPort(ULONG nIoCode, VOID *lpInBuffer, ULONG nInBufferSize, VOID *
 NTSTATUS WriteIOPort(ULONG nIoCode, VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned)
 {
 	STK_IO_PORT_INPUT *pInput = (STK_IO_PORT_INPUT*)lpInBuffer;
+	UNREFERENCED_PARAMETER(nInBufferSize);
+	UNREFERENCED_PARAMETER(nOutBufferSize);
+	UNREFERENCED_PARAMETER(lpOutBuffer);
 
 	switch(nIoCode)
 	{
-	case IOCTL_STK_READ_IO_PORT_BYTE:
+	case IOCTL_STK_WRITE_IO_PORT_BYTE:
+		DbgPrint("Port: %d\nValue: %d", pInput->ulPort, pInput->CharData);
 		WRITE_PORT_UCHAR((PUCHAR)(ULONG_PTR)pInput->ulPort, pInput->CharData);
 		break;
-	case IOCTL_STK_READ_IO_PORT_WORD:
-		WRITE_PORT_USHORT((PUSHORT)(ULONG_PTR)pInput->ulPort, pInput->ShortData);
-		break;
-	case IOCTL_STK_READ_IO_PORT_DWORD:
-		WRITE_PORT_ULONG((PULONG)(ULONG_PTR)pInput->ulPort, pInput->LongData);
-		break;
+	//case IOCTL_STK_READ_IO_PORT_WORD:
+	//	WRITE_PORT_USHORT((PUSHORT)(ULONG_PTR)pInput->ulPort, pInput->uData.ShortData);
+	//	break;
+	//case IOCTL_STK_READ_IO_PORT_DWORD:
+	//	WRITE_PORT_ULONG((PULONG)(ULONG_PTR)pInput->ulPort, pInput->uData.LongData);
+	//	break;
 	default:
 		*lpBytesReturned = 0;
 		return STATUS_INVALID_PARAMETER;
