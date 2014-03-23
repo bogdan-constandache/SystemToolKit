@@ -12,6 +12,7 @@ LIBS += -lVersion
 LIBS += -lWbemuuid
 LIBS += -liphlpapi
 LIBS += -lws2_32
+LIBS += -lPdh
 
 DEFINES += STK_WINDOWS
 
@@ -37,6 +38,8 @@ SOURCES += main/main.cpp \
         modules/computer/sensors/sources/it87.cpp \
         modules/network/network-devices/sources/network_devices.cpp \
         modules/motherboard/cpu/sources/intel_cpuid.cpp \
+        modules/computer/sensors/sources/sensor_module.cpp \
+        modules/computer/sensors/sources/hardware_usage.cpp \
         gui/sources/battery_status_widget.cpp \
         gui/sources/application_manager_widget.cpp \
         gui/sources/dmi_widget.cpp \
@@ -46,7 +49,7 @@ SOURCES += main/main.cpp \
         gui/sources/active_connections_widget.cpp \
         gui/sources/network_devices_widget.cpp \
         gui/sources/cpuid_widget.cpp \
-    modules/computer/sensors/sources/sensor_module.cpp
+        gui/sources/sensors_widget.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -80,6 +83,8 @@ HEADERS  += gui/abstract_controller.h \
         modules/network/network-devices/headers/network_devices.h \
         modules/motherboard/cpu/headers/cpuid_defines.h \
         modules/motherboard/cpu/headers/intel_cpuid.h \
+        modules/computer/sensors/headers/sensor_module.h \
+        modules/computer/sensors/headers/hardware_usage.h \
         gui/headers/battery_status_widget.h \
         gui/headers/application_manager_widget.h \
         gui/headers/dmi_widget.h \
@@ -89,7 +94,7 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/active_connections_widget.h \
         gui/headers/network_devices_widget.h \
         gui/headers/cpuid_widget.h \
-    modules/computer/sensors/headers/sensor_module.h
+        gui/headers/sensors_widget.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
@@ -101,4 +106,5 @@ FORMS    += \
         gui/forms/system_drivers_widget.ui \
         gui/forms/active_connections_widget.ui \
         gui/forms/network_devices_widget.ui \
-        gui/forms/cpuid_widget.ui
+        gui/forms/cpuid_widget.ui \
+        gui/forms/sensors_widget.ui

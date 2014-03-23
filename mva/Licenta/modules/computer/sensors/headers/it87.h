@@ -44,6 +44,7 @@ public:
     virtual double* GetTemps();
     virtual double* GetFanSpeeds();
     virtual double* GetVoltages();
+    virtual QString GetChipName();
 };
 
 

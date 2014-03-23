@@ -23,6 +23,7 @@
 #include "active_connections_widget.h"
 #include "network_devices_widget.h"
 #include "cpuid_widget.h"
+#include "sensors_widget.h"
 
 namespace Ui {
 class MainWindow;
@@ -47,6 +48,7 @@ private:
     CActiveConnectionsWidget *m_pActiveConnectionsWidget;
     CNetworkDevicesWidget *m_pNetworkDevicesWidget;
     CCPUIDWidget *m_pCPUIDWidget;
+    CSensorsWidget *m_pSensorsWidget;
 
     void InitializeStackedWidget();
 

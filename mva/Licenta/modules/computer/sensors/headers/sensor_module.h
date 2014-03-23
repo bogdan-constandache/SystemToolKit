@@ -2,6 +2,7 @@
 #define SENSOR_MODULE_H
 
 #include "it87.h"
+#include "hardware_usage.h"
 
 #define BASE_ADDRESS_REGISTER 0x60
 
@@ -17,12 +18,22 @@ private:
     CSTKDriverWrapper *m_pDriver;
     Chip m_Chip;
 
+    CHardwareUsage *m_pHardwareUsage;
+
+    bool DetectIT87XXSensor();
+    USHORT ReadWordFromPort(BYTE bRegister);
+
 public:
     CSensorModule();
     ~CSensorModule();
 
     ISensor *DetectSensor();
     int DestroySensor();
+
+    double GetCpuLoad();
+    QString GetCpuName();
+    double GetDiskLoad();
+    MemoryStatus* GetMemoryStat();
 };
 
 #endif // SENSOR_MODULE_H

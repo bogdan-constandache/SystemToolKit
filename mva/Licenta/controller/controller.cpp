@@ -294,26 +294,63 @@ void Controller::OnCPUIDOptClickedSlot()
 
 void Controller::OnSensorsOptClickedSlot()
 {
+    QStandardItemModel *pModel = new QStandardItemModel;
+
     double *pResults = 0;
-    int i = 0;
-    if (m_pSensor)
+
+    if (!m_pSensor)
+        return;
+
+    QStandardItem *pChipName = new QStandardItem(m_pSensor->GetChipName());
+    pModel->appendRow(pChipName);
+
+    QStandardItem *pItem = new QStandardItem("Temperatures:");
+    pChipName->appendRow(pItem);
+
+    QStandardItem *pItemC = 0;
+
+    m_pSensor->Update();
+    pResults = m_pSensor->GetTemps();
+
+    for(int i = 0; i < 3; i++)
     {
-        while(i < 20)
-        {
-            m_pSensor->Update();
+        pItemC = new QStandardItem(QString().sprintf("%d: %.1f", i + 1, pResults[i]));
 
-            pResults = m_pSensor->GetTemps();
-
-            for(int j = 0; j < 3; j++)
-            {
-                qDebug() << pResults[j];
-            }
-
-            i++;
-
-            Sleep(1000);
-        }
+        pItem->appendRow(pItemC);
     }
+
+    pItem = new QStandardItem("Voltages:");
+    pChipName->appendRow(pItem);
+    // voltages
+    pResults = m_pSensor->GetVoltages();
+
+    for(int i = 0; i < 9; i++)
+    {
+        pItemC = new QStandardItem(QString().sprintf("%d: %.1f", i + 1, pResults[i]));
+
+        pItem->appendRow(pItemC);
+    }
+
+    pItem = new QStandardItem("Fan Speed:");
+    pChipName->appendRow(pItem);
+    // fan speed
+    pResults = m_pSensor->GetFanSpeeds();
+
+    for(int i = 0; i < 3; i++)
+    {
+        pItemC = new QStandardItem(QString().sprintf("%d: %.1f", i + 1, pResults[i]));
+
+        pItem->appendRow(pItemC);
+    }
+
+    pChipName = new QStandardItem(m_pSensorsManager->GetCpuName());
+    pModel->appendRow(pChipName);
+
+    pItem = new QStandardItem(QString().sprintf("Usage: %.1f%", m_pSensorsManager->GetCpuLoad()));
+    pChipName->appendRow(pItem);
+
+
+    emit OnSetSensorsInformations(pModel);
 }
 
 void Controller::OnRequestDMIItemProperties(DMIModuleType ItemType)

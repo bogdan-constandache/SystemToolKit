@@ -11,6 +11,7 @@ public:
     virtual double* GetTemps() = 0;
     virtual double* GetFanSpeeds() = 0;
     virtual double* GetVoltages() = 0;
+    virtual QString GetChipName() = 0;
 };
 
 #endif

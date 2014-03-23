@@ -160,4 +160,33 @@ double *CIT87::GetVoltages()
     return m_pVoltages;
 }
 
+QString CIT87::GetChipName()
+{
+    switch (eChip)
+    {
+    case IT8705F:
+        return "IT8705F";
+    case IT8712F:
+        return "IT8712F";
+    case IT8716F:
+        return "IT8716F";
+    case IT8718F:
+        return "IT8718F";
+    case IT8720F:
+        return "IT8720F";
+    case IT8721F:
+        return "IT8721F";
+    case IT8726F:
+        return "IT8726F";
+    case IT8728F:
+        return "IT8728F";
+    case IT8771E:
+        return "IT8771E";
+    case IT8772E:
+        return "IT8772E";
+    }
+
+    return "";
+}
+
 

@@ -1,6 +1,8 @@
 #ifndef SENSOR_DEFINES_H
 #define SENSOR_DEFINES_H
 
+#include <QString>
+
 typedef enum _CHIP_
 {
     Unknown_Chip = 0,
@@ -43,5 +45,17 @@ typedef enum _CHIP_
     W83687THF = 32
 
 }Chip;
+
+typedef struct _MEMORY_STATUS_
+{
+    QString qzTotalPhys;
+    QString qzAvailPhys;
+    QString qzTotalPageFile;
+    QString qzAvailPageFile;
+    QString qzTotalVirtual;
+    QString qzAvailVirtual;
+    QString qzAvailExtVirtual;
+    QString qzMemoryLoad;
+}MemoryStatus;
 
 #endif // SENSOR_DEFINES_H

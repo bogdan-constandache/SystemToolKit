@@ -35,6 +35,8 @@ signals:
 
     void OnSetCPUIDInformations(QStandardItemModel*);
 
+    void OnSetSensorsInformations(QStandardItemModel*);
+
 public slots:
     virtual void OnComputerDMIOptClickedSlot() = 0;
     virtual void OnComputerPowerManagementOptClickedSlot() = 0;
