@@ -1,8 +1,14 @@
 QT       += core gui sql
 QT       += widgets
 
+include(others/project-configuration/project-defines.pri)
+
 TARGET = Licenta
 TEMPLATE = app
+
+INCLUDEPATH += $$PWD/proto-buffers/includes
+
+LIBS += $$PWD/proto-buffers/lib/$$CROSSPLATFORM/libprotobuf-lite.lib
 
 LIBS += -lAdvapi32
 LIBS += -lSetupapi
@@ -49,7 +55,8 @@ SOURCES += main/main.cpp \
         gui/sources/active_connections_widget.cpp \
         gui/sources/network_devices_widget.cpp \
         gui/sources/cpuid_widget.cpp \
-        gui/sources/sensors_widget.cpp
+        gui/sources/sensors_widget.cpp \
+    proto-buffers/sensors_data.pb.cc
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -94,7 +101,8 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/active_connections_widget.h \
         gui/headers/network_devices_widget.h \
         gui/headers/cpuid_widget.h \
-        gui/headers/sensors_widget.h
+        gui/headers/sensors_widget.h \
+    proto-buffers/sensors_data.pb.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \

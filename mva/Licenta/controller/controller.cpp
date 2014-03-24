@@ -3,8 +3,12 @@
 Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pDMIManager(NULL), m_pSmartManager(NULL), m_pSystemDriversManager(NULL),
     m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL),
-    m_pSensorsManager(NULL), m_pSensor(NULL)
+    m_pSensorsManager(NULL), m_pSensor(NULL), m_pSensorsTimer(NULL)
 {
+    m_pSensorsTimer = new QTimer(this);
+    connect(m_pSensorsTimer, SIGNAL(timeout()), this, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
+
+    connect(this, SIGNAL(OnCancelSensorsTimerSignal()), this, SLOT(OnCancelSensorsTimerSlot()), Qt::QueuedConnection);
 }
 
 Controller::~Controller()
@@ -134,12 +138,16 @@ void Controller::StartController()
 
 void Controller::OnComputerDMIOptClickedSlot()
 {
-    if (m_pDMIManager)
-    {
-        delete m_pDMIManager;
-        m_pDMIManager = 0;
-    }
-    m_pDMIManager = new CSMBiosEntryPoint();
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    // delete previous object
+    SAFE_DELETE(m_pDMIManager);
+
+    m_pDMIManager = new CSMBiosEntryPoint;
+
+    CHECK_ALLOCATION(m_pDMIManager);
+
     QStandardItemModel *pModel = m_pDMIManager->GetItemsModel();
 
     if (0 != pModel)
@@ -148,7 +156,16 @@ void Controller::OnComputerDMIOptClickedSlot()
 
 void Controller::OnComputerPowerManagementOptClickedSlot()
 {
-    m_pBatteryStatus = new BatteryStatus();
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    // delete previous object
+    SAFE_DELETE(m_pBatteryStatus);
+
+    m_pBatteryStatus = new BatteryStatus;
+
+    CHECK_ALLOCATION(m_pBatteryStatus);
+
     QStandardItemModel *pModel = m_pBatteryStatus->GetBatteryInformation();
 
     if (0 != pModel)
@@ -172,13 +189,15 @@ void Controller::OnProcessesOptClickedSlot()
 
 void Controller::OnSystemDriversOptClickedSlot()
 {
-    if( m_pSystemDriversManager )
-    {
-        delete m_pSystemDriversManager;
-        m_pSystemDriversManager = 0;
-    }
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    // delete previous object
+    SAFE_DELETE(m_pSystemDriversManager);
 
     m_pSystemDriversManager = new SystemDrivers;
+
+    CHECK_ALLOCATION(m_pSystemDriversManager);
 
     QStandardItemModel *pModel = m_pSystemDriversManager->GetSystemDriversInformation();
 
@@ -188,6 +207,9 @@ void Controller::OnSystemDriversOptClickedSlot()
 
 void Controller::OnStorageATAOptClickedSlot()
 {
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
     QStandardItemModel *pModel = new QStandardItemModel();
     QStringList List = GetPhysicalDrivesList();
 
@@ -197,6 +219,8 @@ void Controller::OnStorageATAOptClickedSlot()
     for(int i = 0; i < List.count(); i++)
     {
         ATADeviceProperties *pProp = GetATADeviceProperties(List.at(i).toStdWString().c_str());
+        if (NULL == pProp)
+            continue;
         m_HDDModelToPhysicalDrive.insert(pProp->Model, List.at(i));
         pModel->setItem(i, 0, new QStandardItem(pProp->Model));
         delete pProp;
@@ -207,12 +231,16 @@ void Controller::OnStorageATAOptClickedSlot()
 
 void Controller::OnStorageSmartOptClickedSlot()
 {
-    if (m_pSmartManager)
-    {
-        delete m_pSmartManager;
-        m_pSmartManager = 0;
-    }
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    // delete previous object
+    SAFE_DELETE(m_pSmartManager);
+
     m_pSmartManager = new CSmartInfo();
+
+    CHECK_ALLOCATION(m_pSmartManager);
+
     QStandardItemModel *pModel = m_pSmartManager->GetAvailableHDD();
 
     if (0 != pModel)
@@ -226,7 +254,15 @@ void Controller::OnSmbiosOptClickedSlot()
 
 void Controller::OnApplicationManagerOptClickedSlot()
 {
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    // delete  previous object
+    SAFE_DELETE(m_pApplicationManager);
+
     m_pApplicationManager = new CApplicationManager();
+
+    CHECK_ALLOCATION(m_pApplicationManager);
 
     QStandardItemModel *pModel = m_pApplicationManager->GetApplicationList();
 
@@ -241,13 +277,14 @@ void Controller::OnStartupApplicationsOptClickedSlot()
 
 void Controller::OnActiveConnectionsOptClickedSlot()
 {
-    if (m_pActiveConnectionsManager)
-    {
-        delete m_pActiveConnectionsManager;
-        m_pActiveConnectionsManager = 0;
-    }
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    SAFE_DELETE(m_pActiveConnectionsManager);
 
     m_pActiveConnectionsManager = new CActiveConnections;
+
+    CHECK_ALLOCATION(m_pActiveConnectionsManager);
 
     QStandardItemModel *pModel = m_pActiveConnectionsManager->GetActiveConnections();
 
@@ -257,13 +294,13 @@ void Controller::OnActiveConnectionsOptClickedSlot()
 
 void Controller::OnNetworkDevicesOptClickedSlot()
 {
-    if (m_pNetworkDevicesManager)
-    {
-        delete m_pNetworkDevicesManager;
-        m_pNetworkDevicesManager = 0;
-    }
+    emit OnCancelSensorsTimerSignal();
+
+    SAFE_DELETE(m_pNetworkDevicesManager);
 
     m_pNetworkDevicesManager = new CNetworkDevices;
+
+    CHECK_ALLOCATION(m_pNetworkDevicesManager);
 
     QStandardItemModel *pModel = m_pNetworkDevicesManager->GetAdapterNames();
 
@@ -278,13 +315,13 @@ void Controller::OnCPUOptClickedSlot()
 
 void Controller::OnCPUIDOptClickedSlot()
 {
-    if(m_pCPUIDManager)
-    {
-        delete m_pCPUIDManager;
-        m_pCPUIDManager = 0;
-    }
+    emit OnCancelSensorsTimerSignal();
+
+    SAFE_DELETE(m_pCPUIDManager);
 
     m_pCPUIDManager = new CIntelCpuID;
+
+    CHECK_ALLOCATION(m_pCPUIDManager);
 
     QStandardItemModel *pModel = m_pCPUIDManager->GetCPUIDInformations();
 
@@ -294,63 +331,93 @@ void Controller::OnCPUIDOptClickedSlot()
 
 void Controller::OnSensorsOptClickedSlot()
 {
-    QStandardItemModel *pModel = new QStandardItemModel;
+    SensorsData *pSensorData = new SensorsData;
+    CHECK_ALLOCATION(pSensorData);
+
+    DataType *pDataType;
+    ItemPair *pItemPair;
+    MotherboardData *pMBData;
+    CpuData *pCpuData;
 
     double *pResults = 0;
+
+    if (!m_pSensorsTimer->isActive())
+        m_pSensorsTimer->start(750);
 
     if (!m_pSensor)
         return;
 
-    QStandardItem *pChipName = new QStandardItem(m_pSensor->GetChipName());
-    pModel->appendRow(pChipName);
-
-    QStandardItem *pItem = new QStandardItem("Temperatures:");
-    pChipName->appendRow(pItem);
-
-    QStandardItem *pItemC = 0;
+    pMBData = pSensorData->mutable_mbdata();
+    pMBData->set_name(m_pSensor->GetChipName().toLatin1().data());
 
     m_pSensor->Update();
     pResults = m_pSensor->GetTemps();
 
+    pDataType = pMBData->add_data();
+    pDataType->set_dataname("Temperatures: ");
+
+    QString qzTemp1 = "", qzTemp2 = "";
     for(int i = 0; i < 3; i++)
     {
-        pItemC = new QStandardItem(QString().sprintf("%d: %.1f", i + 1, pResults[i]));
+        if (!pResults[i])
+            continue;
+        qzTemp1.sprintf("Temperature #%d", i + 1);
+        qzTemp2.sprintf("%.1fC", pResults[i]);
 
-        pItem->appendRow(pItemC);
+        pItemPair = pDataType->add_datavalue();
+        pItemPair->set_name(qzTemp1.toLatin1().data());
+        pItemPair->set_value(qzTemp2.toLatin1().data());
     }
 
-    pItem = new QStandardItem("Voltages:");
-    pChipName->appendRow(pItem);
     // voltages
+    pDataType = pMBData->add_data();
+    pDataType->set_dataname("Voltages: ");
+
     pResults = m_pSensor->GetVoltages();
 
     for(int i = 0; i < 9; i++)
     {
-        pItemC = new QStandardItem(QString().sprintf("%d: %.1f", i + 1, pResults[i]));
+        if (!pResults[i])
+            continue;
+        qzTemp1.sprintf("Voltage #%d", i + 1);
+        qzTemp2.sprintf("%.1fC", pResults[i]);
 
-        pItem->appendRow(pItemC);
+        pItemPair = pDataType->add_datavalue();
+        pItemPair->set_name(qzTemp1.toLatin1().data());
+        pItemPair->set_value(qzTemp2.toLatin1().data());
     }
 
-    pItem = new QStandardItem("Fan Speed:");
-    pChipName->appendRow(pItem);
     // fan speed
+    pDataType = pMBData->add_data();
+    pDataType->set_dataname("Fan speed: ");
+
     pResults = m_pSensor->GetFanSpeeds();
 
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < 5; i++)
     {
-        pItemC = new QStandardItem(QString().sprintf("%d: %.1f", i + 1, pResults[i]));
+        if (!pResults[i])
+            continue;
+        qzTemp1.sprintf("Fan #%d", i + 1);
+        qzTemp2.sprintf("%.1fRPM", pResults[i]);
 
-        pItem->appendRow(pItemC);
+        pItemPair = pDataType->add_datavalue();
+        pItemPair->set_name(qzTemp1.toLatin1().data());
+        pItemPair->set_value(qzTemp2.toLatin1().data());
     }
 
-    pChipName = new QStandardItem(m_pSensorsManager->GetCpuName());
-    pModel->appendRow(pChipName);
+    pCpuData = pSensorData->mutable_cpudata();
+    pCpuData->set_name(m_pSensorsManager->GetCpuName().toLatin1().data());
 
-    pItem = new QStandardItem(QString().sprintf("Usage: %.1f%", m_pSensorsManager->GetCpuLoad()));
-    pChipName->appendRow(pItem);
+    pDataType = pCpuData->add_data();
+    pDataType->set_dataname("Usage: ");
 
+    pItemPair = pDataType->add_datavalue();
+    pItemPair->set_name("CPU0");
+    pItemPair->set_value(QString().sprintf("%.2f%", m_pSensorsManager->GetCpuLoad()).toLatin1().data());
 
-    emit OnSetSensorsInformations(pModel);
+    std::string tempString= pSensorData->SerializeAsString();
+
+    emit OnSetSensorsInformations(tempString);
 }
 
 void Controller::OnRequestDMIItemProperties(DMIModuleType ItemType)
@@ -365,6 +432,8 @@ void Controller::OnRequestATAItemProperties(QString qzModel)
 {
     QString qzDrive = m_HDDModelToPhysicalDrive.value(qzModel);
     ATADeviceProperties *pProp = GetATADeviceProperties(qzDrive.toStdWString().c_str());
+    CHECK_ALLOCATION(pProp);
+
     QStandardItemModel *pModel = new QStandardItemModel();
     QStandardItem *pItem = 0;
 
@@ -458,4 +527,9 @@ void Controller::OnRequestNetworkDeviceInfomationsSlot(QString qzAdapterName)
        if (pModel)
            emit OnSetNetworkDeviceInformation(pModel);
     }
+}
+
+void Controller::OnCancelSensorsTimerSlot()
+{
+    m_pSensorsTimer->stop();
 }

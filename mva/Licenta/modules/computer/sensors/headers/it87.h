@@ -28,7 +28,7 @@ class CIT87 : public ISensor
 
     double m_pVoltages[9];
     double m_pTemps[3];
-    double m_pFans[3];
+    double m_pFans[5];
 
     double dVoltageGain;
 

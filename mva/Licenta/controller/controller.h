@@ -12,7 +12,16 @@
 #include "../modules/motherboard/cpu/headers/intel_cpuid.h"
 #include "../modules/computer/sensors/headers/sensor_module.h"
 
+#include "../proto-buffers/sensors_data.pb.h"
+
 #include <QDebug>
+#include <QTimer>
+
+#define SAFE_DELETE(X) if(X) { delete (X); X = 0; }
+
+#ifdef STK_WINDOWS
+    #define CHECK_ALLOCATION(X) if(!X) { printf("Allocation failed in: %s at line %d: ", __FILE__, __LINE__); return; }
+#endif
 
 class Controller : public AbstractController
 {
@@ -29,6 +38,7 @@ private: // internal objects
 
     CSensorModule *m_pSensorsManager;
     ISensor *m_pSensor;
+    QTimer *m_pSensorsTimer;
 
     QMap<QString, QString> m_HDDModelToPhysicalDrive;
 
@@ -71,6 +81,12 @@ public slots:
 
     // Network devices manager slots()
     virtual void OnRequestNetworkDeviceInfomationsSlot(QString);
+
+signals:
+    void OnCancelSensorsTimerSignal();
+
+private slots:
+    void OnCancelSensorsTimerSlot();
 };
 
 #endif // CONTROLLER_H

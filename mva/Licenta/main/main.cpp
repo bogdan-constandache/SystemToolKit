@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
     ViewAdapter *pViewAdapter = new ViewAdapter();
 
     qRegisterMetaType< DMIModuleType > ( "DMIModuleType" );
+    qRegisterMetaType< std::string > ( "std::string" );
 
     pController->moveToThread(&ControllerThread);
     pViewAdapter->SetController(pController);

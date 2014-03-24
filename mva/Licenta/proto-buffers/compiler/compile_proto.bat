@@ -1,0 +1,1 @@
+protoc --cpp_out=. sensors_data.proto

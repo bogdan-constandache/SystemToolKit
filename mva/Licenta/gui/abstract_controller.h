@@ -3,6 +3,9 @@
 
 #include <QObject>
 #include <QStandardItemModel>
+
+#include <string>
+
 #include "../controller/enums.h"
 
 class AbstractController : public QObject
@@ -35,7 +38,7 @@ signals:
 
     void OnSetCPUIDInformations(QStandardItemModel*);
 
-    void OnSetSensorsInformations(QStandardItemModel*);
+    void OnSetSensorsInformations(std::string);
 
 public slots:
     virtual void OnComputerDMIOptClickedSlot() = 0;

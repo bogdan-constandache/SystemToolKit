@@ -1,0 +1,52 @@
+message ItemPair
+{
+	required string name = 1;
+	required string value = 2;
+}
+
+message DataType
+{
+	required string dataName = 1;
+	repeated ItemPair dataValue = 2;
+}
+
+message MotherboardData
+{
+	required string name = 1;
+	repeated DataType data = 2;
+}
+
+message CpuData
+{
+	required string name = 1;
+	repeated DataType data = 2;
+}
+
+message RAMData
+{
+	required string name = 1;
+	repeated DataType data = 2;
+}
+
+message DiskData
+{
+	required string name = 1;
+	repeated DataType data = 2;
+}
+
+message GPUData
+{
+	required string name = 1;
+	repeated DataType data = 2;
+}
+
+message SensorsData
+{
+	optional MotherboardData mbData = 1;
+	optional CpuData cpuData = 2;
+	optional RAMData ramData = 3;
+	optional DiskData diskData = 4;
+	optional GPUData gpuData = 5;
+}
+
+option optimize_for = LITE_RUNTIME;
