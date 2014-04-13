@@ -29,7 +29,7 @@ void CSensorsWidget::OnSetTreeModel(std::string buffer)
 {
     if (!m_bIsFirstTime)
     {
-        OnUpdateTree(&buffer);
+        OnUpdateTree(buffer);
         return;
     }
 
@@ -95,7 +95,69 @@ void CSensorsWidget::OnSetTreeModel(std::string buffer)
 
 void CSensorsWidget::OnUpdateTree(std::string buffer)
 {
-    Q_UNUSED(buffer);
+    SensorsData pSensorsData;
+    MotherboardData pmbData;
+    CpuData pCpuData;
+    DataType pDataType;
+    ItemPair pItemPair;
+
+    QTreeWidgetItem *pRootItem = ui->treeWidget->topLevelItem(0);
+    QTreeWidgetItem *pItem = 0, *pItem2 = 0;
+
+    if (!pSensorsData.ParseFromString(buffer))
+        return;
+
+    if (pSensorsData.has_mbdata())
+        pmbData = pSensorsData.mbdata();
+
+    if (pSensorsData.has_cpudata())
+        pCpuData = pSensorsData.cpudata();
+
+    for(int i = 0; i < pmbData.data_size(); i++)
+    {
+        pDataType = pmbData.data(i);
+
+        pItem = pRootItem->child(i);
+
+        for(int j = 0; j < pDataType.datavalue_size(); j++)
+        {
+            pItemPair = pDataType.datavalue(j);
+
+            if (pItem->text(0) == QString(pDataType.dataname().c_str()))
+            {
+                pItem2 = pItem->child(j);
+
+                if (pItem2->text(0) == QString(pItemPair.name().c_str()))
+                {
+                    pItem2->setText(1, pItemPair.value().c_str());
+                }
+            }
+        }
+    }
+
+    pRootItem = ui->treeWidget->topLevelItem(1);
+
+    for(int i = 0; i < pCpuData.data_size(); i++)
+    {
+        pDataType = pCpuData.data(i);
+
+        pItem = pRootItem->child(i);
+
+        for(int j = 0; j < pDataType.datavalue_size(); j++)
+        {
+            pItemPair = pDataType.datavalue(j);
+
+            if (pItem->text(0) == QString(pDataType.dataname().c_str()))
+            {
+                pItem2 = pItem->child(j);
+
+                if (pItem2->text(0) == QString(pItemPair.name().c_str()))
+                {
+                    pItem2->setText(1, pItemPair.value().c_str());
+                }
+            }
+        }
+    }
 }
 
 QTreeWidgetItem* CSensorsWidget::OnAddChildItem(QTreeWidgetItem *pParent, QString qzText1, QString qzText2)

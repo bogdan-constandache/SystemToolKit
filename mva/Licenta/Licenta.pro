@@ -20,6 +20,7 @@ LIBS += -liphlpapi
 LIBS += -lws2_32
 LIBS += -lPdh
 
+
 DEFINES += STK_WINDOWS
 
 
@@ -56,7 +57,13 @@ SOURCES += main/main.cpp \
         gui/sources/network_devices_widget.cpp \
         gui/sources/cpuid_widget.cpp \
         gui/sources/sensors_widget.cpp \
-    proto-buffers/sensors_data.pb.cc
+        gui/sources/processes_widget.cpp \
+        proto-buffers/sensors_data.pb.cc \
+        modules/computer/sensors/sources/intel_temperature.cpp \
+        modules/computer/sensors/sources/factory_board_sensor.cpp \
+        modules/computer/sensors/sources/factory_cpu_sensor.cpp \
+        modules/computer/sensors/sources/w836xx.cpp \
+        modules/operating-system/processes/sources/processes.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -102,7 +109,15 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/network_devices_widget.h \
         gui/headers/cpuid_widget.h \
         gui/headers/sensors_widget.h \
-    proto-buffers/sensors_data.pb.h
+        gui/headers/processes_widget.h \
+        proto-buffers/sensors_data.pb.h \
+        modules/computer/sensors/headers/intel_temperature.h \
+        modules/computer/sensors/headers/factory_board_sensor.h \
+        modules/computer/sensors/headers/factory_cpu_sensor.h \
+        modules/computer/sensors/headers/w836xx.h \
+    modules/api.h \
+    modules/operating-system/processes/headers/processes.h \
+    modules/operating-system/processes/headers/processes_structs.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
@@ -115,4 +130,5 @@ FORMS    += \
         gui/forms/active_connections_widget.ui \
         gui/forms/network_devices_widget.ui \
         gui/forms/cpuid_widget.ui \
-        gui/forms/sensors_widget.ui
+        gui/forms/sensors_widget.ui \
+        gui/forms/processes_widget.ui

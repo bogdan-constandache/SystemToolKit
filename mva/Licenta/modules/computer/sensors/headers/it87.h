@@ -6,17 +6,15 @@
 #include "../interfaces/isensor.h"
 #include "../../../../utils/headers/utils.h"
 
-#define VENDOR_ID                       0x90
-#define ADDRESS_REGISTER_OFFSET         0x05
-#define DATA_REGISTER_OFFSET            0x06
-#define CONFIGURATION_REGISTER          0x00
-#define TEMP_BASE_REGISTER              0x29
-#define VENDOR_ID_REGISTER              0x58
-#define FAN_SPEED_DIVISOR_REGISTER      0x0B
-#define VOLTAGE_BASE_REGISTER           0x20
+#define IT87_CHIP_VENDOR_ID                       0x90
+#define IT87_CHIP_ADDRESS_REGISTER_OFFSET         0x05
+#define IT87_CHIP_DATA_REGISTER_OFFSET            0x06
+#define IT87_CHIP_CONFIGURATION_REGISTER          0x00
+#define IT87_CHIP_TEMP_BASE_REGISTER              0x29
+#define IT87_CHIP_VENDOR_ID_REGISTER              0x58
+#define IT87_CHIP_FAN_SPEED_DIVISOR_REGISTER      0x0B
+#define IT87_CHIP_VOLTAGE_BASE_REGISTER           0x20
 
-static BYTE FAN_SPEED_REG[] = {0x0D, 0x0E, 0x0F, 0x80, 0x82};
-static BYTE FAN_SPEED_EXT_REG[] = {0x18, 0x19, 0x1A, 0x81, 0x83};
 
 class CIT87 : public ISensor
 {
@@ -33,6 +31,9 @@ class CIT87 : public ISensor
     double dVoltageGain;
 
     bool bHas16BitFanCounter;
+
+    BYTE *m_pFanSpeedReg;
+    BYTE *m_pFanSpeedExtReg;
 
 public:
     CIT87(Chip, USHORT);

@@ -9,7 +9,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     m_pApplicationManagerWidget(NULL), m_pDMIManagerWidget(NULL),
     m_pSMARTManagerWidget(NULL), m_pATAManagerWidget(NULL),
     m_pSystemDriversWidget(NULL), m_pActiveConnectionsWidget(NULL),
-    m_pNetworkDevicesWidget(NULL), m_pCPUIDWidget(NULL), m_pSensorsWidget(NULL)
+    m_pNetworkDevicesWidget(NULL), m_pCPUIDWidget(NULL), m_pSensorsWidget(NULL),
+    m_pProcessesWidget(NULL)
 {
     ui->setupUi(this);
     this->setMinimumWidth(1000);
@@ -95,6 +96,9 @@ void MainWindow::InitializeStackedWidget()
     m_pSensorsWidget = new CSensorsWidget(ui->stackedWidget, m_pController);
     connect(m_pSensorsWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
 
+    m_pProcessesWidget = new CProcessesWidget(ui->stackedWidget, m_pController);
+    connect(m_pProcessesWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
+
     // Add widget to the stacked widget
     ui->stackedWidget->addWidget(m_pDMIManagerWidget);
     ui->stackedWidget->addWidget(m_pPowerManagementWidget);
@@ -106,6 +110,7 @@ void MainWindow::InitializeStackedWidget()
     ui->stackedWidget->addWidget(m_pNetworkDevicesWidget);
     ui->stackedWidget->addWidget(m_pCPUIDWidget);
     ui->stackedWidget->addWidget(m_pSensorsWidget);
+    ui->stackedWidget->addWidget(m_pProcessesWidget);
 
     // remove first to pages
     ui->stackedWidget->removeWidget(ui->page_2);

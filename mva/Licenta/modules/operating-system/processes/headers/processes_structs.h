@@ -27,7 +27,6 @@ typedef struct _Process_
     bool bType;
     qint32 qnMemoryUsed;
     qint32 qnPageFileUsage;
-    QList<Module*> qlModules;
 }Process;
 
 #endif

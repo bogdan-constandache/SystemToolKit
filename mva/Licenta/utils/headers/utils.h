@@ -14,6 +14,15 @@
 #define UNUSED(expr) do { (void)(expr); } while (0)
 #define DEBUG_STATUS(expr) printf("\nEXCEPTION ON: \"%s\"(%d)\nFUNCTION: \"%s\"\nStatus: %d\n",__FILE__, __LINE__, __FUNCTION__, expr)
 
+#define SAFE_DELETE(X) if(X) { delete (X); X = 0; }
+
+#ifdef STK_WINDOWS
+    #define CHECK_ALLOCATION(X) if(!X) { printf("Allocation failed in: %s at line %d: ", __FILE__, __LINE__); return; }
+    #define CHECK_ALLOCATION_STATUS(X) if(!X) { printf("Allocation failed in: %s at line %d: ", __FILE__, __LINE__); return 5; }
+#endif
+
+#define CHECK_OPERATION_STATUS(X) if(0 != X) { printf("Operation unsuccessful in: %s at line %d with status %d", __FILE__, __LINE__, X); }
+
 typedef enum _SysToolError
 {
     Uninitialized = -1,

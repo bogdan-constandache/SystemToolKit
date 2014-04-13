@@ -8,39 +8,33 @@
 
 //QT includes
 #include <QFile>
+#include <QStandardItemModel>
 
 //My includes
-#include "../../../../interfaces/module.h"
 #include "../../../../utils/headers/utils.h"
 #include "processes_structs.h"
 
 //Typedefs
 typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
 
-class Processes : public IModule
+class Processes
 {
-public:
+private:
     QList<Process*> m_qlProcesses;
+    QList<Module*> m_qlModules;
 
-    QTableView *m_pTableView;
+private:
+    int GetProcessList();
+    int GetModuleList(DWORD dwPid);
 
-    QStandardItemModel *m_pTableModel;
+    void ClearProcessList();
+    void ClearModuleList();
 
 public:
     Processes();
     ~Processes();
-    int Initialize();
-    QList<Process*> GetProcesses();
-    virtual int OnCreateWidget(QWidget **ppWidget);
-
-public slots:
-    virtual void OnStartLoadingModuleDataSlot();
-
-private:
-    int Destroy();
-    int GetProcessList();
-    int GetModuleList(Process **ppParam);
-    void PopulateModel();
+    QStandardItemModel *GetModulesInformationsForProcess(DWORD dwPid);
+    QStandardItemModel *GetProcessesInformations();
 };
 
 #endif

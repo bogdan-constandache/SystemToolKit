@@ -40,6 +40,9 @@ signals:
 
     void OnSetSensorsInformations(std::string);
 
+    void OnSetProcessesInformations(QStandardItemModel*);
+    void OnSetModulesInformations(QStandardItemModel*);
+
 public slots:
     virtual void OnComputerDMIOptClickedSlot() = 0;
     virtual void OnComputerPowerManagementOptClickedSlot() = 0;
@@ -74,6 +77,9 @@ public slots:
 
     // Network devices manager slots
     virtual void OnRequestNetworkDeviceInfomationsSlot(QString) = 0;
+
+    // Processes manager slot
+    virtual void OnRequestModulesInformationsSlot(int) = 0;
 };
 
 #endif // ABSTRACT_CONTROLLER_H

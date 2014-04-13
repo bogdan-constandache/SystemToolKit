@@ -46,6 +46,28 @@ typedef enum _CHIP_
 
 }Chip;
 
+typedef enum _INTEL_MICROARCHITECTURE_
+{
+    UNKNOWN_IMA = -1,
+    i386_IMA = 0,
+    i486_IMA = 1,
+    P5_IMA = 2,
+    P6_IMA = 3,
+    PENTIUM_M_IMA = 4,
+    NETBURST_IMA = 5,
+    CORE_IMA = 6,
+    ATOM_IMA = 7,
+    PENRYN_IMA = 8,
+    NEHALEM_IMA = 9,
+    SANDY_BRIDGE_IMA = 10,
+    IVY_BRIDGE_IMA = 11,
+    HASWELL_IMA = 12,
+    BROADWELL_IMA = 13,
+    SKYLAKE_IMA = 14,
+    CANNON_LAKE_IMA = 15,
+    LARRA_BEE_IMA = 16
+}IntelMicroArchitecture;
+
 typedef struct _MEMORY_STATUS_
 {
     QString qzTotalPhys;

@@ -25,5 +25,8 @@ int main(int argc, char *argv[])
 
     ControllerThread.wait();
 
+    delete pController;
+    delete pViewAdapter;
+
     return nStatus;
 }

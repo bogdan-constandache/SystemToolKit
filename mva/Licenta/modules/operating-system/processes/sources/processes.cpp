@@ -1,32 +1,25 @@
 #include "../headers/processes.h"
 
-Processes::Processes():
-    m_pTableModel(NULL),
-    m_pTableView(NULL)
+Processes::Processes()
 {
-    m_pTableModel = new QStandardItemModel();
 }
 
 Processes::~Processes()
 {
 }
 
-int Processes::Initialize()
-{
-    int nStatus = Uninitialized;
-
-    m_qlProcesses.clear();
-
-    nStatus = GetProcessList();
-    return nStatus;
-}
-
 int Processes::GetProcessList()
 {
     int nStatus = Uninitialized;
+
+    // clear current list
+    ClearProcessList();
+
     LPFN_ISWOW64PROCESS IsWOW64Process = NULL;
     IsWOW64Process = (LPFN_ISWOW64PROCESS) GetProcAddress(
                 GetModuleHandle(TEXT("kernel32")),"IsWow64Process");
+    CHECK_ALLOCATION_STATUS(IsWOW64Process);
+
     WCHAR wszProcessFileName[MAX_PATH];
     DWORD dwProcessFileNameSize = MAX_PATH;
 
@@ -35,21 +28,16 @@ int Processes::GetProcessList()
     PROCESSENTRY32 peProcessEntry;
     PROCESS_MEMORY_COUNTERS pmProcessMemoryCounters;
     Process *pProcess = 0;
+    BOOL bIsTrue = 0;
 
     hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if( 0 == hProcessSnap )
-    {
-        nStatus = InvalidHandle;
-        DEBUG_STATUS(nStatus);
-        return nStatus;
-    }
+    CHECK_ALLOCATION_STATUS(hProcessSnap);
 
     peProcessEntry.dwSize = sizeof(PROCESSENTRY32);
 
     if( FALSE == Process32First(hProcessSnap, &peProcessEntry) )
     {
         nStatus = Unsuccessful;
-        DEBUG_STATUS(nStatus);
         CloseHandle(hProcessSnap);
         return nStatus;
     }
@@ -59,44 +47,32 @@ int Processes::GetProcessList()
         hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION , FALSE, peProcessEntry.th32ProcessID );
         if( 0 == hProcess )
         {
-            nStatus = GetLastError();
             nStatus = InvalidHandle;
-            DEBUG_STATUS(nStatus);
             continue;
         }
 
         pProcess = new Process;
-        if( 0 == pProcess )
-        {
-            nStatus = NotAllocated;
-            DEBUG_STATUS(nStatus);
-            return nStatus;
-        }
+        CHECK_ALLOCATION_STATUS(pProcess);
 
         dwProcessFileNameSize = MAX_PATH;
         if( 0 != QueryFullProcessImageName(hProcess, 0, wszProcessFileName, &dwProcessFileNameSize))
-        {
             pProcess->qszProcessFileName = WcharArrayToQString(wszProcessFileName);
-        }
         else
-        {
             pProcess->qszProcessFileName = "N/A";
-        }
+
         pProcess->qszProcessName = WcharArrayToQString(peProcessEntry.szExeFile);
         pProcess->qnPID = (qint32) peProcessEntry.th32ProcessID;
         pProcess->qnNumberOfThreads = (qint32) peProcessEntry.cntThreads;
-        if( 0 != IsWOW64Process )
+
+        if( 0 == IsWOW64Process(hProcess, &bIsTrue))
         {
-            BOOL isTrue;
-            if( 0 == IsWOW64Process(hProcess, &isTrue))
-            {
-                nStatus = Unsuccessful;
-                DEBUG_STATUS(nStatus);
-                return nStatus;
-            }
-            pProcess->bType = isTrue;
+            nStatus = Unsuccessful;
+            continue;
         }
+        pProcess->bType = bIsTrue;
+
         pProcess->qnMemoryUsed = 0;
+
         if( 0 != GetProcessMemoryInfo(hProcess, &pmProcessMemoryCounters, sizeof(pmProcessMemoryCounters)))
         {
             SIZE_T workingSetSize = pmProcessMemoryCounters.WorkingSetSize / 1024;
@@ -104,13 +80,10 @@ int Processes::GetProcessList()
             pProcess->qnMemoryUsed = (qint32) workingSetSize;
             pProcess->qnPageFileUsage = (qint32) pageFileUsage;
         }
+
         pProcess->qszProcessCommandLine = "";
         CloseHandle(hProcess);
-        nStatus = GetModuleList(&pProcess);
-        if( Success != nStatus )
-        {
-            DEBUG_STATUS(nStatus);
-        }
+
         m_qlProcesses.append(pProcess);
     }while( Process32Next(hProcessSnap, &peProcessEntry) );
 
@@ -118,131 +91,148 @@ int Processes::GetProcessList()
     return nStatus;
 }
 
-int Processes::GetModuleList(Process **ppParam)
+int Processes::GetModuleList(DWORD dwPid)
 {
-    int nStatus = Uninitialized;
-
     HANDLE hModuleSnap = 0;
     MODULEENTRY32 meModuleEntry;
     Module *pModule = 0;
 
-    hModuleSnap = CreateToolhelp32Snapshot( TH32CS_SNAPMODULE, (DWORD)(*ppParam)->qnPID );
+    ClearModuleList();
+
+    hModuleSnap = CreateToolhelp32Snapshot( TH32CS_SNAPMODULE, dwPid );
     if( INVALID_HANDLE_VALUE == hModuleSnap )
     {
-        nStatus = GetLastError();
-        nStatus = InvalidHandle;
-        DEBUG_STATUS(nStatus);
-        return nStatus;
+        return InvalidHandle;
     }
 
     meModuleEntry.dwSize = sizeof(MODULEENTRY32);
 
     if( 0 == Module32First( hModuleSnap, &meModuleEntry ) )
     {
-        nStatus = Unsuccessful;
-        DEBUG_STATUS(nStatus);
-        return nStatus;
+        return Unsuccessful;
     }
-
-    Module32Next(hModuleSnap, &meModuleEntry);
 
     do
     {
         pModule = new Module;
-        if( 0 == pModule )
-        {
-            nStatus = NotAllocated;
-            DEBUG_STATUS(nStatus);
-            return nStatus;
-        }
+        CHECK_ALLOCATION_STATUS(pModule);
 
         pModule->qszModuleName = WcharArrayToQString(meModuleEntry.szModule);
         pModule->qszModuleExePath = WcharArrayToQString(meModuleEntry.szExePath);
         pModule->qnPID = (qint32) meModuleEntry.th32ProcessID;
         pModule->qnBaseSize = (qint32) meModuleEntry.modBaseSize;
 
-        (*ppParam)->qlModules.append(pModule);
+        m_qlModules.append(pModule);
 
     }while( Module32Next(hModuleSnap, &meModuleEntry));
+
     CloseHandle(hModuleSnap);
 
-    nStatus = Success;
-    return nStatus;
+    return Success;
 }
 
-void Processes::PopulateModel()
+void Processes::ClearProcessList()
 {
-    QStandardItem *pItem = 0;
-    Process *pProcess = 0;
-    m_pTableModel->clear();
+    foreach(Process *pProcess, m_qlProcesses)
+        SAFE_DELETE(pProcess);
 
-    m_pTableModel->setColumnCount(8);
-    m_pTableModel->setRowCount(this->m_qlProcesses.count());
+    m_qlProcesses.clear();
+}
+
+void Processes::ClearModuleList()
+{
+    foreach(Module *pModule, m_qlModules)
+        SAFE_DELETE(pModule);
+
+    m_qlModules.clear();
+}
+
+
+QStandardItemModel *Processes::GetModulesInformationsForProcess(DWORD dwPid)
+{
+    QStandardItemModel *pModel = new QStandardItemModel;
+    Module *pModule;
+
+    QStandardItem *pRoot = pModel->invisibleRootItem();
+    QStandardItem *pItem = 0;
+
+    QList<QStandardItem*> qRow;
+
+    GetModuleList(dwPid);
+
+    for(int i = 0; i < m_qlModules.count(); i++)
+    {
+        pModule = m_qlModules.at(i);
+
+//        pItem = new QStandardItem(QString().setNum(pModule->qnPID));
+//        qRow.append(pItem);
+
+        pItem = new QStandardItem(pModule->qszModuleName == "" ? "N/A" : pModule->qszModuleName);
+        qRow.append(pItem);
+
+        pItem = new QStandardItem(pModule->qszModuleExePath == "" ? "N/A" : pModule->qszModuleExePath);
+        qRow.append(pItem);
+
+        pItem = new QStandardItem(QString().setNum(pModule->qnBaseSize));
+        qRow.append(pItem);
+
+        pRoot->appendRow(qRow);
+        qRow.clear();
+    }
+
+    return pModel;
+}
+
+QStandardItemModel *Processes::GetProcessesInformations()
+{
+    QStandardItemModel *pModel = new QStandardItemModel;
+    Process *pProcess;
+
+    QStandardItem *pRoot = pModel->invisibleRootItem();
+    QStandardItem *pItem = 0;
+
+    QList<QStandardItem*> qRow;
+
+    GetProcessList();
 
     for(int i = 0; i < m_qlProcesses.count(); i++)
     {
         pProcess = m_qlProcesses.at(i);
         pItem = new QStandardItem(pProcess->qszProcessName == "" ? "N/A" : pProcess->qszProcessName);
-        m_pTableModel->setItem(i, 0, pItem);
+        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
+        qRow.append(pItem);
 
         pItem = new QStandardItem(pProcess->qszProcessFileName == "" ? "N/A" : pProcess->qszProcessFileName);
-        m_pTableModel->setItem(i, 1, pItem);
+        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
+        qRow.append(pItem);
 
         pItem = new QStandardItem(pProcess->qszProcessCommandLine == "" ? "N/A" : pProcess->qszProcessCommandLine);
-        m_pTableModel->setItem(i, 2, pItem);
+        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
+        qRow.append(pItem);
 
         pItem = new QStandardItem(QString().setNum(pProcess->qnPID));
-        m_pTableModel->setItem(i, 3, pItem);
+        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
+        qRow.append(pItem);
 
         pItem = new QStandardItem(QString().setNum(pProcess->qnNumberOfThreads));
-        m_pTableModel->setItem(i, 4, pItem);
+        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
+        qRow.append(pItem);
 
         pItem = new QStandardItem(pProcess->bType ? "Yes" : "No");
-        m_pTableModel->setItem(i, 5, pItem);
+        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
+        qRow.append(pItem);
 
         pItem = new QStandardItem(QString().setNum(pProcess->qnMemoryUsed));
-        m_pTableModel->setItem(i, 6, pItem);
+        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
+        qRow.append(pItem);
 
         pItem = new QStandardItem(QString().setNum(pProcess->qnPageFileUsage));
-        m_pTableModel->setItem(i, 7, pItem);
+        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
+        qRow.append(pItem);
+
+        pRoot->appendRow(qRow);
+        qRow.clear();
     }
 
-    emit OnSendModuleDataToGUISignal(OS_PROCESSES, m_pTableView, m_pTableModel);
-}
-
-QList<Process *> Processes::GetProcesses()
-{
-    return m_qlProcesses;
-}
-
-int Processes::OnCreateWidget(QWidget **ppWidget)
-{
-    QWidget *pWidget = new QWidget();
-    pWidget->setLayout(new QVBoxLayout());
-    pWidget->layout()->setContentsMargins(0, 0, 0, 0);
-
-    m_pTableView = new QTableView();
-    m_pTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_pTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    m_pTableView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
-    m_pTableView->verticalHeader()->hide();
-    m_pTableView->setShowGrid(false);
-    m_pTableView->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_pTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-
-    pWidget->layout()->addWidget(m_pTableView);
-
-    this->PopulateModel();
-
-    (*ppWidget) = pWidget;
-
-    return Success;
-}
-
-void Processes::OnStartLoadingModuleDataSlot()
-{
-    this->Initialize();
-
-    emit OnLoadingModuleDataCompleteSignal();
-    emit OnCreateWidgetSignal(OS_PROCESSES, this);
+    return pModel;
 }

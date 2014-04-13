@@ -6,6 +6,8 @@
 
 #include "sensor_defines.h"
 
+#include <QDebug>
+
 class CHardwareUsage
 {
 private:

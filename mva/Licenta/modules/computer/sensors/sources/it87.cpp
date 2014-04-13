@@ -5,17 +5,35 @@ CIT87::CIT87(Chip eChip, USHORT usAddress)
 {
     this->usAddress = usAddress;
     this->eChip = eChip;
-    this->usAddressReg = usAddress + ADDRESS_REGISTER_OFFSET;
-    this->usDataReg = usAddress + DATA_REGISTER_OFFSET;
+    this->usAddressReg = usAddress + IT87_CHIP_ADDRESS_REGISTER_OFFSET;
+    this->usDataReg = usAddress + IT87_CHIP_DATA_REGISTER_OFFSET;
 
     m_pDriver = new CSTKDriverWrapper;
     m_pDriver->Initialize();
+
+    m_pFanSpeedReg = new BYTE[5];
+    m_pFanSpeedReg[0] = 0x0D;
+    m_pFanSpeedReg[1] = 0x0E;
+    m_pFanSpeedReg[2] = 0x0F;
+    m_pFanSpeedReg[3] = 0x80;
+    m_pFanSpeedReg[4] = 0x82;
+
+    m_pFanSpeedExtReg = new BYTE[5];
+    m_pFanSpeedExtReg[0] = 0x18;
+    m_pFanSpeedExtReg[1] = 0x19;
+    m_pFanSpeedExtReg[2] = 0x1A;
+    m_pFanSpeedExtReg[3] = 0x81;
+    m_pFanSpeedExtReg[4] = 0x83;
 }
 
 CIT87::~CIT87()
 {
     m_pDriver->Destroy();
     delete m_pDriver;
+
+    delete m_pFanSpeedReg;
+
+    delete m_pFanSpeedExtReg;
 }
 
 int CIT87::Initialize()
@@ -24,16 +42,16 @@ int CIT87::Initialize()
     BYTE bVendorID = 0;
     BYTE bConfigReg = 0;
 
-    nStatus = m_pDriver->WriteIoPortByte(usAddressReg, VENDOR_ID_REGISTER);
+    nStatus = m_pDriver->WriteIoPortByte(usAddressReg, IT87_CHIP_VENDOR_ID_REGISTER);
     nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVendorID);
-    if (Success != nStatus || bVendorID != VENDOR_ID)
+    if (Success != nStatus || bVendorID != IT87_CHIP_VENDOR_ID)
     {
         DEBUG_STATUS(Unsuccessful);
         return Unsuccessful;
     }
 
     // Bit 0x10 of the configuration register should always be 1
-    nStatus = m_pDriver->WriteIoPortByte(usAddressReg, CONFIGURATION_REGISTER);
+    nStatus = m_pDriver->WriteIoPortByte(usAddressReg, IT87_CHIP_CONFIGURATION_REGISTER);
     nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bConfigReg);
     if (Success != nStatus || bConfigReg == 0)
     {
@@ -73,7 +91,7 @@ int CIT87::Update()
 
     for (int i = 0; i < 9; i++)
     {
-        nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (VOLTAGE_BASE_REGISTER + i));
+        nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (IT87_CHIP_VOLTAGE_BASE_REGISTER + i));
         nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVal);
         if (Success != nStatus)
             continue;
@@ -88,7 +106,7 @@ int CIT87::Update()
 
     for (int i = 0; i < 3; i++)
     {
-        nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (TEMP_BASE_REGISTER + i));
+        nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (IT87_CHIP_TEMP_BASE_REGISTER + i));
         nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVal);
         if (Success != nStatus)
             continue;
@@ -102,13 +120,13 @@ int CIT87::Update()
     if (bHas16BitFanCounter)
         for (int i = 0; i < 5; i++)
         {
-            nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (FAN_SPEED_REG[i]));
+            nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (m_pFanSpeedReg[i]));
             nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVal);
             if (Success != nStatus)
                 continue;
             nVal = bVal;
 
-            nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (FAN_SPEED_EXT_REG[i]));
+            nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (m_pFanSpeedExtReg[i]));
             nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVal);
             if (Success != nStatus)
                 continue;
@@ -122,7 +140,7 @@ int CIT87::Update()
     else
         for (int i = 0; i < 5; i++)
         {
-            nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (FAN_SPEED_REG[i]));
+            nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (m_pFanSpeedReg[i]));
             nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVal);
             if (Success != nStatus)
                 continue;
@@ -131,7 +149,7 @@ int CIT87::Update()
             int nDivisor = 2;
             if (i < 2)
             {
-                nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (FAN_SPEED_DIVISOR_REGISTER));
+                nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (IT87_CHIP_FAN_SPEED_DIVISOR_REGISTER));
                 nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVal);
                 if (Success != nStatus)
                     continue;

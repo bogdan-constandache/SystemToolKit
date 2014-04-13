@@ -3,7 +3,8 @@
 Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pDMIManager(NULL), m_pSmartManager(NULL), m_pSystemDriversManager(NULL),
     m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL),
-    m_pSensorsManager(NULL), m_pSensor(NULL), m_pSensorsTimer(NULL)
+    m_pSensorsManager(NULL), m_pSensor(NULL), m_pSensorsTimer(NULL), m_pCpuSensor(NULL),
+    m_pProcessesManager(NULL)
 {
     m_pSensorsTimer = new QTimer(this);
     connect(m_pSensorsTimer, SIGNAL(timeout()), this, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
@@ -30,10 +31,9 @@ Controller::~Controller()
     if (m_pCPUIDManager)
         delete m_pCPUIDManager;
     if (m_pSensorsManager)
-    {
-        m_pSensorsManager->DestroySensor();
         delete m_pSensorsManager;
-    }
+
+    SAFE_DELETE(m_pProcessesManager);
 }
 
 void Controller::StartController()
@@ -131,9 +131,13 @@ void Controller::StartController()
 
     // Create Sensor Object
     m_pSensorsManager = new CSensorModule;
-    m_pSensor = m_pSensorsManager->DetectSensor();
+    m_pSensor = m_pSensorsManager->GetBoardSensor();
     if (m_pSensor)
         m_pSensor->Initialize();
+
+    m_pCpuSensor = m_pSensorsManager->GetCpuSensor();
+    if (m_pCpuSensor)
+        m_pCpuSensor->Initialize();
 }
 
 void Controller::OnComputerDMIOptClickedSlot()
@@ -184,7 +188,15 @@ void Controller::OnOperatingSystemOptClickedSlot()
 
 void Controller::OnProcessesOptClickedSlot()
 {
-    qDebug() << __FUNCTION__;
+    SAFE_DELETE(m_pProcessesManager);
+
+    m_pProcessesManager = new Processes;
+    CHECK_ALLOCATION(m_pProcessesManager);
+
+    QStandardItemModel *pModel = m_pProcessesManager->GetProcessesInformations();
+
+    if (0 != pModel)
+        emit OnSetProcessesInformations(pModel);
 }
 
 void Controller::OnSystemDriversOptClickedSlot()
@@ -380,7 +392,7 @@ void Controller::OnSensorsOptClickedSlot()
         if (!pResults[i])
             continue;
         qzTemp1.sprintf("Voltage #%d", i + 1);
-        qzTemp2.sprintf("%.1fC", pResults[i]);
+        qzTemp2.sprintf("%.1fV", pResults[i]);
 
         pItemPair = pDataType->add_datavalue();
         pItemPair->set_name(qzTemp1.toLatin1().data());
@@ -407,6 +419,25 @@ void Controller::OnSensorsOptClickedSlot()
 
     pCpuData = pSensorData->mutable_cpudata();
     pCpuData->set_name(m_pSensorsManager->GetCpuName().toLatin1().data());
+
+    pDataType = pCpuData->add_data();
+    pDataType->set_dataname("Temperatures: ");
+
+    m_pCpuSensor->Update();
+    pResults = m_pCpuSensor->GetTemps();
+
+    qzTemp1 = "", qzTemp2 = "";
+    for(int i = 0; i < 4; i++)
+    {
+        if (!pResults[i])
+            continue;
+        qzTemp1.sprintf("Core #%d", i + 1);
+        qzTemp2.sprintf("%.1fC", pResults[i]);
+
+        pItemPair = pDataType->add_datavalue();
+        pItemPair->set_name(qzTemp1.toLatin1().data());
+        pItemPair->set_value(qzTemp2.toLatin1().data());
+    }
 
     pDataType = pCpuData->add_data();
     pDataType->set_dataname("Usage: ");
@@ -526,6 +557,17 @@ void Controller::OnRequestNetworkDeviceInfomationsSlot(QString qzAdapterName)
 
        if (pModel)
            emit OnSetNetworkDeviceInformation(pModel);
+    }
+}
+
+void Controller::OnRequestModulesInformationsSlot(int nPid)
+{
+    if( m_pProcessesManager )
+    {
+        QStandardItemModel *pModel = m_pProcessesManager->GetModulesInformationsForProcess(nPid);
+
+        if (0 != pModel)
+            emit OnSetModulesInformations(pModel);
     }
 }
 
