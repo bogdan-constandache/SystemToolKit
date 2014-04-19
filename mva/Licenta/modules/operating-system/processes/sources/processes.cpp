@@ -75,8 +75,8 @@ int Processes::GetProcessList()
 
         if( 0 != GetProcessMemoryInfo(hProcess, &pmProcessMemoryCounters, sizeof(pmProcessMemoryCounters)))
         {
-            SIZE_T workingSetSize = pmProcessMemoryCounters.WorkingSetSize / 1024;
-            SIZE_T pageFileUsage = pmProcessMemoryCounters.PagefileUsage / 1024;
+            SIZE_T workingSetSize = pmProcessMemoryCounters.WorkingSetSize / (1024 * 1024);
+            SIZE_T pageFileUsage = pmProcessMemoryCounters.PagefileUsage / (1024 * 1024);
             pProcess->qnMemoryUsed = (qint32) workingSetSize;
             pProcess->qnPageFileUsage = (qint32) pageFileUsage;
         }
@@ -120,7 +120,7 @@ int Processes::GetModuleList(DWORD dwPid)
         pModule->qszModuleName = WcharArrayToQString(meModuleEntry.szModule);
         pModule->qszModuleExePath = WcharArrayToQString(meModuleEntry.szExePath);
         pModule->qnPID = (qint32) meModuleEntry.th32ProcessID;
-        pModule->qnBaseSize = (qint32) meModuleEntry.modBaseSize;
+        pModule->qnBaseSize = (qint32) meModuleEntry.modBaseSize / (1024);
 
         m_qlModules.append(pModule);
 
@@ -160,12 +160,11 @@ QStandardItemModel *Processes::GetModulesInformationsForProcess(DWORD dwPid)
 
     GetModuleList(dwPid);
 
+    pModel->setHorizontalHeaderLabels(QStringList() << "Name" << "Path" << "Size");
+
     for(int i = 0; i < m_qlModules.count(); i++)
     {
         pModule = m_qlModules.at(i);
-
-//        pItem = new QStandardItem(QString().setNum(pModule->qnPID));
-//        qRow.append(pItem);
 
         pItem = new QStandardItem(pModule->qszModuleName == "" ? "N/A" : pModule->qszModuleName);
         qRow.append(pItem);
@@ -173,7 +172,7 @@ QStandardItemModel *Processes::GetModulesInformationsForProcess(DWORD dwPid)
         pItem = new QStandardItem(pModule->qszModuleExePath == "" ? "N/A" : pModule->qszModuleExePath);
         qRow.append(pItem);
 
-        pItem = new QStandardItem(QString().setNum(pModule->qnBaseSize));
+        pItem = new QStandardItem(QString().setNum(pModule->qnBaseSize) + " KB");
         qRow.append(pItem);
 
         pRoot->appendRow(qRow);
@@ -195,6 +194,8 @@ QStandardItemModel *Processes::GetProcessesInformations()
 
     GetProcessList();
 
+    pModel->setHorizontalHeaderLabels(QStringList() << "Name" << "File name" << "PID" << "Threads" << "Memory" << "Pagefile" );
+
     for(int i = 0; i < m_qlProcesses.count(); i++)
     {
         pProcess = m_qlProcesses.at(i);
@@ -206,9 +207,9 @@ QStandardItemModel *Processes::GetProcessesInformations()
         pItem->setStatusTip(QString().setNum(pProcess->qnPID));
         qRow.append(pItem);
 
-        pItem = new QStandardItem(pProcess->qszProcessCommandLine == "" ? "N/A" : pProcess->qszProcessCommandLine);
-        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
-        qRow.append(pItem);
+//        pItem = new QStandardItem(pProcess->qszProcessCommandLine == "" ? "N/A" : pProcess->qszProcessCommandLine);
+//        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
+//        qRow.append(pItem);
 
         pItem = new QStandardItem(QString().setNum(pProcess->qnPID));
         pItem->setStatusTip(QString().setNum(pProcess->qnPID));
@@ -218,15 +219,15 @@ QStandardItemModel *Processes::GetProcessesInformations()
         pItem->setStatusTip(QString().setNum(pProcess->qnPID));
         qRow.append(pItem);
 
-        pItem = new QStandardItem(pProcess->bType ? "Yes" : "No");
+//        pItem = new QStandardItem(pProcess->bType ? "Yes" : "No");
+//        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
+//        qRow.append(pItem);
+
+        pItem = new QStandardItem(QString().setNum(pProcess->qnMemoryUsed) + " MB");
         pItem->setStatusTip(QString().setNum(pProcess->qnPID));
         qRow.append(pItem);
 
-        pItem = new QStandardItem(QString().setNum(pProcess->qnMemoryUsed));
-        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
-        qRow.append(pItem);
-
-        pItem = new QStandardItem(QString().setNum(pProcess->qnPageFileUsage));
+        pItem = new QStandardItem(QString().setNum(pProcess->qnPageFileUsage) + " MB");
         pItem->setStatusTip(QString().setNum(pProcess->qnPID));
         qRow.append(pItem);
 

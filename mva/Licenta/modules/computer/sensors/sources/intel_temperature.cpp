@@ -206,10 +206,22 @@ int CIntelCpuSensor::Destroy()
 int CIntelCpuSensor::Update()
 {
     int nStatus = Uninitialized;
+    BOOL bResult = FALSE;
+    DWORD_PTR dwProcAffinityMask = 0;
+    DWORD_PTR dwSysAffinityMask = 0;
+    DWORD_PTR dwCurrentMask = 1;
     ULONG uiEax = 0, uiEdx = 0;
+
+    bResult = GetProcessAffinityMask(GetCurrentProcess(), &dwProcAffinityMask, &dwSysAffinityMask);
+    if (FALSE == bResult)
+        return Unsuccessful;
 
     for(int i = 0; i < m_nCoreCount; i++)
     {
+        dwCurrentMask = (DWORD_PTR)1 << i;
+
+        SetProcessAffinityMask(GetCurrentProcess(), dwCurrentMask);
+
         nStatus = m_pDriver->ReadMsr(IA32_THERM_STATUS_MSR, &uiEax, &uiEdx);
         CHECK_OPERATION_STATUS(nStatus);
 
@@ -218,6 +230,8 @@ int CIntelCpuSensor::Update()
         double dTSlope = 1;
         m_pTemps[i] = dTjMax - dTSlope * dDeltaT;
     }
+
+    SetProcessAffinityMask(GetCurrentProcess(), dwProcAffinityMask);
 
     return Success;
 }
@@ -275,4 +289,9 @@ QString CIntelCpuSensor::GetMicroArchitecture()
     }
 
     return "";
+}
+
+int CIntelCpuSensor::GetNumberOfCores()
+{
+    return m_nCoreCount;
 }

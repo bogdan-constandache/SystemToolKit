@@ -39,6 +39,7 @@ public:
     virtual double *GetTemps();
     virtual QString GetCpuName();
     virtual QString GetMicroArchitecture();
+    virtual int GetNumberOfCores();
 };
 
 #endif // INTEL_TEMPERATURE_H

@@ -24,6 +24,9 @@ public:
     explicit CSensorsWidget(QWidget *parent = 0, AbstractController *pController = 0);
     ~CSensorsWidget();
 
+private:
+    void ExpandTreeAndResizeColumns();
+
 public slots:
     void OnSetTreeModel(std::string buffer);
     void OnUpdateTree(std::string buffer);

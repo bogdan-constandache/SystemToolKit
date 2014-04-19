@@ -1,6 +1,8 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include <comdef.h>
+
 #include "../gui/abstract_controller.h"
 #include "../modules/api.h"
 
@@ -23,6 +25,7 @@ private: // internal objects
     CIntelCpuID *m_pCPUIDManager;
 
     Processes *m_pProcessesManager;
+    CStartupApplication *m_pStartupAppsManager;
 
     CSensorModule *m_pSensorsManager;
     ISensor *m_pSensor;

@@ -131,13 +131,16 @@ int CSTKDriverWrapper::WriteIoPortByte(ULONG ulPort, BYTE bValue)
     pInput->ulPort = ulPort;
     pInput->CharData = bValue;
 
+    DWORD dwRetParam = 0;
+    DWORD dwBytesReceived = 0;
+
     bResult = DeviceIoControl(m_hDriver,
                               IOCTL_STK_WRITE_IO_PORT_BYTE,
                               (LPVOID)pInput,
                               sizeof(STK_IO_PORT_INPUT),
-                              NULL,
-                              0,
-                              NULL,
+                              &dwRetParam,
+                              sizeof(dwRetParam),
+                              &dwBytesReceived,
                               NULL);
 
     if (false == bResult)

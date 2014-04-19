@@ -43,6 +43,8 @@ signals:
     void OnSetProcessesInformations(QStandardItemModel*);
     void OnSetModulesInformations(QStandardItemModel*);
 
+    void OnSetStartupApplicationsInformations(QStandardItemModel *);
+
 public slots:
     virtual void OnComputerDMIOptClickedSlot() = 0;
     virtual void OnComputerPowerManagementOptClickedSlot() = 0;

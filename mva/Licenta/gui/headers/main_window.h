@@ -25,6 +25,7 @@
 #include "cpuid_widget.h"
 #include "sensors_widget.h"
 #include "processes_widget.h"
+#include "startup_apps_widget.h"
 
 namespace Ui {
 class MainWindow;
@@ -51,6 +52,7 @@ private:
     CCPUIDWidget *m_pCPUIDWidget;
     CSensorsWidget *m_pSensorsWidget;
     CProcessesWidget *m_pProcessesWidget;
+    CStartupAppsWidget *m_pStartupAppsWidget;
 
     void InitializeStackedWidget();
 

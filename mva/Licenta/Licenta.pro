@@ -63,7 +63,9 @@ SOURCES += main/main.cpp \
         modules/computer/sensors/sources/factory_board_sensor.cpp \
         modules/computer/sensors/sources/factory_cpu_sensor.cpp \
         modules/computer/sensors/sources/w836xx.cpp \
-        modules/operating-system/processes/sources/processes.cpp
+        modules/operating-system/processes/sources/processes.cpp \
+        modules/software/startup-applications/sources/startup_application.cpp \
+        gui/sources/startup_apps_widget.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -115,9 +117,11 @@ HEADERS  += gui/abstract_controller.h \
         modules/computer/sensors/headers/factory_board_sensor.h \
         modules/computer/sensors/headers/factory_cpu_sensor.h \
         modules/computer/sensors/headers/w836xx.h \
-    modules/api.h \
-    modules/operating-system/processes/headers/processes.h \
-    modules/operating-system/processes/headers/processes_structs.h
+        modules/api.h \
+        modules/operating-system/processes/headers/processes.h \
+        modules/operating-system/processes/headers/processes_structs.h \
+        modules/software/startup-applications/headers/startup_application.h \
+        gui/headers/startup_apps_widget.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
@@ -131,4 +135,5 @@ FORMS    += \
         gui/forms/network_devices_widget.ui \
         gui/forms/cpuid_widget.ui \
         gui/forms/sensors_widget.ui \
-        gui/forms/processes_widget.ui
+        gui/forms/processes_widget.ui \
+        gui/forms/startup_apps_widget.ui

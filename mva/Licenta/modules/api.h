@@ -14,7 +14,7 @@
 #include "operating-system/system-drivers/headers/system_drivers.h"
 
 #include "software/applications-manager/headers/application_manager.h"
-//#include "software/startup-applications/headers/startup_application.h"
+#include "software/startup-applications/headers/startup_application.h"
 
 #include "storage/smart/headers/csmartinfo.h"
 

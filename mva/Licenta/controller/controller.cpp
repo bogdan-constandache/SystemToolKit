@@ -4,7 +4,7 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pDMIManager(NULL), m_pSmartManager(NULL), m_pSystemDriversManager(NULL),
     m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL),
     m_pSensorsManager(NULL), m_pSensor(NULL), m_pSensorsTimer(NULL), m_pCpuSensor(NULL),
-    m_pProcessesManager(NULL)
+    m_pProcessesManager(NULL), m_pStartupAppsManager(NULL)
 {
     m_pSensorsTimer = new QTimer(this);
     connect(m_pSensorsTimer, SIGNAL(timeout()), this, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
@@ -14,30 +14,30 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
 
 Controller::~Controller()
 {
-    if (m_pBatteryStatus)
-        delete m_pBatteryStatus;
-    if (m_pApplicationManager)
-        delete m_pApplicationManager;
-    if (m_pDMIManager)
-        delete m_pDMIManager;
-    if (m_pSmartManager)
-        delete m_pSmartManager;
-    if (m_pSystemDriversManager)
-        delete m_pSystemDriversManager;
-    if (m_pActiveConnectionsManager)
-        delete m_pActiveConnectionsManager;
-    if (m_pNetworkDevicesManager)
-        delete m_pNetworkDevicesManager;
-    if (m_pCPUIDManager)
-        delete m_pCPUIDManager;
-    if (m_pSensorsManager)
-        delete m_pSensorsManager;
-
+    SAFE_DELETE(m_pBatteryStatus);
+    SAFE_DELETE(m_pApplicationManager);
+    SAFE_DELETE(m_pDMIManager);
+    SAFE_DELETE(m_pSmartManager)
+    SAFE_DELETE(m_pSystemDriversManager);
+    SAFE_DELETE(m_pActiveConnectionsManager);
+    SAFE_DELETE(m_pNetworkDevicesManager);
+    SAFE_DELETE(m_pCPUIDManager);
+    SAFE_DELETE(m_pSensorsManager)
     SAFE_DELETE(m_pProcessesManager);
+    SAFE_DELETE(m_pStartupAppsManager);
 }
 
 void Controller::StartController()
 {
+    HRESULT hResult = CoInitializeEx(0, COINIT_MULTITHREADED);
+    if( 0 != hResult )
+    {
+        _com_error err(hResult);
+        QString qzError = QString::fromWCharArray(err.ErrorMessage());
+        qDebug() << "Error initializing COM function CoinitializeEx: " << qzError;
+        return;
+    }
+
     // Create main window
     emit OnCreateMainWindowSignal();
 
@@ -48,6 +48,8 @@ void Controller::StartController()
     QStandardItem *pChildItem = 0;
     QList<QStandardItem*> qList;
     QList<QStandardItem*> qChildList;
+
+    pModel->setHorizontalHeaderLabels(QStringList() << "Select a category:");
 
     pDataItem = new QStandardItem(QString("Computer"));
     qList.append(pDataItem);
@@ -131,10 +133,12 @@ void Controller::StartController()
 
     // Create Sensor Object
     m_pSensorsManager = new CSensorModule;
+    // get board sensor
     m_pSensor = m_pSensorsManager->GetBoardSensor();
     if (m_pSensor)
         m_pSensor->Initialize();
 
+    // get cpu sensor
     m_pCpuSensor = m_pSensorsManager->GetCpuSensor();
     if (m_pCpuSensor)
         m_pCpuSensor->Initialize();
@@ -284,7 +288,18 @@ void Controller::OnApplicationManagerOptClickedSlot()
 
 void Controller::OnStartupApplicationsOptClickedSlot()
 {
-    qDebug() << __FUNCTION__;
+    emit OnCancelSensorsTimerSignal();
+
+    SAFE_DELETE(m_pStartupAppsManager);
+
+    m_pStartupAppsManager = new CStartupApplication;
+
+    CHECK_ALLOCATION(m_pStartupAppsManager);
+
+    QStandardItemModel *pModel = m_pStartupAppsManager->GetStartupApplicationsInformations();
+
+    if (0 != pModel)
+        emit OnSetStartupApplicationsInformations(pModel);
 }
 
 void Controller::OnActiveConnectionsOptClickedSlot()
@@ -352,12 +367,16 @@ void Controller::OnSensorsOptClickedSlot()
     CpuData *pCpuData;
 
     double *pResults = 0;
+    QString qzTemp1 = "", qzTemp2 = "";
 
     if (!m_pSensorsTimer->isActive())
         m_pSensorsTimer->start(750);
 
     if (!m_pSensor)
-        return;
+    {
+        goto CPU;
+//        return;
+    }
 
     pMBData = pSensorData->mutable_mbdata();
     pMBData->set_name(m_pSensor->GetChipName().toLatin1().data());
@@ -368,7 +387,6 @@ void Controller::OnSensorsOptClickedSlot()
     pDataType = pMBData->add_data();
     pDataType->set_dataname("Temperatures: ");
 
-    QString qzTemp1 = "", qzTemp2 = "";
     for(int i = 0; i < 3; i++)
     {
         if (!pResults[i])
@@ -417,6 +435,7 @@ void Controller::OnSensorsOptClickedSlot()
         pItemPair->set_value(qzTemp2.toLatin1().data());
     }
 
+CPU:
     pCpuData = pSensorData->mutable_cpudata();
     pCpuData->set_name(m_pSensorsManager->GetCpuName().toLatin1().data());
 
@@ -427,7 +446,7 @@ void Controller::OnSensorsOptClickedSlot()
     pResults = m_pCpuSensor->GetTemps();
 
     qzTemp1 = "", qzTemp2 = "";
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < m_pCpuSensor->GetNumberOfCores(); i++)
     {
         if (!pResults[i])
             continue;

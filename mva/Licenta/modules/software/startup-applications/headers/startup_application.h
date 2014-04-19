@@ -9,35 +9,28 @@
 
 #include <QStringList>
 #include <QList>
-#include <QDebug>
 #include <QDir>
 #include <QSysInfo>
+#include <QStandardItemModel>
 
-#include "../../../../interfaces/module.h"
 #include "../../../../utils/headers/utils.h"
 #include "../../applications-manager/headers/software_structures.h"
 
-class CStartupApplication : public IModule
+class CStartupApplication
 {
-    Q_OBJECT
 private:
-    QList<PStartupApplication> m_data;
+    QList<PStartupApplication> m_qApplicationList;
+
 public:
     CStartupApplication();
     ~CStartupApplication();
-    int FillApplicationList();
-    QList<PStartupApplication> GetApplicationList();
-    virtual int OnCreateWidget(QWidget **ppWidget);
-
-public slots:
-    virtual void StartLoadingModuleSlot();
+    QStandardItemModel *GetStartupApplicationsInformations();
 
 private:
     bool IsX64System();
     int FillX64ApplicationList(HKEY key);
     int FillX86ApplicationList(HKEY key);
-    int FillAppDataApplicationList();
-    int FillCurrentUserApplicationList();
+    int FillApplicationList(UserScope eScope);
     QString GetTargetOfShortcut(QString qzShortcutPath);
 };
 
