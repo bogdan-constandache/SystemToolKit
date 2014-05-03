@@ -61,6 +61,20 @@ typedef struct STK_IO_PORT_INPUT {
     UCHAR   CharData;
 }STK_IO_PORT_INPUT;
 
+typedef struct STK_READ_PCI_CONFIG_INPUT
+{
+    ULONG ulPCIAddress;
+    ULONG ulPCIOffset;
+
+}STK_READ_PCI_CONFIG_INPUT;
+
+typedef struct STK_WRITE_PCI_CONFIG_INPUT
+{
+    ULONG ulPCIAddress;
+    ULONG ulPCIOffset;
+    ULONG ulData;
+}STK_WRITE_PCI_CONFIG_INPUT;
+
 //#pragma pack(pop)
 
 

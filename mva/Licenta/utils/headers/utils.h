@@ -19,9 +19,9 @@
 #ifdef STK_WINDOWS
     #define CHECK_ALLOCATION(X) if(!X) { printf("Allocation failed in: %s at line %d: ", __FILE__, __LINE__); return; }
     #define CHECK_ALLOCATION_STATUS(X) if(!X) { printf("Allocation failed in: %s at line %d: ", __FILE__, __LINE__); return 5; }
+    #define CHECK_OPERATION_STATUS(X) if(0 != X) { printf("Operation unsuccessful in: %s at line %d with status %d", __FILE__, __LINE__, X); }
 #endif
 
-#define CHECK_OPERATION_STATUS(X) if(0 != X) { printf("Operation unsuccessful in: %s at line %d with status %d", __FILE__, __LINE__, X); }
 
 typedef enum _SysToolError
 {

@@ -19,6 +19,9 @@ public:
     ISensor *GetBoardSensor();
     ICPUSensor *GetCpuSensor();
 
+    int DestroyBoardSensor();
+    int DestroyCpuSensor();
+
     double GetCpuLoad();
     QString GetCpuName();
     double GetDiskLoad();

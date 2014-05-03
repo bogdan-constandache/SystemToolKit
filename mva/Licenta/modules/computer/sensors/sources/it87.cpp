@@ -100,8 +100,6 @@ int CIT87::Update()
             m_pVoltages[i] = bVal * dVoltageGain;
         else
             m_pVoltages[i] = 0;
-
-        qDebug() << m_pVoltages[i];
     }
 
     for (int i = 0; i < 3; i++)

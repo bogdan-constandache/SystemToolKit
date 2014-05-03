@@ -21,6 +21,9 @@ public:
 
     int ReadIoPortByte(ULONG ulPort, BYTE *bValue);
     int WriteIoPortByte(ULONG ulPort, BYTE bValue);
+
+    int ReadPCIConfiguration(ULONG ulPCIAddress, ULONG ulRegAddress, ULONG *ulValue);
+    int WritePCIConfiguration(ULONG ulPCIAddress, ULONG ulRegAddress, ULONG ulData);
 };
 
 #endif

@@ -151,3 +151,75 @@ int CSTKDriverWrapper::WriteIoPortByte(ULONG ulPort, BYTE bValue)
 
     return Success;
 }
+
+int CSTKDriverWrapper::ReadPCIConfiguration(ULONG ulPCIAddress, ULONG ulRegAddress, ULONG *ulValue)
+{
+    if ((ulRegAddress & 3) != 0)
+    {
+        DEBUG_STATUS(Unsuccessful);
+        return Unsuccessful;
+    }
+
+    STK_READ_PCI_CONFIG_INPUT *pInput = new STK_READ_PCI_CONFIG_INPUT;
+    bool bResult = false;
+    DWORD dwBytesReceived = 0;
+
+    pInput->ulPCIAddress = ulPCIAddress;
+    pInput->ulPCIOffset = ulRegAddress;
+
+    ULONG ulVal = 0;
+
+    bResult = DeviceIoControl(m_hDriver,
+                              IOCTL_STK_READ_PCI_CONFIG,
+                              (LPVOID)pInput,
+                              sizeof(STK_READ_PCI_CONFIG_INPUT),
+                              &ulVal,
+                              sizeof(ulVal),
+                              &dwBytesReceived,
+                              NULL);
+
+    if (false == bResult)
+    {
+        DEBUG_STATUS(Unsuccessful);
+        return Unsuccessful;
+    }
+
+    *ulValue = ulVal;
+
+    return Success;
+}
+
+int CSTKDriverWrapper::WritePCIConfiguration(ULONG ulPCIAddress, ULONG ulRegAddress, ULONG ulData)
+{
+    if ((ulRegAddress & 3) != 0)
+    {
+        DEBUG_STATUS(Unsuccessful);
+        return Unsuccessful;
+    }
+
+    STK_WRITE_PCI_CONFIG_INPUT *pInput = new STK_WRITE_PCI_CONFIG_INPUT;
+    bool bResult = false;
+    DWORD dwBytesReceived = 0;
+    DWORD dwReturnVal = 0;
+
+    pInput->ulPCIAddress = ulPCIAddress;
+    pInput->ulPCIOffset = ulRegAddress;
+    pInput->ulData = ulData;
+
+    bResult = DeviceIoControl(m_hDriver,
+                              IOCTL_STK_WRITE_PCI_CONFIG,
+                              (LPVOID)pInput,
+                              sizeof(STK_WRITE_PCI_CONFIG_INPUT),
+                              &dwReturnVal,
+                              sizeof(dwReturnVal),
+                              &dwBytesReceived,
+                              NULL);
+
+    if (false == bResult)
+    {
+        DEBUG_STATUS(Unsuccessful);
+        return Unsuccessful;
+    }
+
+    return Success;
+}

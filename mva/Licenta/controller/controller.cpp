@@ -136,12 +136,20 @@ void Controller::StartController()
     // get board sensor
     m_pSensor = m_pSensorsManager->GetBoardSensor();
     if (m_pSensor)
-        m_pSensor->Initialize();
+        if (Success != m_pSensor->Initialize())
+        {
+            m_pSensorsManager->DestroyBoardSensor();
+            m_pSensor = NULL;
+        }
 
     // get cpu sensor
     m_pCpuSensor = m_pSensorsManager->GetCpuSensor();
     if (m_pCpuSensor)
-        m_pCpuSensor->Initialize();
+        if (Success != m_pCpuSensor->Initialize())
+        {
+            m_pSensorsManager->DestroyCpuSensor();
+            m_pCpuSensor = NULL;
+        }
 }
 
 void Controller::OnComputerDMIOptClickedSlot()
@@ -358,13 +366,12 @@ void Controller::OnCPUIDOptClickedSlot()
 
 void Controller::OnSensorsOptClickedSlot()
 {
-    SensorsData *pSensorData = new SensorsData;
-    CHECK_ALLOCATION(pSensorData);
+    SensorsData pSensorData;
 
-    DataType *pDataType;
-    ItemPair *pItemPair;
-    MotherboardData *pMBData;
-    CpuData *pCpuData;
+    DataType *pDataType = 0;
+    ItemPair *pItemPair = 0;
+    MotherboardData *pMBData = 0;
+    CpuData *pCpuData = 0;
 
     double *pResults = 0;
     QString qzTemp1 = "", qzTemp2 = "";
@@ -373,12 +380,9 @@ void Controller::OnSensorsOptClickedSlot()
         m_pSensorsTimer->start(750);
 
     if (!m_pSensor)
-    {
         goto CPU;
-//        return;
-    }
 
-    pMBData = pSensorData->mutable_mbdata();
+    pMBData = pSensorData.mutable_mbdata();
     pMBData->set_name(m_pSensor->GetChipName().toLatin1().data());
 
     m_pSensor->Update();
@@ -436,7 +440,10 @@ void Controller::OnSensorsOptClickedSlot()
     }
 
 CPU:
-    pCpuData = pSensorData->mutable_cpudata();
+    if (NULL == m_pCpuSensor)
+        goto END_SENSORS;
+
+    pCpuData = pSensorData.mutable_cpudata();
     pCpuData->set_name(m_pSensorsManager->GetCpuName().toLatin1().data());
 
     pDataType = pCpuData->add_data();
@@ -465,9 +472,11 @@ CPU:
     pItemPair->set_name("CPU0");
     pItemPair->set_value(QString().sprintf("%.2f%", m_pSensorsManager->GetCpuLoad()).toLatin1().data());
 
-    std::string tempString= pSensorData->SerializeAsString();
+    emit OnSetSensorsInformations(pSensorData.SerializeAsString());
 
-    emit OnSetSensorsInformations(tempString);
+END_SENSORS:
+
+    Q_UNUSED(1);
 }
 
 void Controller::OnRequestDMIItemProperties(DMIModuleType ItemType)

@@ -29,6 +29,16 @@ ICPUSensor *CSensorModule::GetCpuSensor()
     return m_pCpuFactory->GetCpuSensor();
 }
 
+int CSensorModule::DestroyBoardSensor()
+{
+    return m_pBoardFactory->DestroySensor();
+}
+
+int CSensorModule::DestroyCpuSensor()
+{
+    return m_pCpuFactory->DestroySensor();
+}
+
 ISensor *CSensorModule::GetBoardSensor()
 {
     return m_pBoardFactory->GetBoardSensor();

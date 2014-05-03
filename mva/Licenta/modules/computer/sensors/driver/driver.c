@@ -61,7 +61,8 @@ typedef struct STK_MSR_INPUT
 	ULARGE_INTEGER uliValue;
 }STK_MSR_INPUT;
 
-typedef struct STK_IO_PORT_INPUT {
+typedef struct STK_IO_PORT_INPUT 
+{
     ULONG   ulPort; 
  //   union
 	//{
@@ -71,6 +72,20 @@ typedef struct STK_IO_PORT_INPUT {
     //} uData;
 }STK_IO_PORT_INPUT;
 
+typedef struct STK_READ_PCI_CONFIG_INPUT
+{
+	ULONG ulPCIAddress;
+	ULONG ulPCIOffset;
+
+}STK_READ_PCI_CONFIG_INPUT;
+
+typedef struct STK_WRITE_PCI_CONFIG_INPUT
+{
+	ULONG ulPCIAddress;
+	ULONG ulPCIOffset;
+	UCHAR ucData[1];
+}STK_WRITE_PCI_CONFIG_INPUT;
+
 #pragma pack(pop)
 
 
@@ -78,8 +93,8 @@ NTSTATUS ReadMsr(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG
 NTSTATUS WriteMsr(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned);
 NTSTATUS ReadIOPort(ULONG nIoCode, VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned);
 NTSTATUS WriteIOPort(ULONG nIoCode, VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned);
-//NTSTATUS ReadPCI(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned);
-//NTSTATUS WritePCI(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned);
+NTSTATUS ReadPCI(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned);
+NTSTATUS WritePCI(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned);
 
 
 VOID DriverUnload(PDRIVER_OBJECT pDriverObj)
@@ -145,8 +160,6 @@ NTSTATUS Dispatcher(PDEVICE_OBJECT pDeviceObj, PIRP pIrp)
 			break;
 		case IOCTL_STK_READ_IO_PORT:
 		case IOCTL_STK_READ_IO_PORT_BYTE:
-		case IOCTL_STK_READ_IO_PORT_WORD:
-		case IOCTL_STK_READ_IO_PORT_DWORD:
 			DbgPrint("READ_IO_PORT");
 			nStatus = ReadIOPort(
 				pIrpStack->Parameters.DeviceIoControl.IoControlCode,
@@ -158,11 +171,27 @@ NTSTATUS Dispatcher(PDEVICE_OBJECT pDeviceObj, PIRP pIrp)
 			break;
 		case IOCTL_STK_WRITE_IO_PORT:
 		case IOCTL_STK_WRITE_IO_PORT_BYTE:
-		case IOCTL_STK_WRITE_IO_PORT_WORD:
-		case IOCTL_STK_WRITE_IO_PORT_DWORD:
 			DbgPrint("WRITE_IO_PORT");
 			nStatus = WriteIOPort(
 				pIrpStack->Parameters.DeviceIoControl.IoControlCode,
+				pIrp->AssociatedIrp.SystemBuffer,
+				pIrpStack->Parameters.DeviceIoControl.InputBufferLength,
+				pIrp->AssociatedIrp.SystemBuffer,
+				pIrpStack->Parameters.DeviceIoControl.OutputBufferLength,
+				(PULONG)&pIrp->IoStatus.Information);
+			break;
+		case IOCTL_STK_READ_PCI_CONFIG:
+			DbgPrint("READ_PCI_CONFIG");
+			nStatus = ReadPCI(
+				pIrp->AssociatedIrp.SystemBuffer,
+				pIrpStack->Parameters.DeviceIoControl.InputBufferLength,
+				pIrp->AssociatedIrp.SystemBuffer,
+				pIrpStack->Parameters.DeviceIoControl.OutputBufferLength,
+				(PULONG)&pIrp->IoStatus.Information);
+			break;
+		case IOCTL_STK_WRITE_PCI_CONFIG:
+			DbgPrint("WRITE_PCI_CONFIG");
+			nStatus = WritePCI(
 				pIrp->AssociatedIrp.SystemBuffer,
 				pIrpStack->Parameters.DeviceIoControl.InputBufferLength,
 				pIrp->AssociatedIrp.SystemBuffer,
@@ -206,8 +235,6 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	}
 
 	IoCreateSymbolicLink(&szDosDeviceName, &szDriverName);
-
-	DbgPrint("Hello from Entry");
 
 	return nStatus;
 }
@@ -262,14 +289,6 @@ NTSTATUS ReadIOPort(ULONG nIoCode, VOID *lpInBuffer, ULONG nInBufferSize, VOID *
 		*(PUCHAR)lpOutBuffer = READ_PORT_UCHAR((PUCHAR)(ULONG_PTR)ulPort);
 		DbgPrint("\nVALUE: %d", *(PUCHAR)lpOutBuffer);
 		break;
-	//case IOCTL_STK_READ_IO_PORT_WORD:
-	//	DbgPrint("READ_IO_PORT : READ_WORD");
-	//	*(PUSHORT)lpOutBuffer = READ_PORT_USHORT((PUSHORT)(ULONG_PTR)ulPort);
-	//	break;
-	//case IOCTL_STK_READ_IO_PORT_DWORD:
-	//	DbgPrint("READ_IO_PORT : READ_DWORD");
-	//	*(PULONG)lpOutBuffer = READ_PORT_ULONG((PULONG)(ULONG_PTR)ulPort);
-	//	break;
 	default:
 		*lpBytesReturned = 0;
 		return STATUS_INVALID_PARAMETER;
@@ -293,12 +312,6 @@ NTSTATUS WriteIOPort(ULONG nIoCode, VOID *lpInBuffer, ULONG nInBufferSize, VOID 
 		DbgPrint("Port: %d\nValue: %d", pInput->ulPort, pInput->CharData);
 		WRITE_PORT_UCHAR((PUCHAR)(ULONG_PTR)pInput->ulPort, pInput->CharData);
 		break;
-	//case IOCTL_STK_READ_IO_PORT_WORD:
-	//	WRITE_PORT_USHORT((PUSHORT)(ULONG_PTR)pInput->ulPort, pInput->uData.ShortData);
-	//	break;
-	//case IOCTL_STK_READ_IO_PORT_DWORD:
-	//	WRITE_PORT_ULONG((PULONG)(ULONG_PTR)pInput->ulPort, pInput->uData.LongData);
-	//	break;
 	default:
 		*lpBytesReturned = 0;
 		return STATUS_INVALID_PARAMETER;
@@ -308,12 +321,77 @@ NTSTATUS WriteIOPort(ULONG nIoCode, VOID *lpInBuffer, ULONG nInBufferSize, VOID 
 	return STATUS_SUCCESS;
 }
 
-//NTSTATUS ReadPCI(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned)
-//{
-//
-//}
-//
-//NTSTATUS WritePCI(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned)
-//{
-//
-//}
+NTSTATUS ReadPCI(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned)
+{
+	STK_READ_PCI_CONFIG_INPUT *pParam = 0;
+	PCI_SLOT_NUMBER SlotNumber;
+	ULONG ulBusNumber;
+	ULONG ulError;
+
+	if (nInBufferSize != sizeof(STK_READ_PCI_CONFIG_INPUT))
+		return STATUS_INVALID_PARAMETER;
+
+	pParam = (STK_READ_PCI_CONFIG_INPUT*) lpInBuffer;
+
+	ulBusNumber = ((pParam->ulPCIAddress >> 8) & 0xFF);
+
+	SlotNumber.u.AsULONG = 0;
+	SlotNumber.u.bits.DeviceNumber = ((pParam->ulPCIAddress >> 3) & 0x1F);
+	SlotNumber.u.bits.FunctionNumber = (pParam->ulPCIAddress & 7);
+
+	ulError = HalGetBusDataByOffset(PCIConfiguration, ulBusNumber, 
+		SlotNumber.u.AsULONG, lpOutBuffer, pParam->ulPCIOffset, nOutBufferSize);
+
+	if (0 == ulError)
+	{
+		*lpBytesReturned = 0;
+		return STATUS_UNSUCCESSFUL;
+	}
+	else if (2 == ulError && nOutBufferSize != 2)
+	{
+		*lpBytesReturned = 0;
+		return STATUS_UNSUCCESSFUL;
+	}
+	else if (ulError != nOutBufferSize)
+	{
+		*lpBytesReturned = 0;
+		return STATUS_UNSUCCESSFUL;
+	}
+
+	*lpBytesReturned = nOutBufferSize;
+
+	return STATUS_SUCCESS;
+}
+
+NTSTATUS WritePCI(VOID *lpInBuffer, ULONG nInBufferSize, VOID *lpOutBuffer, ULONG nOutBufferSize, ULONG *lpBytesReturned)
+{
+	STK_WRITE_PCI_CONFIG_INPUT *pParam = 0;
+	PCI_SLOT_NUMBER SlotNumber;
+	ULONG ulWriteSize = 0;
+	ULONG ulError = 0;
+	ULONG ulBusNumber;
+	UNREFERENCED_PARAMETER(lpOutBuffer);
+	UNREFERENCED_PARAMETER(nOutBufferSize);
+
+	if (nInBufferSize < offsetof(STK_WRITE_PCI_CONFIG_INPUT, ucData))
+		return STATUS_INVALID_PARAMETER;
+
+	pParam = (STK_WRITE_PCI_CONFIG_INPUT*) lpInBuffer;
+
+	ulWriteSize = nInBufferSize - offsetof(STK_WRITE_PCI_CONFIG_INPUT, ucData);
+	*lpBytesReturned = 0;
+
+	ulBusNumber = ((pParam->ulPCIAddress >> 8) & 0xFF);
+
+	SlotNumber.u.AsULONG = 0;
+	SlotNumber.u.bits.DeviceNumber = ((pParam->ulPCIAddress >> 3) & 0x1F);
+	SlotNumber.u.bits.FunctionNumber = (pParam->ulPCIAddress & 7);
+
+	ulError = HalSetBusDataByOffset(PCIConfiguration, ulBusNumber,
+		SlotNumber.u.AsULONG, &pParam->ucData, pParam->ulPCIOffset, ulWriteSize);
+
+	if (ulError != ulWriteSize)
+		return STATUS_UNSUCCESSFUL;
+
+	return STATUS_SUCCESS;
+}

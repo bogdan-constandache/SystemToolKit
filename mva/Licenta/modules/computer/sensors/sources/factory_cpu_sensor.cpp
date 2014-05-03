@@ -73,6 +73,7 @@ bool FactoryCpuSensor::DetectCpuSensor()
     else
         nDispModel = nModel;
 
+//    ***INTEL***
 //    IF Family_ID ≠ 0FH
 //    THEN DisplayFamily = Family_ID;
 //    ELSE DisplayFamily = Extended_Family_ID + Family_ID;
@@ -88,10 +89,38 @@ bool FactoryCpuSensor::DetectCpuSensor()
     if ("GenuineIntel" == qzManufacturer )
         m_pCpuSensor = new CIntelCpuSensor(nDispFamily, nDispModel, nStepping, SystemInfo.dwNumberOfProcessors);
 
+    if ("AuthenticAMD" == qzManufacturer )
+    {
+        switch (nFamily) // or nDispFamily
+        {
+        case 0x0F:
+            m_pCpuSensor = new CAmd0FCpuSensor();
+            break;
+        case 0x10:
+        case 0x11:
+        case 0x12:
+        case 0x14:
+        case 0x15:
+        case 0x16:
+            m_pCpuSensor = new CAmd10CpuSensor();
+            break;
+        default:
+            return false;
+        }
+    }
+
     return true;
 }
 
 ICPUSensor *FactoryCpuSensor::GetCpuSensor()
 {
     return m_pCpuSensor;
+}
+
+int FactoryCpuSensor::DestroySensor()
+{
+    int nStatus = m_pCpuSensor->Destroy();
+    SAFE_DELETE(m_pCpuSensor);
+
+    return nStatus;
 }

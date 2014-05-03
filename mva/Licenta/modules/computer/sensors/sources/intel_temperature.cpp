@@ -179,7 +179,8 @@ int CIntelCpuSensor::Initialize()
     case ATOM_IMA:
     case CORE_IMA:
         nStatus = m_pDriver->ReadMsr(IA32_PERF_STATUS_MSR, &uiEax, &uiEdx);
-        CHECK_OPERATION_STATUS(nStatus);
+        if (Success != nStatus)
+            return nStatus;
         m_nMultiplier = ((uiEdx >> 8) & 0x1F) + 0.5 * ((uiEdx >> 14) & 1);
         break;
     case NEHALEM_IMA:
@@ -187,7 +188,8 @@ int CIntelCpuSensor::Initialize()
     case IVY_BRIDGE_IMA:
     case HASWELL_IMA:
         nStatus = m_pDriver->ReadMsr(MSR_PLATFORM_INFO, &uiEax, &uiEdx);
-        CHECK_OPERATION_STATUS(nStatus);
+        if (Success != nStatus)
+            return nStatus;
         m_nMultiplier = (uiEax >> 8) & 0xFF;
         break;
     default:

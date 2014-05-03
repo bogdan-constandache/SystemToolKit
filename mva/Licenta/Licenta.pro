@@ -65,7 +65,10 @@ SOURCES += main/main.cpp \
         modules/computer/sensors/sources/w836xx.cpp \
         modules/operating-system/processes/sources/processes.cpp \
         modules/software/startup-applications/sources/startup_application.cpp \
-        gui/sources/startup_apps_widget.cpp
+        gui/sources/startup_apps_widget.cpp \
+    modules/computer/sensors/sources/f718xx.cpp \
+    modules/computer/sensors/sources/amd0f_temperature.cpp \
+    modules/computer/sensors/sources/amd10_temperature.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -121,7 +124,10 @@ HEADERS  += gui/abstract_controller.h \
         modules/operating-system/processes/headers/processes.h \
         modules/operating-system/processes/headers/processes_structs.h \
         modules/software/startup-applications/headers/startup_application.h \
-        gui/headers/startup_apps_widget.h
+        gui/headers/startup_apps_widget.h \
+    modules/computer/sensors/headers/f718xx.h \
+    modules/computer/sensors/headers/amd0f_temperature.h \
+    modules/computer/sensors/headers/amd10_temperature.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
