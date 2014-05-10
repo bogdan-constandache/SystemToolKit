@@ -68,6 +68,24 @@ typedef enum _INTEL_MICROARCHITECTURE_
     LARRA_BEE_IMA = 16
 }IntelMicroArchitecture;
 
+typedef enum _AMD_MICROARCHITECTURE_
+{
+    UNKNOWN_AMA = -1,
+    AMD_K5 = 0,
+    AMD_K6 = 1,
+    AMD_K6_2 = 2,
+    AMD_K6_3 = 3,
+    AMD_K7_ATHLON = 4,
+    AMD_K8_HAMMER = 5,
+    AMD_K10_BARCELONA = 6,
+    AMD_TURION_X2 = 7,
+    AMD_LLANO = 8,
+    AMD_BOBCAT = 9,
+    AMD_INTERLAGOS = 10,
+    AMD_ZAMBEZI = 11,
+    AMD_VISHERA = 12
+}AMDMicroArchitecture;
+
 typedef struct _MEMORY_STATUS_
 {
     QString qzTotalPhys;

@@ -94,7 +94,7 @@ bool FactoryCpuSensor::DetectCpuSensor()
         switch (nFamily) // or nDispFamily
         {
         case 0x0F:
-            m_pCpuSensor = new CAmd0FCpuSensor();
+            m_pCpuSensor = new CAmd0FCpuSensor(nDispFamily, nDispModel, nStepping, SystemInfo.dwNumberOfProcessors);
             break;
         case 0x10:
         case 0x11:

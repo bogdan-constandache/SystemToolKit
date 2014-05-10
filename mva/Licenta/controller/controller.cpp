@@ -25,6 +25,8 @@ Controller::~Controller()
     SAFE_DELETE(m_pSensorsManager)
     SAFE_DELETE(m_pProcessesManager);
     SAFE_DELETE(m_pStartupAppsManager);
+
+    m_HDDModelToPhysicalDrive.clear();
 }
 
 void Controller::StartController()
@@ -240,6 +242,8 @@ void Controller::OnStorageATAOptClickedSlot()
     pModel->setColumnCount(1);
     pModel->setRowCount(List.count());
     pModel->setHorizontalHeaderLabels(QStringList() << "Device description");
+
+    m_HDDModelToPhysicalDrive.clear();
     for(int i = 0; i < List.count(); i++)
     {
         ATADeviceProperties *pProp = GetATADeviceProperties(List.at(i).toStdWString().c_str());
