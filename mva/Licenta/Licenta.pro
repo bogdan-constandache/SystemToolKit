@@ -19,6 +19,7 @@ LIBS += -lWbemuuid
 LIBS += -liphlpapi
 LIBS += -lws2_32
 LIBS += -lPdh
+LIBS += -lNetapi32
 
 
 DEFINES += STK_WINDOWS

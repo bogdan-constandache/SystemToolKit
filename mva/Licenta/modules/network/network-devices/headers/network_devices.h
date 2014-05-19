@@ -1,10 +1,11 @@
 #ifndef _NETWORK_DEVICES_H
 #define _NETWORK_DEVICES_H
 
-
 #include <Windows.h>
 #include <iphlpapi.h>
 #include <stdlib.h>
+#include <LMShare.h>
+#include <LMAPIbuf.h>
 
 #include <QList>
 #include <QStringList>
@@ -23,8 +24,10 @@ class CNetworkDevices
 private:
     QList<NetworkAdapterInfo*> m_qNetworkAdapters;
     QStringList m_qAdapterNames;
+    QList<NetworkSharedResource*> m_qSharedResources;
 
     int GetAllAdaptersInformations();
+    int GetSharingInformations();
 
 public:
     CNetworkDevices();
@@ -32,6 +35,7 @@ public:
 
     QStandardItemModel *GetAdapterNames();
     QStandardItemModel *GetAdapterInformations(QString qzAdapterName);
+    QStandardItemModel *GetSharedResourcesInformations();
 };
 
 #endif

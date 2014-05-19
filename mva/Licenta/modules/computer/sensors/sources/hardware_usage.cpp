@@ -26,8 +26,6 @@ double CHardwareUsage::GetCpuLoad()
     PdhCollectQueryData(m_CpuQuery);
     PdhGetFormattedCounterValue(m_CpuCounter, PDH_FMT_DOUBLE, NULL, &CounterValue);
 
-    qDebug() << "CPU USAGE:" <<  CounterValue.doubleValue;
-
     return CounterValue.doubleValue;
 }
 

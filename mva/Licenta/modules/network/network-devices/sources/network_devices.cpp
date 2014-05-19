@@ -1,4 +1,5 @@
 #include "../headers/network_devices.h"
+#include <LM.h>
 
 
 CNetworkDevices::CNetworkDevices()
@@ -7,6 +8,15 @@ CNetworkDevices::CNetworkDevices()
 
 CNetworkDevices::~CNetworkDevices()
 {
+    foreach(NetworkAdapterInfo *pDev, m_qNetworkAdapters)
+        SAFE_DELETE(pDev);
+    m_qNetworkAdapters.clear();
+
+    m_qAdapterNames.clear();
+
+    foreach(NetworkSharedResource *pRes, m_qSharedResources)
+        SAFE_DELETE(pRes);
+    m_qSharedResources.clear();
 }
 
 int CNetworkDevices::GetAllAdaptersInformations()
@@ -149,16 +159,50 @@ int CNetworkDevices::GetAllAdaptersInformations()
     return Success;
 }
 
+int CNetworkDevices::GetSharingInformations()
+{
+    PSHARE_INFO_502 pBufferPtr = 0, pPtr = 0;
+    NET_API_STATUS nStatus;
+    DWORD dwEntriesRead = 0, dwTotalEntries = 0, dwResumeHandle = 0;
+
+    NetworkSharedResource *pResource = 0;
+
+    do
+    {
+        nStatus = NetShareEnum(NULL, 502, (LPBYTE*)&pBufferPtr,
+                               MAX_PREFERRED_LENGTH, &dwEntriesRead,
+                               &dwTotalEntries, &dwResumeHandle);
+
+        if( ERROR_SUCCESS != nStatus && ERROR_MORE_DATA != nStatus )
+            CHECK_OPERATION_STATUS(Unsuccessful);
+
+        pPtr = pBufferPtr;
+
+        for(int i = 0; i < (int)dwEntriesRead; i++)
+        {
+            pResource = new NetworkSharedResource;
+
+            pResource->qzNetworkName = QString::fromWCharArray(pPtr->shi502_netname);
+            pResource->qzComments = QString::fromWCharArray(pPtr->shi502_remark);
+            pResource->qzPath = QString::fromWCharArray(pPtr->shi502_path);
+
+            pPtr++;
+            m_qSharedResources.append(pResource);
+        }
+
+        NetApiBufferFree(pBufferPtr);
+    } while( ERROR_MORE_DATA == nStatus );
+
+    return Success;
+}
+
 QStandardItemModel *CNetworkDevices::GetAdapterNames()
 {
-    m_qAdapterNames.clear();
-
-    for(int i = 0; i < m_qNetworkAdapters.count(); i++)
-    {
-        delete m_qNetworkAdapters.at(i);
-    }
-
+    foreach(NetworkAdapterInfo *pDev, m_qNetworkAdapters)
+        SAFE_DELETE(pDev);
     m_qNetworkAdapters.clear();
+
+    m_qAdapterNames.clear();
 
     this->GetAllAdaptersInformations();
 
@@ -242,6 +286,42 @@ QStandardItemModel *CNetworkDevices::GetAdapterInformations(QString qzAdapterNam
 
     pModel->setItem(14, 0, new QStandardItem("Secondary WINS server: "));
     pModel->setItem(14, 1, new QStandardItem(pDev->qzSecondaryWINSServer));
+
+    return pModel;
+}
+
+QStandardItemModel *CNetworkDevices::GetSharedResourcesInformations()
+{
+    foreach(NetworkSharedResource *pRes, m_qSharedResources)
+        SAFE_DELETE(pRes);
+    m_qSharedResources.clear();
+
+    int nStatus = GetSharingInformations();
+    if( Success != nStatus )
+    {
+        CHECK_OPERATION_STATUS(nStatus);
+        return 0;
+    }
+
+    QStandardItemModel *pModel = new QStandardItemModel;
+    QStandardItem *pItem = 0, *pTempItem = 0;
+
+    QStandardItem *pRootItem = pModel->invisibleRootItem();
+
+    foreach(NetworkSharedResource *pResource, m_qSharedResources)
+    {
+        pItem = new QStandardItem(pResource->qzNetworkName);
+        pTempItem = new QStandardItem(pResource->qzPath);
+        pItem->appendColumn(QList<QStandardItem*>() << pTempItem);
+
+        if( !pResource->qzComments.isEmpty() )
+        {
+            pTempItem = new QStandardItem(pResource->qzComments);
+            pItem->appendColumn(QList<QStandardItem*>() << pTempItem);
+        }
+
+        pRootItem->appendRow(pItem);
+    }
 
     return pModel;
 }

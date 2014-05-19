@@ -25,7 +25,7 @@ private:
 
     CSTKDriverWrapper *m_pDriver;
 
-    double *m_pVoltages;
+    VoltageReading *m_pVoltages;
     double m_pTemps[3];
     double m_pFans[5];
     bool m_bPCITemps[3];
@@ -58,7 +58,7 @@ public:
     virtual int Update();
     virtual double* GetTemps();
     virtual double* GetFanSpeeds();
-    virtual double* GetVoltages();
+    virtual VoltageReading* GetVoltages();
     virtual QString GetChipName();
 };
 

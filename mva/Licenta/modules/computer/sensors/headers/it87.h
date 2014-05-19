@@ -15,6 +15,11 @@
 #define IT87_CHIP_FAN_SPEED_DIVISOR_REGISTER      0x0B
 #define IT87_CHIP_VOLTAGE_BASE_REGISTER           0x20
 
+#define IT87_CHIP_VCORE_REGISTER                  0x20
+#define IT87_CHIP_DDR_REGISTER                    0x26
+#define IT87_CHIP_3VSB_REGISTER                   0x27
+#define IT87_CHIP_VBAT_REGISTER                   0x28
+
 
 class CIT87 : public ISensor
 {
@@ -24,7 +29,7 @@ class CIT87 : public ISensor
     Chip eChip;
     CSTKDriverWrapper *m_pDriver;
 
-    double m_pVoltages[9];
+    VoltageReading m_pVoltages[4];
     double m_pTemps[3];
     double m_pFans[5];
 
@@ -44,7 +49,7 @@ public:
     virtual int Update();
     virtual double* GetTemps();
     virtual double* GetFanSpeeds();
-    virtual double* GetVoltages();
+    virtual VoltageReading* GetVoltages();
     virtual QString GetChipName();
 };
 

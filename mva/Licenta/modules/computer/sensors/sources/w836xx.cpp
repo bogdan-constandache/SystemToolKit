@@ -150,7 +150,7 @@ int CW836XX::Initialize()
 
     switch (m_eChip) {
     case W83627EHF:
-        m_pVoltages = new double[10];
+        m_pVoltages = new VoltageReading[10];
         m_bVoltageReg = new BYTE[10];
         m_bVoltageBank = new BYTE[10];
         nVoltages = 10;
@@ -175,7 +175,7 @@ int CW836XX::Initialize()
     case W83627DHGP:
     case W83667HG:
     case W83667HGB:
-        m_pVoltages = new double[9];
+        m_pVoltages = new VoltageReading[9];
         m_bVoltageReg = new BYTE[9];
         m_bVoltageBank = new BYTE[9];
         nVoltages = 9;
@@ -197,7 +197,7 @@ int CW836XX::Initialize()
     case W83627HF:
     case W83627THF:
     case W83687THF:
-        m_pVoltages = new double[7];
+        m_pVoltages = new VoltageReading[7];
         m_bVoltageReg = new BYTE[7];
         m_bVoltageBank = new BYTE[7];
         nVoltages = 7;
@@ -306,10 +306,11 @@ int CW836XX::Update()
                 dValue = dVoltageGain * nValue;
             }
 
+            m_pVoltages[i].qzName.sprintf("#%d", i);
             if( 0 < dValue )
-                m_pVoltages[i] = dValue;
+                m_pVoltages[i].qzValue.sprintf("%.3fV", dValue);
             else
-                m_pVoltages[i] = 0;
+                m_pVoltages[i].qzValue = "0V";
         }
         else
         {
@@ -317,15 +318,17 @@ int CW836XX::Update()
             if( Success != nStatus )
                 return nStatus;
 
+            m_pVoltages[i].qzName.sprintf("#%d", i);
+
             if( 0 < bVal )
             {
                 nStatus = ReadByteFromBank(5, W836_CHIP_VOLTAGE_VBAT_REGISTER, &bVal);
                 if( Success != nStatus )
                     return nStatus;
-                m_pVoltages[i] = dVoltageGain * bVal;
+                m_pVoltages[i].qzValue.sprintf("%.3fV", dVoltageGain * bVal);
             }
             else
-                m_pVoltages[i] = 0;
+                m_pVoltages[i].qzValue = "0V";
         }
     }
 
@@ -425,7 +428,7 @@ double *CW836XX::GetFanSpeeds()
     return m_pFans;
 }
 
-double *CW836XX::GetVoltages()
+VoltageReading *CW836XX::GetVoltages()
 {
     return m_pVoltages;
 }

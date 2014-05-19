@@ -98,4 +98,10 @@ typedef struct _MEMORY_STATUS_
     QString qzMemoryLoad;
 }MemoryStatus;
 
+typedef struct _VOLTAGE_READING_STRUCT_
+{
+    QString qzName;
+    QString qzValue;
+}VoltageReading;
+
 #endif // SENSOR_DEFINES_H

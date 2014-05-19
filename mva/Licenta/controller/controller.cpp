@@ -376,9 +376,12 @@ void Controller::OnSensorsOptClickedSlot()
     ItemPair *pItemPair = 0;
     MotherboardData *pMBData = 0;
     CpuData *pCpuData = 0;
+    RAMData *pRAMData = 0;
 
     double *pResults = 0;
+    VoltageReading *pVoltages = 0;
     QString qzTemp1 = "", qzTemp2 = "";
+    MemoryStatus* pMemoryStatus = 0;
 
     if (!m_pSensorsTimer->isActive())
         m_pSensorsTimer->start(750);
@@ -411,18 +414,13 @@ void Controller::OnSensorsOptClickedSlot()
     pDataType = pMBData->add_data();
     pDataType->set_dataname("Voltages: ");
 
-    pResults = m_pSensor->GetVoltages();
+    pVoltages = m_pSensor->GetVoltages();
 
-    for(int i = 0; i < 9; i++)
+    for(int i = 0; i < 4; i++)
     {
-        if (!pResults[i])
-            continue;
-        qzTemp1.sprintf("Voltage #%d", i + 1);
-        qzTemp2.sprintf("%.1fV", pResults[i]);
-
         pItemPair = pDataType->add_datavalue();
-        pItemPair->set_name(qzTemp1.toLatin1().data());
-        pItemPair->set_value(qzTemp2.toLatin1().data());
+        pItemPair->set_name(pVoltages[i].qzName.toLatin1().data());
+        pItemPair->set_value(pVoltages[i].qzValue.toLatin1().data());
     }
 
     // fan speed
@@ -445,7 +443,7 @@ void Controller::OnSensorsOptClickedSlot()
 
 CPU:
     if (NULL == m_pCpuSensor)
-        goto END_SENSORS;
+        goto RAM;
 
     pCpuData = pSensorData.mutable_cpudata();
     pCpuData->set_name(m_pSensorsManager->GetCpuName().toLatin1().data());
@@ -473,8 +471,50 @@ CPU:
     pDataType->set_dataname("Usage: ");
 
     pItemPair = pDataType->add_datavalue();
-    pItemPair->set_name("CPU0");
+    pItemPair->set_name("CPU0: ");
     pItemPair->set_value(QString().sprintf("%.2f%", m_pSensorsManager->GetCpuLoad()).toLatin1().data());
+
+RAM:
+    pRAMData = pSensorData.mutable_ramdata();
+    pRAMData->set_name("Memory");
+
+    pMemoryStatus = m_pSensorsManager->GetMemoryStat();
+
+    // DATA
+    pDataType = pRAMData->add_data();
+    pDataType->set_dataname("Data: ");
+
+    pItemPair = pDataType->add_datavalue();
+    pItemPair->set_name("Total: ");
+    pItemPair->set_value(pMemoryStatus->qzTotalPhys.toLatin1().data());
+
+    pItemPair = pDataType->add_datavalue();
+    pItemPair->set_name("Available: ");
+    pItemPair->set_value(pMemoryStatus->qzAvailPhys.toLatin1().data());
+
+    pItemPair = pDataType->add_datavalue();
+    pItemPair->set_name("Total (Virtual): ");
+    pItemPair->set_value(pMemoryStatus->qzTotalVirtual.toLatin1().data());
+
+    pItemPair = pDataType->add_datavalue();
+    pItemPair->set_name("Available (Virtual): ");
+    pItemPair->set_value(pMemoryStatus->qzAvailVirtual.toLatin1().data());
+
+    pItemPair = pDataType->add_datavalue();
+    pItemPair->set_name("Pagefile (Total): ");
+    pItemPair->set_value(pMemoryStatus->qzTotalPageFile.toLatin1().data());
+
+    pItemPair = pDataType->add_datavalue();
+    pItemPair->set_name("Pagefile (Available): ");
+    pItemPair->set_value(pMemoryStatus->qzAvailPageFile.toLatin1().data());
+
+    // LOAD
+    pDataType = pRAMData->add_data();
+    pDataType->set_dataname("Load: ");
+
+    pItemPair = pDataType->add_datavalue();
+    pItemPair->set_name("Value");
+    pItemPair->set_value(pMemoryStatus->qzMemoryLoad.toLatin1().data());
 
     emit OnSetSensorsInformations(pSensorData.SerializeAsString());
 

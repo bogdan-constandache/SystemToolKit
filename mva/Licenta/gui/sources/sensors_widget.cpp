@@ -16,6 +16,8 @@ CSensorsWidget::CSensorsWidget(QWidget *parent, AbstractController *pController)
     ui->treeWidget->header()->setDefaultAlignment(Qt::AlignLeft);
     ui->treeWidget->setColumnCount(2);
 
+    ui->treeWidget->setHeaderLabels(QStringList() << "Sensor" << "Value");
+
     connect(m_pController, SIGNAL(OnSetSensorsInformations(std::string)),
             this, SLOT(OnSetTreeModel(std::string)), Qt::QueuedConnection);
 }
@@ -47,6 +49,7 @@ void CSensorsWidget::OnSetTreeModel(std::string buffer)
     SensorsData pSensorsData;
     MotherboardData pmbData;
     CpuData pCpuData;
+    RAMData pRamData;
     DataType pDataType;
     ItemPair pItemPair;
 
@@ -104,6 +107,29 @@ CPU_LABEL:
         }
     }
 
+RAM:
+    if (pSensorsData.has_ramdata())
+        pRamData = pSensorsData.ramdata();
+    else
+        goto EXIT;
+
+    pRootItem = new QTreeWidgetItem(ui->treeWidget);
+    pRootItem->setText(0, pRamData.name().c_str());
+    ui->treeWidget->addTopLevelItem(pRootItem);
+
+    for(int i = 0; i < pRamData.data_size(); i++)
+    {
+        pDataType = pRamData.data(i);
+
+        pItem = OnAddChildItem(pRootItem, pDataType.dataname().c_str(), "");
+        for(int j = 0; j < pDataType.datavalue_size(); j++)
+        {
+            pItemPair = pDataType.datavalue(j);
+
+            OnAddChildItem(pItem, pItemPair.name().c_str(), pItemPair.value().c_str());
+        }
+    }
+
 EXIT:
     ExpandTreeAndResizeColumns();
     emit OnShowWidget(this);
@@ -114,6 +140,7 @@ void CSensorsWidget::OnUpdateTree(std::string buffer)
     SensorsData pSensorsData;
     MotherboardData pmbData;
     CpuData pCpuData;
+    RAMData pRamData;
     DataType pDataType;
     ItemPair pItemPair;
 
@@ -150,14 +177,14 @@ void CSensorsWidget::OnUpdateTree(std::string buffer)
         }
     }
 
-    pRootItem = ui->treeWidget->topLevelItem(1);
 
 CPU_UPDATE:
+    pRootItem = ui->treeWidget->topLevelItem(1);
 
     if (pSensorsData.has_cpudata())
         pCpuData = pSensorsData.cpudata();
     else
-        goto EXIT;
+        goto RAM_UPDATE;
 
     for(int i = 0; i < pCpuData.data_size(); i++)
     {
@@ -177,6 +204,34 @@ CPU_UPDATE:
                 {
                     pItem2->setText(1, pItemPair.value().c_str());
                 }
+            }
+        }
+    }
+
+RAM_UPDATE:
+    pRootItem = ui->treeWidget->topLevelItem(2);
+
+    if (pSensorsData.has_ramdata())
+        pRamData = pSensorsData.ramdata();
+    else
+        goto EXIT;
+
+    for(int i = 0; i < pRamData.data_size(); i++)
+    {
+        pDataType = pRamData.data(i);
+
+        pItem = pRootItem->child(i);
+
+        for(int j = 0; j < pDataType.datavalue_size(); j++)
+        {
+            pItemPair = pDataType.datavalue(j);
+
+            if( pItem->text(0) == QString(pDataType.dataname().c_str()))
+            {
+                pItem2 = pItem->child(j);
+
+                if( pItem2->text(0) == QString(pItemPair.name().c_str()))
+                    pItem2->setText(1, pItemPair.value().c_str());
             }
         }
     }

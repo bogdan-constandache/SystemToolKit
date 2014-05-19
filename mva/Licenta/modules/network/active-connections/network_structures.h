@@ -37,4 +37,12 @@ typedef struct _NETWORK_ADAPTER_INFO_
 }NetworkAdapterInfo;
 
 
+typedef struct _NETWORK_SHARED_RESOURCE_
+{
+    QString qzNetworkName;
+    QString qzComments;
+    QString qzPath;
+}NetworkSharedResource;
+
+
 #endif // NETWORK_STRUCTURES_H

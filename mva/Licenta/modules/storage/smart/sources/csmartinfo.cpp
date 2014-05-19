@@ -1,10 +1,15 @@
 #include "../headers/csmartinfo.h"
 
 CSmartInfo::CSmartInfo():
-    m_data(0)
+    m_data(0), m_bErrorFlag(false)
 {
     // read details out of database
-    ReadSMARTDetailsFromDB();
+    int nStatus = ReadSMARTDetailsFromDB();
+    if( Success != nStatus )
+    {
+        m_bErrorFlag = true;
+        return;
+    }
     // get physical drives list (e.g. PhysicalDrive0, PhysicalDrive1, etc..)
     m_PhysicalDrives = GetPhysicalDrivesList();
     for(int i = 0; i < m_PhysicalDrives.count(); i++)
@@ -385,6 +390,13 @@ QStandardItemModel *CSmartInfo::GetAvailableHDD()
     pModel->setColumnCount(1);
     pModel->setHorizontalHeaderLabels(QStringList() << "Device description");
 
+    if( m_bErrorFlag )
+    {
+        pItem = new QStandardItem("There was a problem detecting SMART properties for your HDD");
+        pModel->setItem(0, 0, pItem);
+        return pModel;
+    }
+
     for(int i = 0; i < m_PhysicalDrivesToModel.keys().count(); i++)
     {
         pItem = new QStandardItem(m_PhysicalDrivesToModel.keys().at(i));
@@ -396,6 +408,9 @@ QStandardItemModel *CSmartInfo::GetAvailableHDD()
 
 QStandardItemModel *CSmartInfo::GetSMARTPropertiesForHDD(QString qzModel)
 {
+    if( m_bErrorFlag )
+        return 0;
+
     QStandardItemModel *pModel = new QStandardItemModel();
     QStandardItem *pItem = 0;
     SmartDetails *pSmartDetails = 0;

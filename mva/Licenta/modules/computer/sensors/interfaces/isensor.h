@@ -10,7 +10,7 @@ public:
     virtual int Update() = 0;
     virtual double* GetTemps() = 0;
     virtual double* GetFanSpeeds() = 0;
-    virtual double* GetVoltages() = 0;
+    virtual VoltageReading* GetVoltages() = 0;
     virtual QString GetChipName() = 0;
 };
 

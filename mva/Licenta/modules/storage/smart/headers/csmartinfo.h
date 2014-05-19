@@ -31,6 +31,8 @@ private:
     QStringList m_PhysicalDrives;
     DriveInfo *m_data;
 
+    bool m_bErrorFlag;
+
     int ReadSMARTDetailsFromDB();
     bool CheckForCMDCommands(const wchar_t *tszDriveName);
     bool CheckForSmartFlag(const wchar_t* tszDriveName);

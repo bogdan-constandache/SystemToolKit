@@ -62,7 +62,7 @@ int CIT87::Initialize()
     if (eChip == IT8721F || eChip == IT8728F || eChip == IT8771E ||
             eChip == IT8772E)
     {
-        dVoltageGain = 0.012f;
+        dVoltageGain = 0.012;
     }
     else
     {
@@ -89,21 +89,41 @@ int CIT87::Update()
     BYTE bVal = 0;
     int nVal = 0;
 
-    for (int i = 0; i < 9; i++)
-    {
-        nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (IT87_CHIP_VOLTAGE_BASE_REGISTER + i));
-        nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVal);
-        if (Success != nStatus)
-            continue;
+    bVal = 0;
+    nStatus = m_pDriver->WriteIoPortByte(usAddressReg, IT87_CHIP_VCORE_REGISTER);
+    CHECK_OPERATION_STATUS(nStatus);
+    nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVal);
+    CHECK_OPERATION_STATUS(nStatus);
+    m_pVoltages[0].qzName = "VCORE";
+    m_pVoltages[0].qzValue.sprintf("%.3fV", bVal * dVoltageGain);
 
-        if (bVal > 0)
-            m_pVoltages[i] = bVal * dVoltageGain;
-        else
-            m_pVoltages[i] = 0;
-    }
+    bVal = 0;
+    nStatus = m_pDriver->WriteIoPortByte(usAddressReg, IT87_CHIP_DDR_REGISTER);
+    CHECK_OPERATION_STATUS(nStatus);
+    nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVal);
+    CHECK_OPERATION_STATUS(nStatus);
+    m_pVoltages[1].qzName = "DDR";
+    m_pVoltages[1].qzValue.sprintf("%.3fV", bVal * dVoltageGain);
+
+    bVal = 0;
+    nStatus = m_pDriver->WriteIoPortByte(usAddressReg, IT87_CHIP_3VSB_REGISTER);
+    CHECK_OPERATION_STATUS(nStatus);
+    nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVal);
+    CHECK_OPERATION_STATUS(nStatus);
+    m_pVoltages[2].qzName = "3VSB";
+    m_pVoltages[2].qzValue.sprintf("%.3fV", bVal * 2 * dVoltageGain);
+
+    bVal = 0;
+    nStatus = m_pDriver->WriteIoPortByte(usAddressReg, IT87_CHIP_VBAT_REGISTER);
+    CHECK_OPERATION_STATUS(nStatus);
+    nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVal);
+    CHECK_OPERATION_STATUS(nStatus);
+    m_pVoltages[3].qzName = "VBAT";
+    m_pVoltages[3].qzValue.sprintf("%.3fV", bVal * 2 * dVoltageGain);
 
     for (int i = 0; i < 3; i++)
     {
+        bVal = 0;
         nStatus = m_pDriver->WriteIoPortByte(usAddressReg, (IT87_CHIP_TEMP_BASE_REGISTER + i));
         nStatus = m_pDriver->ReadIoPortByte(usDataReg, &bVal);
         if (Success != nStatus)
@@ -173,7 +193,7 @@ double *CIT87::GetFanSpeeds()
     return m_pFans;
 }
 
-double *CIT87::GetVoltages()
+VoltageReading *CIT87::GetVoltages()
 {
     return m_pVoltages;
 }
