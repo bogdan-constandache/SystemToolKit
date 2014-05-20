@@ -69,7 +69,10 @@ SOURCES += main/main.cpp \
         gui/sources/startup_apps_widget.cpp \
     modules/computer/sensors/sources/f718xx.cpp \
     modules/computer/sensors/sources/amd0f_temperature.cpp \
-    modules/computer/sensors/sources/amd10_temperature.cpp
+    modules/computer/sensors/sources/amd10_temperature.cpp \
+    controller/controller_callbacks.cpp \
+    modules/computer/device_manager/device_manager.cpp \
+    gui/sources/device_manager_widget.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -128,7 +131,10 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/startup_apps_widget.h \
     modules/computer/sensors/headers/f718xx.h \
     modules/computer/sensors/headers/amd0f_temperature.h \
-    modules/computer/sensors/headers/amd10_temperature.h
+    modules/computer/sensors/headers/amd10_temperature.h \
+    controller/controller_callbacks.h \
+    modules/computer/device_manager/device_manager.h \
+    gui/headers/device_manager_widget.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
@@ -143,4 +149,5 @@ FORMS    += \
         gui/forms/cpuid_widget.ui \
         gui/forms/sensors_widget.ui \
         gui/forms/processes_widget.ui \
-        gui/forms/startup_apps_widget.ui
+        gui/forms/startup_apps_widget.ui \
+        gui/forms/device_manager_widget.ui

@@ -1,6 +1,7 @@
 #ifndef API_H
 #define API_H
 
+#include "computer/device_manager/device_manager.h"
 #include "computer/dmi/headers/smbios_entry_point.h"
 #include "computer/power-management/headers/battery_status.h"
 #include "computer/sensors/headers/sensor_module.h"

@@ -87,7 +87,7 @@ CPU_LABEL:
     if (pSensorsData.has_cpudata())
         pCpuData = pSensorsData.cpudata();
     else
-        goto EXIT;
+        goto RAM;
 
     pRootItem = new QTreeWidgetItem(ui->treeWidget);
     pRootItem->setText(0, pCpuData.name().c_str());
@@ -144,7 +144,9 @@ void CSensorsWidget::OnUpdateTree(std::string buffer)
     DataType pDataType;
     ItemPair pItemPair;
 
-    QTreeWidgetItem *pRootItem = ui->treeWidget->topLevelItem(0);
+    int nCount = 0;
+
+    QTreeWidgetItem *pRootItem = ui->treeWidget->topLevelItem(nCount);
     QTreeWidgetItem *pItem = 0, *pItem2 = 0;
 
     if (!pSensorsData.ParseFromString(buffer))
@@ -176,10 +178,10 @@ void CSensorsWidget::OnUpdateTree(std::string buffer)
             }
         }
     }
-
+    nCount++;
 
 CPU_UPDATE:
-    pRootItem = ui->treeWidget->topLevelItem(1);
+    pRootItem = ui->treeWidget->topLevelItem(nCount);
 
     if (pSensorsData.has_cpudata())
         pCpuData = pSensorsData.cpudata();
@@ -207,9 +209,10 @@ CPU_UPDATE:
             }
         }
     }
+    nCount++;
 
 RAM_UPDATE:
-    pRootItem = ui->treeWidget->topLevelItem(2);
+    pRootItem = ui->treeWidget->topLevelItem(nCount);
 
     if (pSensorsData.has_ramdata())
         pRamData = pSensorsData.ramdata();

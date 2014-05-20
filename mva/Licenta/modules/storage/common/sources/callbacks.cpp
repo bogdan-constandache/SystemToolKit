@@ -389,3 +389,36 @@ CleanUp:
     delete bData;
     return 0;
 }
+
+
+QString GetDiskTotalSize(QString qzDrive)
+{
+    HANDLE hDisk = INVALID_HANDLE_VALUE;
+    BOOL bResult = FALSE;
+    DWORD dwJunk = 0;
+    DISK_GEOMETRY pDiskGeom = {0};
+    ULONGLONG ulDiskSize = 0;
+
+    WCHAR *lpDriveName = CharArrayToWcharArray(qzDrive.toLatin1().data());
+
+    hDisk = CreateFile(lpDriveName, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                       NULL, OPEN_EXISTING, 0, NULL);
+
+    if( INVALID_HANDLE_VALUE ==  hDisk )
+        return "";
+
+    bResult = DeviceIoControl(hDisk,
+                              IOCTL_DISK_GET_DRIVE_GEOMETRY,
+                              NULL, 0,
+                              (LPVOID)&pDiskGeom, sizeof(DISK_GEOMETRY),
+                              &dwJunk, (LPOVERLAPPED)NULL);
+
+    CloseHandle(hDisk);
+    if( !bResult )
+        return "";
+
+    ulDiskSize = pDiskGeom.Cylinders.QuadPart * (ULONG)pDiskGeom.TracksPerCylinder *
+                 (ULONG) pDiskGeom.SectorsPerTrack * (ULONG)pDiskGeom.BytesPerSector;
+
+    return QString().sprintf("%.2f GB", (double)ulDiskSize / (1024 * 1024 * 1024));
+}

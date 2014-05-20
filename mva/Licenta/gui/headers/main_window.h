@@ -26,6 +26,7 @@
 #include "sensors_widget.h"
 #include "processes_widget.h"
 #include "startup_apps_widget.h"
+#include "device_manager_widget.h"
 
 namespace Ui {
 class MainWindow;
@@ -53,6 +54,7 @@ private:
     CSensorsWidget *m_pSensorsWidget;
     CProcessesWidget *m_pProcessesWidget;
     CStartupAppsWidget *m_pStartupAppsWidget;
+    CDeviceManagerWidget *m_pDeviceManagerWidget;
 
     void InitializeStackedWidget();
 
@@ -66,6 +68,7 @@ private slots:
     void OnShowWidget(QWidget *pWidget);
 
 signals:
+    void OnComputerDeviceManagerOptClickedSignal();
     void OnComputerDMIOptClickedSignal();
     void OnComputerPowerManagementOptClickedSignal();
     void OnHddInformationOptClickedSignal();

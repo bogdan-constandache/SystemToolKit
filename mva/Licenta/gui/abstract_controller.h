@@ -20,6 +20,7 @@ signals:
     void OnShowMainWindowSignal();
     void OnPopulateMenuTreeSignal(QStandardItemModel*);
 
+    void OnSetDeviceManagerInformation(QStandardItemModel*);
     void OnSetDMIItemsInformation(QStandardItemModel*);
     void OnSetDMIPropertiesInfomation(QStandardItemModel*);
     void OnSetATAHDDItemsInformation(QStandardItemModel*);
@@ -46,6 +47,7 @@ signals:
     void OnSetStartupApplicationsInformations(QStandardItemModel *);
 
 public slots:
+    virtual void OnComputerDeviceManagerOptClickedSlot() = 0;
     virtual void OnComputerDMIOptClickedSlot() = 0;
     virtual void OnComputerPowerManagementOptClickedSlot() = 0;
     virtual void OnHddInformationOptClickedSlot() = 0;

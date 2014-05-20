@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     m_pSMARTManagerWidget(NULL), m_pATAManagerWidget(NULL),
     m_pSystemDriversWidget(NULL), m_pActiveConnectionsWidget(NULL),
     m_pNetworkDevicesWidget(NULL), m_pCPUIDWidget(NULL), m_pSensorsWidget(NULL),
-    m_pProcessesWidget(NULL), m_pStartupAppsWidget(NULL)
+    m_pProcessesWidget(NULL), m_pStartupAppsWidget(NULL), m_pDeviceManagerWidget(NULL)
 {
     ui->setupUi(this);
     this->setMinimumWidth(1000);
@@ -22,6 +22,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     connect(m_pController, SIGNAL(OnPopulateMenuTreeSignal(QStandardItemModel*)),
             this, SLOT(OnPopulateMenuTreeSlot(QStandardItemModel*)), Qt::QueuedConnection);
 
+    connect(this, SIGNAL(OnComputerDeviceManagerOptClickedSignal()),
+            m_pController, SLOT(OnComputerDeviceManagerOptClickedSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnComputerDMIOptClickedSignal()),
             m_pController, SLOT(OnComputerDMIOptClickedSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnComputerPowerManagementOptClickedSignal()),
@@ -102,6 +104,9 @@ void MainWindow::InitializeStackedWidget()
     m_pStartupAppsWidget = new CStartupAppsWidget(ui->stackedWidget, m_pController);
     connect(m_pStartupAppsWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
 
+    m_pDeviceManagerWidget = new CDeviceManagerWidget(ui->stackedWidget, m_pController);
+    connect(m_pDeviceManagerWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
+
     // Add widget to the stacked widget
     ui->stackedWidget->addWidget(m_pDMIManagerWidget);
     ui->stackedWidget->addWidget(m_pPowerManagementWidget);
@@ -115,6 +120,7 @@ void MainWindow::InitializeStackedWidget()
     ui->stackedWidget->addWidget(m_pSensorsWidget);
     ui->stackedWidget->addWidget(m_pProcessesWidget);
     ui->stackedWidget->addWidget(m_pStartupAppsWidget);
+    ui->stackedWidget->addWidget(m_pDeviceManagerWidget);
 
     // remove first to pages
     ui->stackedWidget->removeWidget(ui->page_2);
@@ -128,6 +134,11 @@ void MainWindow::OnItemsTreeClickedSlot(QModelIndex index)
     QStandardItem *pStandardItem = this->m_pItemTreeModel->itemFromIndex(index);
     QString qzItemText = pStandardItem->text();
 
+    if( "Device manager" == qzItemText )
+    {
+        qDebug() << "Device manager clicked!";
+        emit OnComputerDeviceManagerOptClickedSignal();
+    }
     if( "DMI" == qzItemText )
     {
         qDebug() << "DMI clicked!";

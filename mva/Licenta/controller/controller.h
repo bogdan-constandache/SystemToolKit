@@ -2,6 +2,7 @@
 #define CONTROLLER_H
 
 #include <comdef.h>
+#include <lmcons.h>
 
 #include "../gui/abstract_controller.h"
 #include "../modules/api.h"
@@ -15,6 +16,7 @@ class Controller : public AbstractController
 {
     Q_OBJECT
 private: // internal objects
+    CDeviceInfo *m_pDeviceManager;
     BatteryStatus *m_pBatteryStatus;
     CApplicationManager *m_pApplicationManager;
     CSMBiosEntryPoint *m_pDMIManager;
@@ -34,12 +36,17 @@ private: // internal objects
 
     QMap<QString, QString> m_HDDModelToPhysicalDrive;
 
+    QStandardItemModel *m_pComputerSummaryModel;
+
+    void OnCreateComputerSummary();
+
 public:
     Controller();
     virtual ~Controller();
 
 public slots:
     void StartController();
+    virtual void OnComputerDeviceManagerOptClickedSlot();
     virtual void OnComputerDMIOptClickedSlot();
     virtual void OnComputerPowerManagementOptClickedSlot();
     virtual void OnHddInformationOptClickedSlot();

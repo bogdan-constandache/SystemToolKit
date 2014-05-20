@@ -1,10 +1,64 @@
 #include "controller.h"
 
+void Controller::OnCreateComputerSummary()
+{
+    bool bResult = false; int nStatus;
+    m_pComputerSummaryModel = new QStandardItemModel;
+
+    // GET COMPUTER NAME
+    WCHAR lpComputerName[MAX_COMPUTERNAME_LENGTH + 1];
+    DWORD dwCompName = MAX_COMPUTERNAME_LENGTH + 1;
+
+    bResult = GetComputerName(lpComputerName, &dwCompName);
+
+    m_pComputerSummaryModel->setItem(0, 0, new QStandardItem("Computer name: "));
+    m_pComputerSummaryModel->setItem(0, 1, new QStandardItem(QString::fromWCharArray(lpComputerName)));
+
+    // OPERATING SYSTEM
+    m_pComputerSummaryModel->setItem(1, 0, new QStandardItem("Operating system: "));
+    HKEY hRegKey = 0;
+    WCHAR lpOsName[MAX_PATH + 1];
+    DWORD dwRegKeySize = MAX_PATH + 1;
+    nStatus = RegOpenKey(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", &hRegKey);
+    RegQueryValueEx(hRegKey, L"ProductName", NULL, NULL, (LPBYTE)lpOsName, &dwRegKeySize);
+    m_pComputerSummaryModel->setItem(1, 1, new QStandardItem(QString::fromWCharArray(lpOsName)));
+
+    //User name
+    WCHAR lpUsername[UNLEN + 1];
+    DWORD dwUsernameSize = UNLEN + 1;
+    bResult = GetUserName(lpUsername, &dwUsernameSize);
+
+    m_pComputerSummaryModel->setItem(2, 0, new QStandardItem("User name: "));
+    m_pComputerSummaryModel->setItem(2, 1, new QStandardItem(QString::fromWCharArray(lpUsername)));
+
+    //Domain name
+    WCHAR lpDomainName[UNLEN + 1];
+    DWORD dwDomainNameSize = UNLEN + 1;
+    bResult = GetComputerNameEx(ComputerNameDnsHostname, lpDomainName, &dwDomainNameSize);
+
+    m_pComputerSummaryModel->setItem(2, 0, new QStandardItem("Domain name: "));
+    m_pComputerSummaryModel->setItem(2, 1, new QStandardItem(QString::fromWCharArray(lpDomainName)));
+
+
+    // System memory
+    MemoryStatus *pMemoryInfo = m_pSensorsManager->GetMemoryStat();
+    m_pComputerSummaryModel->setItem(4, 0, new QStandardItem("System memory: "));
+    m_pComputerSummaryModel->setItem(4, 1, new QStandardItem(pMemoryInfo->qzTotalPhys));
+
+    // Hdd size
+    QStringList qzPhysicalDisks = GetPhysicalDrivesList();
+    for(int i = 0; i < qzPhysicalDisks.count(); i++)
+    {
+        m_pComputerSummaryModel->setItem(5 + i, 0, new QStandardItem(QString().sprintf("Disk %d", i + 1)));
+        m_pComputerSummaryModel->setItem(5 + i, 1, new QStandardItem(GetDiskTotalSize(qzPhysicalDisks.at(i))));
+    }
+}
+
 Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pDMIManager(NULL), m_pSmartManager(NULL), m_pSystemDriversManager(NULL),
     m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL),
     m_pSensorsManager(NULL), m_pSensor(NULL), m_pSensorsTimer(NULL), m_pCpuSensor(NULL),
-    m_pProcessesManager(NULL), m_pStartupAppsManager(NULL)
+    m_pProcessesManager(NULL), m_pStartupAppsManager(NULL), m_pComputerSummaryModel(NULL), m_pDeviceManager(NULL)
 {
     m_pSensorsTimer = new QTimer(this);
     connect(m_pSensorsTimer, SIGNAL(timeout()), this, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
@@ -14,6 +68,7 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
 
 Controller::~Controller()
 {
+    SAFE_DELETE(m_pDeviceManager);
     SAFE_DELETE(m_pBatteryStatus);
     SAFE_DELETE(m_pApplicationManager);
     SAFE_DELETE(m_pDMIManager);
@@ -56,6 +111,8 @@ void Controller::StartController()
     pDataItem = new QStandardItem(QString("Computer"));
     qList.append(pDataItem);
 
+    pChildItem = new QStandardItem(QString("Device manager"));
+    qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("DMI"));
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("Power management"));
@@ -152,6 +209,26 @@ void Controller::StartController()
             m_pSensorsManager->DestroyCpuSensor();
             m_pCpuSensor = NULL;
         }
+
+    OnCreateComputerSummary();
+}
+
+void Controller::OnComputerDeviceManagerOptClickedSlot()
+{
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    // delete previous object
+    SAFE_DELETE(m_pDeviceManager);
+
+    m_pDeviceManager = new CDeviceInfo;
+
+    CHECK_ALLOCATION(m_pDeviceManager);
+
+    QStandardItemModel *pModel = m_pDeviceManager->GetAllDeviceDetails();
+
+    if (0 != pModel)
+        emit OnSetDeviceManagerInformation(pModel);
 }
 
 void Controller::OnComputerDMIOptClickedSlot()

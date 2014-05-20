@@ -19,6 +19,7 @@
 #define OUT_IDENTIFY_SIZE 264
 
 QStringList GetPhysicalDrivesList();
+QString GetDiskTotalSize(QString qzDrive);
 
 // return the size of hDrive (partition, disk, etc..) in MB
 int GetDriveLength(HANDLE hDrive);
