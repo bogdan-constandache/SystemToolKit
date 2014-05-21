@@ -594,10 +594,14 @@ RAM:
     pItemPair->set_value(pMemoryStatus->qzMemoryLoad.toLatin1().data());
 
     emit OnSetSensorsInformations(pSensorData.SerializeAsString());
+}
 
-END_SENSORS:
+void Controller::OnRequestDeviceDetailsSlot(QString qzDeviceID)
+{
+    QStandardItemModel *pModel = m_pDeviceManager->GetDeviceProperties(qzDeviceID);
 
-    Q_UNUSED(1);
+    if (0 != pModel)
+        emit OnSetDevicePropertiesInformation(pModel);
 }
 
 void Controller::OnRequestDMIItemProperties(DMIModuleType ItemType)

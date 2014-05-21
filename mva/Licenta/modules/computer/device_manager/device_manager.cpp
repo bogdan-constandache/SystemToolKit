@@ -66,43 +66,43 @@ BOOL CDeviceInfo::RetrieveDeviceDetails(DeviceDetails **ppDevInfo)
 {
     WCHAR szBuffer[1024] = {0};
     GetDeviceRegistryProperty(SPDRP_ADDRESS, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Address", QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Address", QStringList() << QString::fromWCharArray(szBuffer));
     ZeroMemory(szBuffer, 1024);
 
     GetDeviceRegistryProperty(SPDRP_BUSNUMBER, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Bus number", QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Bus number", QStringList() << QString::fromWCharArray(szBuffer));
     ZeroMemory(szBuffer, 1024);
 
     GetDeviceRegistryProperty(SPDRP_BUSTYPEGUID, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Bus type GUID", QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Bus type GUID", QStringList() << QString::fromWCharArray(szBuffer));
     ZeroMemory(szBuffer, 1024);
 
     GetDeviceRegistryProperty(SPDRP_CLASS, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Class", QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Class", QStringList() << QString::fromWCharArray(szBuffer));
     ZeroMemory(szBuffer, 1024);
 
     GetDeviceRegistryProperty(SPDRP_CLASSGUID, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Class GUID", QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Class GUID", QStringList() << QString::fromWCharArray(szBuffer));
     ZeroMemory(szBuffer, 1024);
 
     GetDeviceRegistryProperty(SPDRP_COMPATIBLEIDS, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Compatible IDs", QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Compatible IDs", QStringList() << QString::fromWCharArray(szBuffer));
     ZeroMemory(szBuffer, 1024);
 
     GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Description", QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Description", QStringList() << QString::fromWCharArray(szBuffer));
     ZeroMemory(szBuffer, 1024);
 
     GetDeviceRegistryProperty(SPDRP_DRIVER, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Software key", QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Software key", QStringList() << QString::fromWCharArray(szBuffer));
     ZeroMemory(szBuffer, 1024);
 
     GetDeviceRegistryProperty(SPDRP_ENUMERATOR_NAME, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Enumerator name", QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Enumerator name", QStringList() << QString::fromWCharArray(szBuffer));
     ZeroMemory(szBuffer, 1024);
 
     GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Friendly name", QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Friendly name", QStringList() << QString::fromWCharArray(szBuffer));
     ZeroMemory(szBuffer, 1024);
 
     return TRUE;
@@ -129,7 +129,14 @@ QStandardItemModel *CDeviceInfo::GetAllDeviceDetails()
 
         WCHAR szBuff[MAX_PATH] = {0};
 
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_MEDIA) )
+        if( InlineIsEqualGUID(Guid, GUID_SOUND) )
+        {
+            pDevDetails->qzParent = "Sound, video and game controllers";
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_AUDIO) )
         {
             pDevDetails->qzParent = ("Audio inputs and outputs");
             GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
@@ -254,13 +261,14 @@ QStandardItemModel *CDeviceInfo::GetAllDeviceDetails()
             continue;
         }
 
-        if( !m_qTopLevelItems.contains(pDevDetails->qzParent) )
-            m_qTopLevelItems.append(pDevDetails->qzParent);
-
-        RetrieveDeviceDetails(&pDevDetails);
+        DWORD dwJunk;
+        SetupDiGetDeviceInstanceId(m_hDeviceInfo, &m_pDeviceInfoData, szBuff, 2048, &dwJunk);
+        pDevDetails->qzID = QString::fromWCharArray(szBuff);
 
         if( !m_qTopLevelItems.contains(pDevDetails->qzParent, Qt::CaseInsensitive) )
             m_qTopLevelItems.append(pDevDetails->qzParent);
+
+        RetrieveDeviceDetails(&pDevDetails);
 
         m_qDeviceDetails.append(pDevDetails);
     }
@@ -268,7 +276,7 @@ QStandardItemModel *CDeviceInfo::GetAllDeviceDetails()
     // form tree
     QStandardItemModel *pModel = new QStandardItemModel;
     QStandardItem *pRoot = pModel->invisibleRootItem();
-    QStandardItem *pItem = 0;
+    QStandardItem *pItem = 0, *pItem2 = 0;
 
     pModel->setHorizontalHeaderLabels(QStringList() << "Devices:");
 
@@ -282,7 +290,44 @@ QStandardItemModel *CDeviceInfo::GetAllDeviceDetails()
             pDevDetails = m_qDeviceDetails.at(j);
 
             if( pDevDetails->qzParent == pItem->text() )
-                pItem->appendRow(new QStandardItem(pDevDetails->qzDisplayName));
+            {
+                pItem2 = new QStandardItem(pDevDetails->qzDisplayName);
+                pItem2->setData(pDevDetails->qzID);
+                pItem->appendRow(pItem2);
+            }
+        }
+    }
+
+    return pModel;
+}
+
+QStandardItemModel *CDeviceInfo::GetDeviceProperties(QString qzDeviceID)
+{
+    QStandardItemModel *pModel = new QStandardItemModel;
+    pModel->setHorizontalHeaderLabels(QStringList() << "Property" << "Value");
+
+    DeviceDetails *pDevDetails = 0;
+    int nCount = 0;
+    QString qzTemp = "";
+
+    QMap<QString, QStringList>::iterator it;
+
+    for( int i = 0; i < m_qDeviceDetails.count(); i++ )
+    {
+        pDevDetails = m_qDeviceDetails.at(i);
+
+        if( pDevDetails->qzID != qzDeviceID )
+            continue;
+
+        for(it = pDevDetails->qDetails.begin();
+            it != pDevDetails->qDetails.end(); it++)
+        {
+            pModel->setItem(nCount, 0, new QStandardItem(it.key()));
+            qzTemp = "";
+            for(int j = 0; j < it.value().count(); j++)
+                qzTemp += it.value().at(j) + QString(", ");
+            qzTemp.chop(2);
+            pModel->setItem(nCount++, 1, new QStandardItem(qzTemp));
         }
     }
 

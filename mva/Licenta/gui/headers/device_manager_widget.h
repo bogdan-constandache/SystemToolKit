@@ -22,10 +22,14 @@ public:
     ~CDeviceManagerWidget();
 
 public slots:
-    void OnSetTreeModel(QStandardItemModel *pModel);
+    void OnSetTreeModelSlot(QStandardItemModel *pModel);
+    void OnSetDevicePropertiesSlot(QStandardItemModel *pModel);
+    void OnItemTreeClickedSlot(QModelIndex qIndex);
+    void OnPropertiesButtonClickedSlot();
 
 signals:
     void OnShowWidget(QWidget*);
+    void OnRequestDeviceDetailsSignal(QString);
 };
 
 #endif // DEVICE_MANAGER_WIDGET_H

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QStandardItemModel>
+#include <QDebug>
 
 #include <string>
 
@@ -21,6 +22,7 @@ signals:
     void OnPopulateMenuTreeSignal(QStandardItemModel*);
 
     void OnSetDeviceManagerInformation(QStandardItemModel*);
+    void OnSetDevicePropertiesInformation(QStandardItemModel*);
     void OnSetDMIItemsInformation(QStandardItemModel*);
     void OnSetDMIPropertiesInfomation(QStandardItemModel*);
     void OnSetATAHDDItemsInformation(QStandardItemModel*);
@@ -64,6 +66,9 @@ public slots:
     virtual void OnCPUOptClickedSlot() = 0;
     virtual void OnCPUIDOptClickedSlot() = 0;
     virtual void OnSensorsOptClickedSlot() = 0;
+
+    // Device manager slots
+    virtual void OnRequestDeviceDetailsSlot(QString) = 0;
 
     // DMI slots
     virtual void OnRequestDMIItemProperties(DMIModuleType) = 0;

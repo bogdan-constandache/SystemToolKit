@@ -11,11 +11,29 @@ CDeviceManagerWidget::CDeviceManagerWidget(QWidget *parent, AbstractController *
 
     // set tree properties
     ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->treeView->header()->setStretchLastSection(true);
     ui->treeView->header()->setDefaultAlignment(Qt::AlignLeft);
 
+    ui->treeViewProperties->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->treeViewProperties->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->treeViewProperties->header()->setStretchLastSection(true);
+    ui->treeViewProperties->header()->setDefaultAlignment(Qt::AlignLeft);
+    ui->treeViewProperties->hide();
+
+    ui->btnProperties->hide();
+    ui->btnProperties->setText("Properties");
+
     connect(m_pController, SIGNAL(OnSetDeviceManagerInformation(QStandardItemModel*)),
-            this, SLOT(OnSetTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
+            this, SLOT(OnSetTreeModelSlot(QStandardItemModel*)), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnSetDevicePropertiesInformation(QStandardItemModel*)),
+            this, SLOT(OnSetDevicePropertiesSlot(QStandardItemModel*)), Qt::QueuedConnection);
+    connect(ui->treeView, SIGNAL(clicked(QModelIndex)),
+            this, SLOT(OnItemTreeClickedSlot(QModelIndex)), Qt::QueuedConnection);
+    connect(ui->btnProperties, SIGNAL(clicked()),
+            this, SLOT(OnPropertiesButtonClickedSlot()), Qt::QueuedConnection);
+    connect(this, SIGNAL(OnRequestDeviceDetailsSignal(QString)),
+            m_pController, SLOT(OnRequestDeviceDetailsSlot(QString)), Qt::QueuedConnection);
 }
 
 CDeviceManagerWidget::~CDeviceManagerWidget()
@@ -24,7 +42,7 @@ CDeviceManagerWidget::~CDeviceManagerWidget()
     m_pController = 0;
 }
 
-void CDeviceManagerWidget::OnSetTreeModel(QStandardItemModel *pModel)
+void CDeviceManagerWidget::OnSetTreeModelSlot(QStandardItemModel *pModel)
 {
     if (pModel)
         ui->treeView->setModel(pModel);
@@ -32,4 +50,48 @@ void CDeviceManagerWidget::OnSetTreeModel(QStandardItemModel *pModel)
     ui->treeView->sortByColumn(0, Qt::AscendingOrder);
 
     emit OnShowWidget(this);
+}
+
+void CDeviceManagerWidget::OnSetDevicePropertiesSlot(QStandardItemModel *pModel)
+{
+    if (pModel)
+        ui->treeViewProperties->setModel(pModel);
+    ui->treeViewProperties->resizeColumnToContents(0);
+    ui->treeViewProperties->resizeColumnToContents(1);
+    ui->treeViewProperties->sortByColumn(0, Qt::AscendingOrder);
+}
+
+void CDeviceManagerWidget::OnItemTreeClickedSlot(QModelIndex qIndex)
+{
+    QStandardItemModel *pModel = dynamic_cast<QStandardItemModel*>(ui->treeView->model());
+    QStandardItem *pItem = pModel->itemFromIndex(qIndex);
+    QString qzItemText = pItem->data().toString();
+
+    if( "" == qzItemText )
+    {
+        ui->btnProperties->hide();
+        ui->treeViewProperties->hide();
+    }
+    else
+        ui->btnProperties->show();
+
+    ui->treeViewProperties->reset();
+}
+
+void CDeviceManagerWidget::OnPropertiesButtonClickedSlot()
+{
+    QModelIndexList qIndexList = ui->treeView->selectionModel()->selectedIndexes();
+    if( 0 == qIndexList.count() )
+        return;
+
+    QStandardItemModel *pModel = dynamic_cast<QStandardItemModel*>(ui->treeView->model());
+    QStandardItem *pItem = pModel->itemFromIndex(qIndexList.at(0));
+    QString qzItemText = pItem->data().toString();
+
+    if( "" == qzItemText )
+        return;
+    else
+        emit OnRequestDeviceDetailsSignal(qzItemText);
+
+    ui->treeViewProperties->show();
 }

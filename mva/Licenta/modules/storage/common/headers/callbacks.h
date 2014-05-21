@@ -5,7 +5,7 @@
 #include <devioctl.h>
 #include <ntdddisk.h>
 #include <commctrl.h>
-#include <winioctl.h>
+//#include <winioctl.h>
 #include <WinBase.h>
 #include <tchar.h>
 #include <strsafe.h>

@@ -64,6 +64,9 @@ public slots:
     virtual void OnCPUIDOptClickedSlot();
     virtual void OnSensorsOptClickedSlot();
 
+    // Device manager slots()
+    virtual void OnRequestDeviceDetailsSlot(QString);
+
     // DMI slots()
     virtual void OnRequestDMIItemProperties(DMIModuleType);
 
