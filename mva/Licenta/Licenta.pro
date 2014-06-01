@@ -24,6 +24,30 @@ LIBS += -lNetapi32
 
 DEFINES += STK_WINDOWS
 
+#Release:DESTDIR = release
+#Release:OBJECTS_DIR = release/.obj
+#Release:MOC_DIR = release/.moc
+#Release:RCC_DIR = release/.rcc
+#Release:UI_DIR = release/.ui
+
+#Debug:DESTDIR = debug
+#Debug:OBJECTS_DIR = debug/.obj
+#Debug:MOC_DIR = debug/.moc
+#Debug:RCC_DIR = debug/.rcc
+#Debug:UI_DIR = debug/.ui
+
+Release:DESTDIR = $$PWD/../build
+Release:OBJECTS_DIR = $$PWD/../build/.obj
+Release:MOC_DIR = $$PWD/../build/.moc
+Release:RCC_DIR = $$PWD/../build/.rcc
+Release:UI_DIR = $$PWD/../build/.ui
+
+Debug:DESTDIR = $$PWD/../build
+Debug:OBJECTS_DIR = $$PWD/../build/.obj
+Debug:MOC_DIR = $$PWD/../build/.moc
+Debug:RCC_DIR = $$PWD/../build/.rcc
+Debug:UI_DIR = $$PWD/../build/.ui
+
 
 SOURCES += main/main.cpp \
         utils/sources/utils.cpp \
@@ -72,7 +96,8 @@ SOURCES += main/main.cpp \
     modules/computer/sensors/sources/amd10_temperature.cpp \
     controller/controller_callbacks.cpp \
     modules/computer/device_manager/device_manager.cpp \
-    gui/sources/device_manager_widget.cpp
+    gui/sources/device_manager_widget.cpp \
+    modules/motherboard/memory/memory_data.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -134,7 +159,8 @@ HEADERS  += gui/abstract_controller.h \
     modules/computer/sensors/headers/amd10_temperature.h \
     controller/controller_callbacks.h \
     modules/computer/device_manager/device_manager.h \
-    gui/headers/device_manager_widget.h
+    gui/headers/device_manager_widget.h \
+    modules/motherboard/memory/memory_data.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
@@ -151,3 +177,37 @@ FORMS    += \
         gui/forms/processes_widget.ui \
         gui/forms/startup_apps_widget.ui \
         gui/forms/device_manager_widget.ui
+
+OTHER_FILES += \
+    resources/qss/main_dialog.qss
+
+RESOURCES += \
+    resources/resources.qrc
+
+dbFile.path = $$PWD/../build/config/databases
+dbFile.files += $$PWD/others/databases/config.db
+
+INSTALLS += dbFile
+
+certFile.path = $$PWD/../build/config/drivers
+certFile.files += $$PWD/others/driver/stk_cert.cer
+
+INSTALLS += certFile
+
+vistaDrivers.path = $$PWD/../build/config/drivers/vista
+vistaDrivers.files += $$PWD/others/driver/vista/stk_driver.sys
+vistaDrivers.files += $$PWD/others/driver/vista/stk_driver64.sys
+
+INSTALLS += vistaDrivers
+
+win7Driver.path = $$PWD/../build/config/drivers/win7
+win7Driver.files += $$PWD/others/driver/win7/stk_driver.sys
+win7Driver.files += $$PWD/others/driver/win7/stk_driver64.sys
+
+INSTALLS += win7Driver
+
+win8Driver.path = $$PWD/../build/config/drivers/win8
+win8Driver.files += $$PWD/others/driver/win8/stk_driver.sys
+win8Driver.files += $$PWD/others/driver/win8/stk_driver64.sys
+
+INSTALLS += win8Driver

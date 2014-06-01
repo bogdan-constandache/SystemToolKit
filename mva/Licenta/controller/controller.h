@@ -39,6 +39,8 @@ private: // internal objects
     QStandardItemModel *m_pComputerSummaryModel;
 
     void OnCreateComputerSummary();
+    int OnLoadDriverFile();
+    int OnUnloadDriverFile();
 
 public:
     Controller();

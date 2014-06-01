@@ -54,6 +54,129 @@ void Controller::OnCreateComputerSummary()
     }
 }
 
+int Controller::OnLoadDriverFile()
+{
+    SC_HANDLE hSCManager;
+    SC_HANDLE hService;
+    SYSTEM_INFO SysInfo;
+    GetSystemInfo(&SysInfo);
+    OSVERSIONINFOEX OsVersion;
+    OsVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+    GetVersionEx((LPOSVERSIONINFO)&OsVersion);
+
+    BOOL bResult = FALSE;
+
+    // Compute driver's path
+    QString qzDriverPath = QCoreApplication::applicationDirPath();
+    qzDriverPath += "/config/drivers/";
+    if( OsVersion.dwMajorVersion == 6 && (OsVersion.dwMinorVersion == 3 || OsVersion.dwMinorVersion == 2) &&
+            OsVersion.wProductType == VER_NT_WORKSTATION )
+        qzDriverPath += "win8/";
+    if( OsVersion.dwMajorVersion == 6 && OsVersion.dwMinorVersion == 1  &&
+            OsVersion.wProductType == VER_NT_WORKSTATION )
+        qzDriverPath += "win7/";
+    if( OsVersion.dwMajorVersion == 6 && OsVersion.dwMinorVersion == 0 &&
+            OsVersion.wProductType == VER_NT_WORKSTATION )
+        qzDriverPath += "vista/";
+
+    if( SysInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64 )
+        qzDriverPath += "stk_driver64.sys";
+    else if( SysInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_INTEL )
+        qzDriverPath += "stk_driver.sys";
+
+    WCHAR *lpDriverPath = CharArrayToWcharArray(qzDriverPath.toLatin1().data());
+    if( NULL == lpDriverPath )
+        return Unsuccessful;
+
+    // Create service
+    hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+    if( NULL == hSCManager )
+        return Unsuccessful;
+
+    hService = CreateService(hSCManager, L"STKSensorService", L"STKSensorService",
+                             SERVICE_START, SERVICE_KERNEL_DRIVER, SERVICE_DEMAND_START,
+                             SERVICE_ERROR_NORMAL, lpDriverPath, NULL, NULL, NULL,
+                             NULL, NULL);
+
+    if( NULL == hService )
+    {
+        if( ERROR_SERVICE_EXISTS != GetLastError() )
+        {
+            CloseServiceHandle(hSCManager);
+            return Unsuccessful;
+        }
+        else
+        {
+            hService = OpenService(hSCManager, L"STKSensorService", SERVICE_START);
+            if( NULL == hService )
+            {
+                CloseServiceHandle(hSCManager);
+                return Unsuccessful;
+            }
+        }
+    }
+
+    bResult = StartService(hService, 0, NULL);
+    if( FALSE == bResult  )
+    {
+        if( ERROR_SERVICE_ALREADY_RUNNING != GetLastError() )
+        {
+            DWORD dwLastErr = GetLastError();
+            CloseServiceHandle(hService);
+            CloseServiceHandle(hSCManager);
+            return Unsuccessful;
+        }
+    }
+
+    CloseServiceHandle(hService);
+    CloseServiceHandle(hSCManager);
+
+    return Success;
+}
+
+int Controller::OnUnloadDriverFile()
+{
+    SC_HANDLE hSCManager;
+    SC_HANDLE hService;
+    BOOL bResult = FALSE;
+    SERVICE_STATUS ServStat;
+
+    hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+    if( NULL == hSCManager )
+        return Unsuccessful;
+
+    hService = OpenService(hSCManager, L"STKSensorService", SERVICE_ALL_ACCESS);
+    if( NULL == hService )
+    {
+        CloseServiceHandle(hSCManager);
+        return Unsuccessful;
+    }
+
+    bResult = ControlService(hService, SERVICE_CONTROL_STOP, &ServStat);
+    if( FALSE == bResult )
+    {
+        if( ERROR_SERVICE_NOT_ACTIVE != GetLastError() )
+        {
+            CloseServiceHandle(hService);
+            CloseServiceHandle(hSCManager);
+            return Unsuccessful;
+        }
+    }
+
+    bResult = DeleteService(hService);
+    if( FALSE == bResult )
+    {
+        CloseServiceHandle(hService);
+        CloseServiceHandle(hSCManager);
+        return Unsuccessful;
+    }
+
+    CloseServiceHandle(hService);
+    CloseServiceHandle(hSCManager);
+
+    return Success;
+}
+
 Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pDMIManager(NULL), m_pSmartManager(NULL), m_pSystemDriversManager(NULL),
     m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL),
@@ -64,6 +187,8 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     connect(m_pSensorsTimer, SIGNAL(timeout()), this, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
 
     connect(this, SIGNAL(OnCancelSensorsTimerSignal()), this, SLOT(OnCancelSensorsTimerSlot()), Qt::QueuedConnection);
+
+
 }
 
 Controller::~Controller()
@@ -82,6 +207,10 @@ Controller::~Controller()
     SAFE_DELETE(m_pStartupAppsManager);
 
     m_HDDModelToPhysicalDrive.clear();
+
+    OnUnloadDriverFile();
+
+    CoUninitialize();
 }
 
 void Controller::StartController()
@@ -94,6 +223,8 @@ void Controller::StartController()
         qDebug() << "Error initializing COM function CoinitializeEx: " << qzError;
         return;
     }
+
+    OnLoadDriverFile();
 
     // Create main window
     emit OnCreateMainWindowSignal();
@@ -548,7 +679,7 @@ CPU:
     pDataType->set_dataname("Usage: ");
 
     pItemPair = pDataType->add_datavalue();
-    pItemPair->set_name("CPU0: ");
+    pItemPair->set_name("Load: ");
     pItemPair->set_value(QString().sprintf("%.2f%", m_pSensorsManager->GetCpuLoad()).toLatin1().data());
 
 RAM:
@@ -562,11 +693,11 @@ RAM:
     pDataType->set_dataname("Data: ");
 
     pItemPair = pDataType->add_datavalue();
-    pItemPair->set_name("Total: ");
+    pItemPair->set_name("Total (Physical): ");
     pItemPair->set_value(pMemoryStatus->qzTotalPhys.toLatin1().data());
 
     pItemPair = pDataType->add_datavalue();
-    pItemPair->set_name("Available: ");
+    pItemPair->set_name("Available (Physical): ");
     pItemPair->set_value(pMemoryStatus->qzAvailPhys.toLatin1().data());
 
     pItemPair = pDataType->add_datavalue();

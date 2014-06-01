@@ -40,7 +40,7 @@ int CSTKDriverWrapper::Destroy()
 
 int CSTKDriverWrapper::ReadMsr(ULONG ulIndex, ULONG *ulEAX, ULONG *ulEDX)
 {
-    ULONG ulBuffer = 0;
+    ULONGLONG ulBuffer = 0;
     DWORD dwBytesReturned = 0;
     bool bResult = false;
 
@@ -49,7 +49,7 @@ int CSTKDriverWrapper::ReadMsr(ULONG ulIndex, ULONG *ulEAX, ULONG *ulEDX)
                               (LPVOID)&ulIndex,
                               sizeof(ULONG),
                               (LPVOID)&ulBuffer,
-                              sizeof(ULONG),
+                              sizeof(ULONGLONG),
                               &dwBytesReturned,
                               NULL);
 
@@ -62,8 +62,8 @@ int CSTKDriverWrapper::ReadMsr(ULONG ulIndex, ULONG *ulEAX, ULONG *ulEDX)
     }
     else
     {
-        *ulEDX = (ULONG)((ulBuffer >> 32) & 0xFFFFFFFF);
-        *ulEAX = (ULONG)(ulBuffer & 0xFFFFFFFF);
+        *ulEDX = (ULONGLONG)((ulBuffer >> 32) & 0xFFFFFFFF);
+        *ulEAX = (ULONGLONG)(ulBuffer & 0xFFFFFFFF);
     }
 
     return Success;

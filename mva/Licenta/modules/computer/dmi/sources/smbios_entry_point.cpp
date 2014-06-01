@@ -18,7 +18,7 @@ QStandardItemModel *CSMBiosEntryPoint::GetItemsModel()
 
     pModel->setColumnCount(1);
     pModel->setRowCount(5);
-    pModel->setHorizontalHeaderLabels(QStringList() << "");
+    pModel->setHorizontalHeaderLabels(QStringList() << "DMI modules");
 
     pItem = new QStandardItem("DMI - Access level");
     pModel->setItem(0, 0, pItem);

@@ -7,6 +7,7 @@
 #include "computer/sensors/headers/sensor_module.h"
 
 #include "motherboard/cpu/headers/intel_cpuid.h"
+#include "motherboard/memory/memory_data.h"
 
 #include "network/active-connections/active_connections.h"
 #include "network/network-devices/headers/network_devices.h"

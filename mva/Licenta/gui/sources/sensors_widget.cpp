@@ -239,13 +239,32 @@ RAM_UPDATE:
         }
     }
 
-EXIT:
-    ExpandTreeAndResizeColumns();
+EXIT:;
+//    ExpandTreeAndResizeColumns();
 }
 
 QTreeWidgetItem* CSensorsWidget::OnAddChildItem(QTreeWidgetItem *pParent, QString qzText1, QString qzText2)
 {
     QTreeWidgetItem *pItem = new QTreeWidgetItem;
+
+    if( qzText1.contains("Temperature #") || qzText1.contains("Core #") )
+    {
+        pItem->setIcon(0, QIcon(":/img/thermo.png"));
+        pParent->setIcon(0, QIcon(":/img/thermo.png"));
+    }
+
+    if( qzText2.endsWith("V") )
+    {
+        pItem->setIcon(0, QIcon(":/img/voltage.png"));
+        pParent->setIcon(0, QIcon(":/img/voltage.png"));
+    }
+
+    if( qzText2. endsWith(" MB") )
+    {
+        pItem->setIcon(0, QIcon(":/img/memory.png"));
+        pParent->setIcon(0, QIcon(":/img/memory.png"));
+    }
+
     pItem->setText(0, qzText1);
     pItem->setText(1, qzText2);
 

@@ -294,7 +294,6 @@ int CApplicationManager::FillX86Applications()
             pApplication->InstallDate = QString::fromWCharArray(tzValue);
             pApplication->InstallDate.insert(4,"/");
             pApplication->InstallDate.insert(7,"/");
-//            qDebug() << pApplication->InstallDate;
         }
 
         dwValueSize = 512;
@@ -312,7 +311,6 @@ int CApplicationManager::FillX86Applications()
         else
         {
             pApplication->UninstallString = QString::fromWCharArray(tzValue);
-//            qDebug() << pApplication->UninstallString;
         }
 
         if( !pApplication->Name.isEmpty() )

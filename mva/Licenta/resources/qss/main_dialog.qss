@@ -1,0 +1,101 @@
+QMainWindow {
+    background-color: rgb(65, 65, 65);
+}
+
+
+QTreeView::branch:has-children:!has-siblings:closed,
+QTreeView::branch:closed:has-children:has-siblings {
+    border-image: none;
+    image: url(:/img/stylesheet-branch-closed.png);
+}
+
+QTreeView {
+    background-color: rgb(65, 65, 65);
+    border: 0px;
+    color: rgb( 255, 255, 255 );
+    font-family: Segoe Ui;
+}
+
+QTreeView::item:hover,
+QTreeView::item:selected {
+    background-color: rgb( 90, 90, 90 );
+}
+
+QTreeView::branch:open:has-children:!has-siblings,
+QTreeView::branch:open:has-children:has-siblings  {
+    border-image: none;
+    image: url(:/img/stylesheet-branch-open.png);
+}
+
+QHeaderView::section {
+    background-color: rgb(65, 65, 65);
+    border: 0px;
+    color: rgb( 255, 255, 255 );
+    font-family: Segoe Ui;
+    font-size: 16px;
+    height: 25px;
+}
+
+QScrollBar:horizontal {
+                background: transparent;
+                height: 2px;
+                margin: 0px 0px 0 0px;
+                }
+
+QScrollBar::handle:horizontal {
+                border-radius: 1px;
+                background: gray;
+                min-width: 30px;
+                }
+
+QScrollBar::add-line:horizontal {
+                background: transparent;
+                width: 0px;
+                subcontrol-position: right;
+                subcontrol-origin: margin;
+                }
+
+QScrollBar::sub-line:horizontal {
+                background: transparent;
+                width: 0px;
+                subcontrol-position: top right;
+                subcontrol-origin: margin;
+                position: absolute;
+                right: 20px;
+                }
+
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+                background: none;
+                }
+
+QScrollBar:vertical {
+                background: transparent;
+                width: 2px;
+                margin: 0px 0px 0 0px;
+                }
+
+QScrollBar::handle:vertical {
+                border-radius: 1px;
+                background: gray;
+                min-height: 30px;
+                }
+
+QScrollBar::add-line:vertical {
+                background: transparent;
+                height: 0px;
+                subcontrol-position: up;
+                subcontrol-origin: margin;
+                }
+
+QScrollBar::sub-line:vertical {
+                background: transparent;
+                height: 0px;
+                subcontrol-position: top up;
+                subcontrol-origin: margin;
+                position: absolute;
+                right: 20px;
+                }
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                background: none;
+                }

@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/style">
+        <file>qss/main_dialog.qss</file>
+    </qresource>
+    <qresource prefix="/img">
+        <file>stylesheet-branch-closed.png</file>
+        <file>stylesheet-branch-open.png</file>
+        <file>thermo.png</file>
+        <file>voltage.png</file>
+        <file>memory.png</file>
+    </qresource>
+</RCC>

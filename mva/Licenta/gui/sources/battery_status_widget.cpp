@@ -17,8 +17,6 @@ CBatteryStatusWidget::CBatteryStatusWidget(QWidget *parent, AbstractController *
     // connects
     connect(m_pController, SIGNAL(OnSetPowerManagementInformation(QStandardItemModel*)),
             this, SLOT(OnSetTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
-    connect(ui->refreshButton, SIGNAL(clicked()),
-            m_pController, SLOT(OnComputerPowerManagementOptClickedSlot()), Qt::QueuedConnection);
 }
 
 CBatteryStatusWidget::~CBatteryStatusWidget()

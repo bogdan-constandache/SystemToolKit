@@ -72,7 +72,8 @@ MemoryStatus *CHardwareUsage::GetMemoryStatus()
     MemoryStatus* pMemoryStatus = new MemoryStatus;
 
     MEMORYSTATUSEX MemStat;
-    MemStat.dwLength = sizeof(MemStat);
+    ZeroMemory(&MemStat, sizeof(MEMORYSTATUSEX));
+    MemStat.dwLength = sizeof(MEMORYSTATUSEX);
 
     if (!GlobalMemoryStatusEx(&MemStat))
     {

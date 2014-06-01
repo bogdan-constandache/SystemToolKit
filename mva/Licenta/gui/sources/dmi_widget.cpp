@@ -15,7 +15,9 @@ CDMIWidget::CDMIWidget(QWidget *parent, AbstractController *pController) :
     ui->propertiesTree->header()->setDefaultAlignment(Qt::AlignLeft);
 
     ui->itemsTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    ui->itemsTree->header()->setVisible(false);
+    ui->itemsTree->header()->setDefaultAlignment(Qt::AlignLeft);
+
+    ui->itemsTree->setFixedHeight(110);
 
     // connects
     connect(ui->itemsTree, SIGNAL(clicked(QModelIndex)),

@@ -65,17 +65,46 @@ BOOL CDeviceInfo::ResetInternalCounters()
 BOOL CDeviceInfo::RetrieveDeviceDetails(DeviceDetails **ppDevInfo)
 {
     WCHAR szBuffer[1024] = {0};
+    DWORD dwBuffer = 0;
+    QStringList qBufferList;
+
     GetDeviceRegistryProperty(SPDRP_ADDRESS, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Address", QStringList() << QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Address", QStringList() << QString().sprintf("0x%x", QString::fromWCharArray(szBuffer)));
     ZeroMemory(szBuffer, 1024);
 
     GetDeviceRegistryProperty(SPDRP_BUSNUMBER, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Bus number", QStringList() << QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Bus number", QStringList() << QString().sprintf("0x%x", QString::fromWCharArray(szBuffer)));
     ZeroMemory(szBuffer, 1024);
 
     GetDeviceRegistryProperty(SPDRP_BUSTYPEGUID, (LPBYTE)szBuffer);
-    (*ppDevInfo)->qDetails.insert("Bus type GUID", QStringList() << QString::fromWCharArray(szBuffer));
+    (*ppDevInfo)->qDetails.insert("Bus type GUID", QStringList() << QString().sprintf("0x%x", QString::fromWCharArray(szBuffer)));
     ZeroMemory(szBuffer, 1024);
+
+    GetDeviceRegistryProperty(SPDRP_CAPABILITIES, (LPBYTE)&dwBuffer);
+    qBufferList.append(QString().sprintf("0x%x", dwBuffer));
+    if(dwBuffer & CM_DEVCAP_LOCKSUPPORTED )
+        qBufferList.append("CM_DEVCAP_LOCK_SUPPORTED");
+    if(dwBuffer & CM_DEVCAP_EJECTSUPPORTED )
+        qBufferList.append("CM_DEVCAP_EJECTSUPPORTED");
+    if(dwBuffer & CM_DEVCAP_REMOVABLE )
+        qBufferList.append("CM_DEVCAP_REMOVABLE");
+    if(dwBuffer & CM_DEVCAP_DOCKDEVICE )
+        qBufferList.append("CM_DEVCAP_DOCKDEVICE");
+    if(dwBuffer & CM_DEVCAP_UNIQUEID )
+        qBufferList.append("CM_DEVCAP_UNIQUEID");
+    if(dwBuffer & CM_DEVCAP_SILENTINSTALL )
+        qBufferList.append("CM_DEVCAP_SILENTINSTALL");
+    if(dwBuffer & CM_DEVCAP_RAWDEVICEOK )
+        qBufferList.append("CM_DEVCAP_RAWDEVICEOK");
+    if(dwBuffer & CM_DEVCAP_SURPRISEREMOVALOK )
+        qBufferList.append("CM_DEVCAP_SURPRISEREMOVALOK");
+    if(dwBuffer & CM_DEVCAP_HARDWAREDISABLED )
+        qBufferList.append("CM_DEVCAP_HARDWAREDISABLED");
+    if(dwBuffer & CM_DEVCAP_NONDYNAMIC )
+        qBufferList.append("CM_DEVCAP_NONDYNAMIC");
+    (*ppDevInfo)->qDetails.insert("Capabilities", QStringList(qBufferList));
+    qBufferList.clear();
+    dwBuffer = 0;
 
     GetDeviceRegistryProperty(SPDRP_CLASS, (LPBYTE)szBuffer);
     (*ppDevInfo)->qDetails.insert("Class", QStringList() << QString::fromWCharArray(szBuffer));
@@ -88,6 +117,48 @@ BOOL CDeviceInfo::RetrieveDeviceDetails(DeviceDetails **ppDevInfo)
     GetDeviceRegistryProperty(SPDRP_COMPATIBLEIDS, (LPBYTE)szBuffer);
     (*ppDevInfo)->qDetails.insert("Compatible IDs", QStringList() << QString::fromWCharArray(szBuffer));
     ZeroMemory(szBuffer, 1024);
+
+    GetDeviceRegistryProperty(SPDRP_CONFIGFLAGS, (LPBYTE)&dwBuffer);
+    qBufferList.append(QString().sprintf("0x%x", dwBuffer));
+    if( dwBuffer & CONFIGFLAG_DISABLED )
+        qBufferList.append("CONFIGFLAG_DISABLED");
+    if( dwBuffer & CONFIGFLAG_REMOVED )
+        qBufferList.append("CONFIGFLAG_REMOVED");
+    if( dwBuffer & CONFIGFLAG_MANUAL_INSTALL )
+        qBufferList.append("CONFIGFLAG_MANUAL_INSTALL");
+    if( dwBuffer & CONFIGFLAG_IGNORE_BOOT_LC )
+        qBufferList.append("CONFIGFLAG_IGNORE_BOOT_LC");
+    if( dwBuffer & CONFIGFLAG_NET_BOOT )
+        qBufferList.append("CONFIGFLAG_NET_BOOT");
+    if( dwBuffer & CONFIGFLAG_REINSTALL )
+        qBufferList.append("CONFIGFLAG_REINSTALL");
+    if( dwBuffer & CONFIGFLAG_FAILEDINSTALL )
+        qBufferList.append("CONFIGFLAG_FAILEDINSTALL");
+    if( dwBuffer & CONFIGFLAG_CANTSTOPACHILD )
+        qBufferList.append("CONFIGFLAG_CANTSTOPACHILD");
+    if( dwBuffer & CONFIGFLAG_OKREMOVEROM )
+        qBufferList.append("CONFIGFLAG_OKREMOVEROM");
+    if( dwBuffer & CONFIGFLAG_NOREMOVEEXIT )
+        qBufferList.append("CONFIGFLAG_NOREMOVEEXIT");
+    if( dwBuffer & CONFIGFLAG_FINISH_INSTALL )
+        qBufferList.append("CONFIGFLAG_FINISH_INSTALL");
+    if( dwBuffer & CONFIGFLAG_NEEDS_FORCED_CONFIG )
+        qBufferList.append("CONFIGFLAG_NEEDS_FORCED_CONFIG");
+    if( dwBuffer & CONFIGFLAG_PARTIAL_LOG_CONF )
+        qBufferList.append("CONFIGFLAG_PARTIAL_LOG_CONF");
+    if( dwBuffer & CONFIGFLAG_SUPPRESS_SURPRISE )
+        qBufferList.append("CONFIGFLAG_SUPPRESS_SURPRISE");
+    if( dwBuffer & CONFIGFLAG_VERIFY_HARDWARE )
+        qBufferList.append("CONFIGFLAG_VERIFY_HARDWARE");
+    if( dwBuffer & CONFIGFLAG_FINISHINSTALL_UI )
+        qBufferList.append("CONFIGFLAG_FINISHINSTALL_UI");
+    if( dwBuffer & CONFIGFLAG_FINISHINSTALL_ACTION )
+        qBufferList.append("CONFIGFLAG_FINISHINSTALL_ACTION");
+    if( dwBuffer & CONFIGFLAG_BOOT_DEVICE )
+        qBufferList.append("CONFIGFLAG_BOOT_DEVICE");
+    (*ppDevInfo)->qDetails.insert("Config flags", QStringList(qBufferList));
+    qBufferList.clear();
+    dwBuffer = 0;
 
     GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (LPBYTE)szBuffer);
     (*ppDevInfo)->qDetails.insert("Description", QStringList() << QString::fromWCharArray(szBuffer));
@@ -103,6 +174,38 @@ BOOL CDeviceInfo::RetrieveDeviceDetails(DeviceDetails **ppDevInfo)
 
     GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (LPBYTE)szBuffer);
     (*ppDevInfo)->qDetails.insert("Friendly name", QStringList() << QString::fromWCharArray(szBuffer));
+    ZeroMemory(szBuffer, 1024);
+
+    GetDeviceRegistryProperty(SPDRP_HARDWAREID, (LPBYTE)szBuffer);
+    (*ppDevInfo)->qDetails.insert("Hardware Id", QStringList() << QString::fromWCharArray(szBuffer));
+    ZeroMemory(szBuffer, 1024);
+
+    GetDeviceRegistryProperty(SPDRP_LOCATION_PATHS, (LPBYTE)szBuffer);
+    (*ppDevInfo)->qDetails.insert("Location paths", QStringList() << QString::fromWCharArray(szBuffer));
+    ZeroMemory(szBuffer, 1024);
+
+    GetDeviceRegistryProperty(SPDRP_LOCATION_INFORMATION, (LPBYTE)szBuffer);
+    (*ppDevInfo)->qDetails.insert("Location information", QStringList() << QString::fromWCharArray(szBuffer));
+    ZeroMemory(szBuffer, 1024);
+
+    GetDeviceRegistryProperty(SPDRP_LOWERFILTERS, (LPBYTE)szBuffer);
+    (*ppDevInfo)->qDetails.insert("Lower filters", QStringList() << QString::fromWCharArray(szBuffer));
+    ZeroMemory(szBuffer, 1024);
+
+    GetDeviceRegistryProperty(SPDRP_MFG, (LPBYTE)szBuffer);
+    (*ppDevInfo)->qDetails.insert("Manufacturer", QStringList() << QString::fromWCharArray(szBuffer));
+    ZeroMemory(szBuffer, 1024);
+
+    GetDeviceRegistryProperty(SPDRP_PHYSICAL_DEVICE_OBJECT_NAME, (LPBYTE)szBuffer);
+    (*ppDevInfo)->qDetails.insert("Physical device name", QStringList() << QString::fromWCharArray(szBuffer));
+    ZeroMemory(szBuffer, 1024);
+
+    GetDeviceRegistryProperty(SPDRP_SERVICE, (LPBYTE)szBuffer);
+    (*ppDevInfo)->qDetails.insert("Service name", QStringList() << QString::fromWCharArray(szBuffer));
+    ZeroMemory(szBuffer, 1024);
+
+    GetDeviceRegistryProperty(SPDRP_UI_NUMBER_DESC_FORMAT, (LPBYTE)szBuffer);
+    (*ppDevInfo)->qDetails.insert("UINumber", QStringList() << QString::fromWCharArray(szBuffer));
     ZeroMemory(szBuffer, 1024);
 
     return TRUE;
@@ -327,7 +430,7 @@ QStandardItemModel *CDeviceInfo::GetDeviceProperties(QString qzDeviceID)
             for(int j = 0; j < it.value().count(); j++)
                 qzTemp += it.value().at(j) + QString(", ");
             qzTemp.chop(2);
-            pModel->setItem(nCount++, 1, new QStandardItem(qzTemp));
+            pModel->setItem(nCount++, 1, new QStandardItem(qzTemp == "" ? "N/A" : qzTemp));
         }
     }
 

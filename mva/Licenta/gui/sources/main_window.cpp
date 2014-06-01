@@ -1,6 +1,8 @@
 #include "../headers/main_window.h"
 #include "ui_mainwindow.h"
 
+#include <QFile>
+
 MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -16,6 +18,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     this->setMinimumWidth(1000);
     this->setMinimumHeight(600);
     this->setWindowTitle(QString("System Toolkit"));
+
+    ui->menuTreeView->setEditTriggers(QTreeView::NoEditTriggers);
 
     m_pController = pController;
 
@@ -58,6 +62,15 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
             m_pController, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
 
     InitializeStackedWidget();
+
+    QFile qFile(":/style/qss/main_dialog.qss");
+    if( !qFile.open(QIODevice::ReadOnly) )
+        return;
+
+    QString qzStyleSheet = QLatin1String(qFile.readAll());
+
+    setStyleSheet(qzStyleSheet);
+    ensurePolished();
 }
 
 MainWindow::~MainWindow()

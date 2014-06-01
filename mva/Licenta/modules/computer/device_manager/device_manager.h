@@ -7,6 +7,8 @@
 #include <Windows.h>
 #include <SetupAPI.h>
 #include <devguid.h>
+#include <cfgmgr32.h>
+#include <RegStr.h>
 
 #include <QMap>
 #include <QStandardItemModel>
