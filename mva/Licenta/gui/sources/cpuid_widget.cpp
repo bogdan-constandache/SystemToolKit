@@ -12,6 +12,7 @@ CCPUIDWidget::CCPUIDWidget(QWidget *parent, AbstractController *pController) :
     ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->treeView->header()->setStretchLastSection(true);
     ui->treeView->header()->setDefaultAlignment(Qt::AlignLeft);
+    ui->treeView->setRootIsDecorated(false);
 
     connect(m_pController, SIGNAL(OnSetCPUIDInformations(QStandardItemModel*)),
             this, SLOT(OnSetTreeModel(QStandardItemModel*)), Qt::QueuedConnection);

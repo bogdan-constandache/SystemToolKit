@@ -16,18 +16,20 @@ class Controller : public AbstractController
 {
     Q_OBJECT
 private: // internal objects
-    CDeviceInfo *m_pDeviceManager;
-    BatteryStatus *m_pBatteryStatus;
-    CApplicationManager *m_pApplicationManager;
-    CSMBiosEntryPoint *m_pDMIManager;
-    CSmartInfo *m_pSmartManager;
-    SystemDrivers *m_pSystemDriversManager;
-    CNetworkDevices *m_pNetworkDevicesManager;
-    CActiveConnections *m_pActiveConnectionsManager;
-    CIntelCpuID *m_pCPUIDManager;
-
-    Processes *m_pProcessesManager;
-    CStartupApplication *m_pStartupAppsManager;
+    CDeviceInfo                 *m_pDeviceManager;
+    BatteryStatus               *m_pBatteryStatus;
+    CApplicationManager         *m_pApplicationManager;
+    QProcessWrapper             *m_pUninstallerProcess;
+    CSMBiosEntryPoint           *m_pDMIManager;
+    CSmartInfo                  *m_pSmartManager;
+    SystemDrivers               *m_pSystemDriversManager;
+    CNetworkDevices             *m_pNetworkDevicesManager;
+    CActiveConnections          *m_pActiveConnectionsManager;
+    CIntelCpuID                 *m_pCPUIDManager;
+    Processes                   *m_pProcessesManager;
+    CStartupApplication         *m_pStartupAppsManager;
+    CSystemUsersInformation     *m_pUserInformationManager;
+//    CNvidiaManager              *m_pNVidiaManager;
 
     CSensorModule *m_pSensorsManager;
     ISensor *m_pSensor;
@@ -65,6 +67,7 @@ public slots:
     virtual void OnCPUOptClickedSlot();
     virtual void OnCPUIDOptClickedSlot();
     virtual void OnSensorsOptClickedSlot();
+    virtual void OnUserInformationsOptClickedSlot();
 
     // Device manager slots()
     virtual void OnRequestDeviceDetailsSlot(QString);
@@ -81,7 +84,7 @@ public slots:
     // Power management slots()
 
     // Application manager slots()
-    virtual void OnUninstallApplicationSlot();
+    virtual void OnUninstallApplicationSlot(QString);
 
     // Network devices manager slots()
     virtual void OnRequestNetworkDeviceInfomationsSlot(QString);
@@ -94,6 +97,7 @@ signals:
 
 private slots:
     void OnCancelSensorsTimerSlot();
+    void OnUninstallApplicationErrorReportSlot(QString);
 };
 
 #endif // CONTROLLER_H

@@ -3,6 +3,7 @@
 #include "../controller/controller.h"
 #include "../gui/view_adapter.h"
 
+
 int main(int argc, char *argv[])
 {
     QApplication Application(argc, argv);
@@ -12,6 +13,7 @@ int main(int argc, char *argv[])
 
     qRegisterMetaType< DMIModuleType > ( "DMIModuleType" );
     qRegisterMetaType< std::string > ( "std::string" );
+    qRegisterMetaType< HANDLE > ( "HANDLE" );
 
     pController->moveToThread(&ControllerThread);
     pViewAdapter->SetController(pController);

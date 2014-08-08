@@ -119,7 +119,9 @@ ICPUSensor *FactoryCpuSensor::GetCpuSensor()
 
 int FactoryCpuSensor::DestroySensor()
 {
-    int nStatus = m_pCpuSensor->Destroy();
+    int nStatus = Uninitialized;
+    if( m_pCpuSensor )
+        nStatus = m_pCpuSensor->Destroy();
     SAFE_DELETE(m_pCpuSensor);
 
     return nStatus;

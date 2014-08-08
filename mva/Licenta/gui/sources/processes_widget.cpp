@@ -12,6 +12,7 @@ CProcessesWidget::CProcessesWidget(QWidget *parent, AbstractController *pControl
     ui->treeWProcesses->setSelectionMode(QTreeView::SingleSelection);
     ui->treeWProcesses->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->treeWProcesses->setSelectionBehavior(QTreeView::SelectRows);
+    ui->treeWProcesses->setRootIsDecorated(false);
 
     connect(m_pController, SIGNAL(OnSetProcessesInformations(QStandardItemModel*)),
             this, SLOT(OnSetProcessTreeModel(QStandardItemModel*)), Qt::QueuedConnection);

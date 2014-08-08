@@ -190,6 +190,8 @@ QStandardItemModel *Processes::GetProcessesInformations()
     QStandardItem *pRoot = pModel->invisibleRootItem();
     QStandardItem *pItem = 0;
 
+    QStandardItem *pFirstItem = 0;
+
     QList<QStandardItem*> qRow;
 
     GetProcessList();
@@ -199,13 +201,17 @@ QStandardItemModel *Processes::GetProcessesInformations()
     for(int i = 0; i < m_qlProcesses.count(); i++)
     {
         pProcess = m_qlProcesses.at(i);
-        pItem = new QStandardItem(pProcess->qszProcessName == "" ? "N/A" : pProcess->qszProcessName);
-        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
-        qRow.append(pItem);
+        pFirstItem = new QStandardItem(pProcess->qszProcessName == "" ? "N/A" : pProcess->qszProcessName);
+        pFirstItem->setStatusTip(QString().setNum(pProcess->qnPID));
+        qRow.append(pFirstItem);
 
         pItem = new QStandardItem(pProcess->qszProcessFileName == "" ? "N/A" : pProcess->qszProcessFileName);
         pItem->setStatusTip(QString().setNum(pProcess->qnPID));
         qRow.append(pItem);
+
+        QIcon qIcon = GetIconFromHICON(pProcess->qszProcessFileName);
+
+        pFirstItem->setIcon(qIcon);
 
 //        pItem = new QStandardItem(pProcess->qszProcessCommandLine == "" ? "N/A" : pProcess->qszProcessCommandLine);
 //        pItem->setStatusTip(QString().setNum(pProcess->qnPID));

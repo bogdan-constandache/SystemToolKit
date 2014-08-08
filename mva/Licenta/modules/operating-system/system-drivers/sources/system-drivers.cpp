@@ -32,6 +32,7 @@ QStandardItemModel *SystemDrivers::GetSystemDriversInformation()
     {
         pDriver = m_qlSystemDrivers.at(i);
         pItem = new QStandardItem(pDriver->qszDriverName == "" ? "N/A" : pDriver->qszDriverName);
+        pItem->setIcon(QIcon(":/img/windows_service.png"));
         pModel->setItem(i, 0, pItem);
 
         pItem = new QStandardItem(pDriver->qszDescription == "" ? "N/A" : pDriver->qszDescription);
@@ -97,13 +98,13 @@ int SystemDrivers::Initialize()
     {
         nStatus = Unsuccessful;
         DEBUG_STATUS(nStatus);
-        return nStatus;
+        goto CleanUp;
     }
     if( ERROR_MORE_DATA != GetLastError() )
     {
         nStatus = Unsuccessful;
         DEBUG_STATUS(nStatus);
-        return nStatus;
+        goto CleanUp;
     }
     dwBytes = sizeof(ENUM_SERVICE_STATUS_PROCESS) + dwBytesNeeded;
     ENUM_SERVICE_STATUS_PROCESS* pServices = NULL;
@@ -121,7 +122,9 @@ int SystemDrivers::Initialize()
                                           NULL);
     if( 0 == bReturnedValue )
     {
-        // error
+        nStatus = Unsuccessful;
+        DEBUG_STATUS(nStatus);
+        goto CleanUp;
     }
     for(unsigned int i = 0; i < dwServicesReturned; i++)
     {
@@ -193,7 +196,9 @@ int SystemDrivers::Initialize()
         {
             nStatus = Unsuccessful;
             DEBUG_STATUS(nStatus);
-            return nStatus;
+            delete item;
+            CloseServiceHandle(hService);
+            continue;
         }
 
         dwBytes = dwBytesNeeded;
@@ -221,7 +226,13 @@ int SystemDrivers::Initialize()
 
         m_qlSystemDrivers.append(item);
     }
+
     nStatus = Success;
+
+CleanUp:
+
+    CloseServiceHandle(hHandle);
+
     return nStatus;
 }
 

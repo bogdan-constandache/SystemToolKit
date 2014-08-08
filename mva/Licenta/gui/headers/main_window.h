@@ -14,6 +14,9 @@
 #include <QAction>
 
 #include "../abstract_controller.h"
+
+#include "about_dialog.h"
+
 #include "battery_status_widget.h"
 #include "application_manager_widget.h"
 #include "dmi_widget.h"
@@ -27,6 +30,7 @@
 #include "processes_widget.h"
 #include "startup_apps_widget.h"
 #include "device_manager_widget.h"
+#include "user_information_widget.h"
 
 namespace Ui {
 class MainWindow;
@@ -37,24 +41,28 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 private:
-    Ui::MainWindow *ui;
-    AbstractController *m_pController;
-    QStandardItemModel *m_pItemTreeModel;
+    Ui::MainWindow                  *ui;
+    AbstractController              *m_pController;
+    QStandardItemModel              *m_pItemTreeModel;
+
+    // About dialog
+    CAboutDialog                    *m_pAboutDialog;
 
     // Modules widgets
-    CDMIWidget *m_pDMIManagerWidget;
-    CBatteryStatusWidget *m_pPowerManagementWidget;
-    CApplicationManagerWidget *m_pApplicationManagerWidget;
-    CSmartWidget *m_pSMARTManagerWidget;
-    CATAWidget *m_pATAManagerWidget;
-    CSystemDriversWidget *m_pSystemDriversWidget;
-    CActiveConnectionsWidget *m_pActiveConnectionsWidget;
-    CNetworkDevicesWidget *m_pNetworkDevicesWidget;
-    CCPUIDWidget *m_pCPUIDWidget;
-    CSensorsWidget *m_pSensorsWidget;
-    CProcessesWidget *m_pProcessesWidget;
-    CStartupAppsWidget *m_pStartupAppsWidget;
-    CDeviceManagerWidget *m_pDeviceManagerWidget;
+    CDMIWidget                      *m_pDMIManagerWidget;
+    CBatteryStatusWidget            *m_pPowerManagementWidget;
+    CApplicationManagerWidget       *m_pApplicationManagerWidget;
+    CSmartWidget                    *m_pSMARTManagerWidget;
+    CATAWidget                      *m_pATAManagerWidget;
+    CSystemDriversWidget            *m_pSystemDriversWidget;
+    CActiveConnectionsWidget        *m_pActiveConnectionsWidget;
+    CNetworkDevicesWidget           *m_pNetworkDevicesWidget;
+    CCPUIDWidget                    *m_pCPUIDWidget;
+    CSensorsWidget                  *m_pSensorsWidget;
+    CProcessesWidget                *m_pProcessesWidget;
+    CStartupAppsWidget              *m_pStartupAppsWidget;
+    CDeviceManagerWidget            *m_pDeviceManagerWidget;
+    CUserInformationWidget          *m_pUserInformationWidget;
 
     void InitializeStackedWidget();
 
@@ -85,6 +93,7 @@ signals:
     void OnCPUOptClickedSignal();
     void OnCPUIDOptClickedSignal();
     void OnSensorsOptClickedSignal();
+    void OnSystemUsersOptClickedSignal();
 };
 
 #endif // MAINWINDOW_H

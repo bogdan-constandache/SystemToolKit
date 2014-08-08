@@ -18,6 +18,7 @@ CDeviceManagerWidget::CDeviceManagerWidget(QWidget *parent, AbstractController *
     ui->treeViewProperties->setBaseSize(this->width(), 160);
     ui->treeViewProperties->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->treeViewProperties->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->treeViewProperties->setRootIsDecorated(false);
     ui->treeViewProperties->header()->setStretchLastSection(true);
     ui->treeViewProperties->header()->setDefaultAlignment(Qt::AlignLeft);
     ui->treeViewProperties->hide();

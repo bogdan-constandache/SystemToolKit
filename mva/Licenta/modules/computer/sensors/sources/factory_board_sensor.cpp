@@ -322,7 +322,9 @@ ISensor *FactoryBoardSensor::GetBoardSensor()
 
 int FactoryBoardSensor::DestroySensor()
 {
-    int nStatus = m_pBoardSensor->Destroy();
+    int nStatus = Uninitialized;
+    if( m_pBoardSensor )
+        nStatus = m_pBoardSensor->Destroy();
     SAFE_DELETE(m_pBoardSensor);
 
     return nStatus;

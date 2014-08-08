@@ -22,9 +22,11 @@ public:
 
 public slots:
     void OnSetTableModel(QStandardItemModel *pModel);
+    void OnUninstallApplicationSlot();
 
 signals:
     void OnShowWidget(QWidget*);
+    void OnUninstallApplicationSignal(QString);
 };
 
 #endif // APPLICATION_MANAGER_WIDGET_H

@@ -10,6 +10,7 @@ CStartupAppsWidget::CStartupAppsWidget(QWidget *parent, AbstractController *pCon
     m_pController = pController;
 
     ui->treeWApps->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->treeWApps->setRootIsDecorated(false);
     ui->treeWApps->header()->setStretchLastSection(true);
     ui->treeWApps->header()->setDefaultAlignment(Qt::AlignLeft);
 

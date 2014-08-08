@@ -1,5 +1,6 @@
 QT       += core gui sql
 QT       += widgets
+QT       += winextras
 
 include(others/project-configuration/project-defines.pri)
 
@@ -7,6 +8,8 @@ TARGET = Licenta
 TEMPLATE = app
 
 INCLUDEPATH += $$PWD/proto-buffers/includes
+
+QMAKE_LFLAGS += /MANIFESTUAC:\"level=\'requireAdministrator\' uiAccess=\'false\'\"
 
 LIBS += $$PWD/proto-buffers/lib/$$CROSSPLATFORM/libprotobuf-lite.lib
 
@@ -20,21 +23,16 @@ LIBS += -liphlpapi
 LIBS += -lws2_32
 LIBS += -lPdh
 LIBS += -lNetapi32
+LIBS += -lShell32
 
+#contains(QMAKE_TARGET.arch, x86_64) {
+#LIBS += -l$$PWD/modules/motherboard/video-card/api/nvidia-api/amd64/nvapi64
+#} else {
+#LIBS += -l$$PWD/modules/motherboard/video-card/api/nvidia-api/x86/nvapi
+#}
 
+DEFINES += NOMINMAX
 DEFINES += STK_WINDOWS
-
-#Release:DESTDIR = release
-#Release:OBJECTS_DIR = release/.obj
-#Release:MOC_DIR = release/.moc
-#Release:RCC_DIR = release/.rcc
-#Release:UI_DIR = release/.ui
-
-#Debug:DESTDIR = debug
-#Debug:OBJECTS_DIR = debug/.obj
-#Debug:MOC_DIR = debug/.moc
-#Debug:RCC_DIR = debug/.rcc
-#Debug:UI_DIR = debug/.ui
 
 Release:DESTDIR = $$PWD/../build
 Release:OBJECTS_DIR = $$PWD/../build/.obj
@@ -54,7 +52,9 @@ SOURCES += main/main.cpp \
         gui/abstract_controller.cpp \
         gui/view_adapter.cpp \
         controller/controller.cpp \
-        gui/sources/main_window.cpp \
+        controller/controller_callbacks.cpp \
+        proto-buffers/sensors_data.pb.cc \
+        proto-buffers/configuration_data.pb.cc \
         modules/computer/power-management/sources/battery_status.cpp \
         modules/software/applications-manager/sources/application_manager.cpp \
         modules/computer/dmi/sources/type17_memory_device_information.cpp \
@@ -72,6 +72,20 @@ SOURCES += main/main.cpp \
         modules/motherboard/cpu/sources/intel_cpuid.cpp \
         modules/computer/sensors/sources/sensor_module.cpp \
         modules/computer/sensors/sources/hardware_usage.cpp \
+        modules/computer/sensors/sources/intel_temperature.cpp \
+        modules/computer/sensors/sources/factory_board_sensor.cpp \
+        modules/computer/sensors/sources/factory_cpu_sensor.cpp \
+        modules/computer/sensors/sources/w836xx.cpp \
+        modules/operating-system/processes/sources/processes.cpp \
+        modules/software/startup-applications/sources/startup_application.cpp \
+        modules/computer/sensors/sources/f718xx.cpp \
+        modules/computer/sensors/sources/amd0f_temperature.cpp \
+        modules/computer/sensors/sources/amd10_temperature.cpp \
+        modules/computer/device_manager/device_manager.cpp \
+#    modules/motherboard/video-card/nvidia_card.cpp \
+        modules/motherboard/memory/memory_data.cpp \
+        modules/operating-system/system-users/system_users_information.cpp \
+        gui/sources/main_window.cpp \
         gui/sources/battery_status_widget.cpp \
         gui/sources/application_manager_widget.cpp \
         gui/sources/dmi_widget.cpp \
@@ -83,27 +97,20 @@ SOURCES += main/main.cpp \
         gui/sources/cpuid_widget.cpp \
         gui/sources/sensors_widget.cpp \
         gui/sources/processes_widget.cpp \
-        proto-buffers/sensors_data.pb.cc \
-        modules/computer/sensors/sources/intel_temperature.cpp \
-        modules/computer/sensors/sources/factory_board_sensor.cpp \
-        modules/computer/sensors/sources/factory_cpu_sensor.cpp \
-        modules/computer/sensors/sources/w836xx.cpp \
-        modules/operating-system/processes/sources/processes.cpp \
-        modules/software/startup-applications/sources/startup_application.cpp \
+        gui/sources/about_dialog.cpp \
         gui/sources/startup_apps_widget.cpp \
-    modules/computer/sensors/sources/f718xx.cpp \
-    modules/computer/sensors/sources/amd0f_temperature.cpp \
-    modules/computer/sensors/sources/amd10_temperature.cpp \
-    controller/controller_callbacks.cpp \
-    modules/computer/device_manager/device_manager.cpp \
-    gui/sources/device_manager_widget.cpp \
-    modules/motherboard/memory/memory_data.cpp
+        gui/sources/device_manager_widget.cpp \
+        gui/sources/user_information_widget.cpp \
+    modules/software/applications-manager/sources/process_wrapper.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
         controller/controller.h \
         gui/headers/main_window.h \
         controller/enums.h \
+        controller/controller_callbacks.h \
+        proto-buffers/sensors_data.pb.h \
+        proto-buffers/configuration_data.pb.h \
         modules/computer/power-management/headers/battery_status.h \
         modules/software/applications-manager/headers/software_structures.h \
         modules/software/applications-manager/headers/application_manager.h \
@@ -133,6 +140,23 @@ HEADERS  += gui/abstract_controller.h \
         modules/motherboard/cpu/headers/intel_cpuid.h \
         modules/computer/sensors/headers/sensor_module.h \
         modules/computer/sensors/headers/hardware_usage.h \
+        modules/computer/sensors/headers/intel_temperature.h \
+        modules/computer/sensors/headers/factory_board_sensor.h \
+        modules/computer/sensors/headers/factory_cpu_sensor.h \
+        modules/computer/sensors/headers/w836xx.h \
+        modules/api.h \
+        modules/operating-system/processes/headers/processes.h \
+        modules/operating-system/processes/headers/processes_structs.h \
+        modules/software/startup-applications/headers/startup_application.h \
+        modules/computer/sensors/headers/f718xx.h \
+        modules/computer/sensors/headers/amd0f_temperature.h \
+        modules/computer/sensors/headers/amd10_temperature.h \
+        modules/computer/device_manager/device_manager.h \
+#    modules/motherboard/video-card/video_structures.h \
+#    modules/motherboard/video-card/nvidia_card.h \
+        modules/motherboard/memory/memory_data.h \
+        modules/operating-system/system-users/system_users_information.h \
+        modules/operating-system/system-users/system_users_information_structs.h \
         gui/headers/battery_status_widget.h \
         gui/headers/application_manager_widget.h \
         gui/headers/dmi_widget.h \
@@ -144,23 +168,11 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/cpuid_widget.h \
         gui/headers/sensors_widget.h \
         gui/headers/processes_widget.h \
-        proto-buffers/sensors_data.pb.h \
-        modules/computer/sensors/headers/intel_temperature.h \
-        modules/computer/sensors/headers/factory_board_sensor.h \
-        modules/computer/sensors/headers/factory_cpu_sensor.h \
-        modules/computer/sensors/headers/w836xx.h \
-        modules/api.h \
-        modules/operating-system/processes/headers/processes.h \
-        modules/operating-system/processes/headers/processes_structs.h \
-        modules/software/startup-applications/headers/startup_application.h \
+        gui/headers/about_dialog.h \
         gui/headers/startup_apps_widget.h \
-    modules/computer/sensors/headers/f718xx.h \
-    modules/computer/sensors/headers/amd0f_temperature.h \
-    modules/computer/sensors/headers/amd10_temperature.h \
-    controller/controller_callbacks.h \
-    modules/computer/device_manager/device_manager.h \
-    gui/headers/device_manager_widget.h \
-    modules/motherboard/memory/memory_data.h
+        gui/headers/device_manager_widget.h \
+        gui/headers/user_information_widget.h \
+    modules/software/applications-manager/headers/process_wrapper.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
@@ -176,13 +188,21 @@ FORMS    += \
         gui/forms/sensors_widget.ui \
         gui/forms/processes_widget.ui \
         gui/forms/startup_apps_widget.ui \
-        gui/forms/device_manager_widget.ui
+        gui/forms/device_manager_widget.ui \
+        gui/forms/about_dialog.ui \
+        gui/forms/user_information_widget.ui
 
 OTHER_FILES += \
-    resources/qss/main_dialog.qss
+    resources/qss/main_dialog.qss \
+    resources/qss/about_dialog.qss
 
 RESOURCES += \
     resources/resources.qrc
+
+configurationFile.path = $$PWD/../build
+configurationFile.files += $$PWD/others/configuration.cfg
+
+INSTALLS += configurationFile
 
 dbFile.path = $$PWD/../build/config/databases
 dbFile.files += $$PWD/others/databases/config.db

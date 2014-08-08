@@ -117,3 +117,39 @@ bool WIN32_FROM_HRESULT(HRESULT hr, DWORD *pdwWin32)
 
     return FALSE;
 }
+
+
+QIcon GetIconFromHICON(QString qzFileName)
+{
+    wchar_t *pWCName = new wchar_t[qzFileName.length() + 1];
+    qzFileName.toWCharArray(pWCName);
+    pWCName[qzFileName.length()] = '\0';
+    HICON Icon = ExtractIcon(NULL, pWCName, 0);
+    delete pWCName;
+
+    if( Icon == NULL )
+    {
+        QString qzWinDir;
+
+        qzWinDir += QDir::rootPath() + "Windows/system32/winlogon.exe";
+        qzWinDir.replace("/", "\\");
+
+        pWCName = new wchar_t[qzWinDir.length() + 1];
+        qzWinDir.toWCharArray(pWCName);
+        pWCName[qzWinDir.length()] = '\0';
+
+        Icon = ExtractIcon(NULL, pWCName, 0);
+        delete pWCName;
+
+        if( Icon == NULL )
+            return QIcon();
+    }
+
+    QIcon qRetIcon = QIcon(QtWin::fromHICON(Icon));
+
+    bool bResult = DestroyIcon(Icon);
+    if( !bResult )
+        return QIcon();
+    else
+        return qRetIcon;
+}

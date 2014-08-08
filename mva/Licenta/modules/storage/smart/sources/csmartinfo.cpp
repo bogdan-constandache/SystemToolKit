@@ -196,39 +196,44 @@ bool CSmartInfo::CheckForSmartFlag(const wchar_t *tszDriveName)
 // get the attributes from database
 int CSmartInfo::ReadSMARTDetailsFromDB()
 {
-    SmartDetails *pSmartDetails = 0;
-    QString qzAppPath = QCoreApplication::applicationDirPath();
-    qzAppPath.append("/config/databases/config.db");
-    QSqlDatabase qDB = QSqlDatabase::addDatabase("QSQLITE");
-    qDB.setDatabaseName(qzAppPath);
-
-    bool bRet = qDB.open();
-    if( !bRet )
     {
-        return DBOpenError;
-    }
+        SmartDetails *pSmartDetails = 0;
+        QString qzAppPath = QCoreApplication::applicationDirPath();
+        qzAppPath.append("/config/databases/config.db");
+        QSqlDatabase qDB = QSqlDatabase::addDatabase("QSQLITE");
+        qDB.setDatabaseName(qzAppPath);
 
-    QSqlQuery qQuery("SELECT * FROM SMART_DETAILS", qDB);
-
-    while( qQuery.next() )
-    {
-        pSmartDetails = new SmartDetails;
-        if( 0 == pSmartDetails )
+        bool bRet = qDB.open();
+        if( !bRet )
         {
-            return NotAllocated;
+            return DBOpenError;
         }
-        pSmartDetails->m_ucAttribId = 0;
-        pSmartDetails->m_bCritical = 0;
 
-        pSmartDetails->m_ucAttribId = qQuery.value(0).toInt();
-        pSmartDetails->m_bCritical = qQuery.value(1).toInt();
-        pSmartDetails->m_csAttribName = qQuery.value(2).toString();
-        pSmartDetails->m_csAttribDetails = qQuery.value(3).toString();
+        QSqlQuery qQuery("SELECT * FROM SMART_DETAILS", qDB);
 
-        m_dbSmartDetails.insert(pSmartDetails->m_ucAttribId, pSmartDetails);
+        while( qQuery.next() )
+        {
+            pSmartDetails = new SmartDetails;
+            if( 0 == pSmartDetails )
+            {
+                return NotAllocated;
+            }
+            pSmartDetails->m_ucAttribId = 0;
+            pSmartDetails->m_bCritical = 0;
+
+            pSmartDetails->m_ucAttribId = qQuery.value(0).toInt();
+            pSmartDetails->m_bCritical = qQuery.value(1).toInt();
+            pSmartDetails->m_csAttribName = qQuery.value(2).toString();
+            pSmartDetails->m_csAttribDetails = qQuery.value(3).toString();
+
+            m_dbSmartDetails.insert(pSmartDetails->m_ucAttribId, pSmartDetails);
+        }
+
+        qDB.close();
     }
 
-    qDB.close();
+    QSqlDatabase::removeDatabase("qt_sql_default_connection");
+
     return Success;
 }
 
@@ -400,6 +405,7 @@ QStandardItemModel *CSmartInfo::GetAvailableHDD()
     for(int i = 0; i < m_PhysicalDrivesToModel.keys().count(); i++)
     {
         pItem = new QStandardItem(m_PhysicalDrivesToModel.keys().at(i));
+        pItem->setIcon(QIcon(":/img/hdd.png"));
         pModel->setItem(i, 0, pItem);
     }
 

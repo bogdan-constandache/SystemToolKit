@@ -16,6 +16,8 @@ private:
     Ui::CSmartWidget *ui;
     AbstractController *m_pController;
 
+    QStandardItemModel *m_pPropertiesModel;
+
 public:
     explicit CSmartWidget(QWidget *parent = 0, AbstractController *pController = 0);
     ~CSmartWidget();

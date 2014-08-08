@@ -40,6 +40,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="uninstallButton">
+       <property name="cursor">
+        <cursorShape>PointingHandCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Uninstall</string>
        </property>
@@ -61,7 +64,14 @@
     </layout>
    </item>
    <item>
-    <widget class="QTableView" name="tableView"/>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTreeView" name="applicationTreeView"/>
    </item>
   </layout>
  </widget>

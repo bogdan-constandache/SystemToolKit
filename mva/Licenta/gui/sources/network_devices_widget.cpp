@@ -11,10 +11,12 @@ CNetworkDevicesWidget::CNetworkDevicesWidget(QWidget *parent, AbstractController
     m_pController = pController;
 
     ui->networkDevInfos->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->networkDevInfos->setRootIsDecorated(false);
     ui->networkDevInfos->header()->setStretchLastSection(true);
     ui->networkDevInfos->header()->setDefaultAlignment(Qt::AlignLeft);
 
     ui->networkDevNames->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->networkDevNames->setRootIsDecorated(false);
     ui->networkDevNames->header()->setStretchLastSection(true);
     ui->networkDevNames->header()->setDefaultAlignment(Qt::AlignLeft);
 

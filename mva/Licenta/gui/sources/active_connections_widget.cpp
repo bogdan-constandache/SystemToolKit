@@ -10,16 +10,17 @@ CActiveConnectionsWidget::CActiveConnectionsWidget(QWidget *parent,  AbstractCon
     m_pController = pController;
 
     // set properties
-    ui->tableView->verticalHeader()->setVisible(false);
-    ui->tableView->setShowGrid(false);
-    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
-    ui->tableView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    ui->tableView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
+    ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->treeView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->treeView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    ui->treeView->header()->setDefaultAlignment(Qt::AlignLeft);
+    ui->treeView->header()->resizeSections(QHeaderView::Interactive);
+    ui->treeView->setRootIsDecorated(false);
 
     // connects
     connect(m_pController, SIGNAL(OnSetActiveConnectionsInformation(QStandardItemModel*)),
-            this, SLOT(OnSetTableModel(QStandardItemModel*)), Qt::QueuedConnection);
+            this, SLOT(OnSetTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
     connect(ui->refreshButton, SIGNAL(clicked()),
             m_pController, SLOT(OnActiveConnectionsOptClickedSlot()), Qt::QueuedConnection);
 }
@@ -30,11 +31,13 @@ CActiveConnectionsWidget::~CActiveConnectionsWidget()
     m_pController = 0;
 }
 
-void CActiveConnectionsWidget::OnSetTableModel(QStandardItemModel *pModel)
+void CActiveConnectionsWidget::OnSetTreeModel(QStandardItemModel *pModel)
 {
     if (pModel)
-        ui->tableView->setModel(pModel);
-    ui->tableView->resizeColumnsToContents();
+        ui->treeView->setModel(pModel);
+    ui->treeView->resizeColumnToContents(0);
+    ui->treeView->resizeColumnToContents(1);
+    ui->treeView->resizeColumnToContents(3);
 
     emit OnShowWidget(this);
 }

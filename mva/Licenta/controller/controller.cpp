@@ -121,7 +121,6 @@ int Controller::OnLoadDriverFile()
     {
         if( ERROR_SERVICE_ALREADY_RUNNING != GetLastError() )
         {
-            DWORD dwLastErr = GetLastError();
             CloseServiceHandle(hService);
             CloseServiceHandle(hSCManager);
             return Unsuccessful;
@@ -181,14 +180,17 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pDMIManager(NULL), m_pSmartManager(NULL), m_pSystemDriversManager(NULL),
     m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL),
     m_pSensorsManager(NULL), m_pSensor(NULL), m_pSensorsTimer(NULL), m_pCpuSensor(NULL),
-    m_pProcessesManager(NULL), m_pStartupAppsManager(NULL), m_pComputerSummaryModel(NULL), m_pDeviceManager(NULL)
+    m_pProcessesManager(NULL), m_pStartupAppsManager(NULL), m_pComputerSummaryModel(NULL), m_pDeviceManager(NULL),
+    m_pUserInformationManager(NULL), m_pUninstallerProcess(NULL)
 {
     m_pSensorsTimer = new QTimer(this);
     connect(m_pSensorsTimer, SIGNAL(timeout()), this, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
 
     connect(this, SIGNAL(OnCancelSensorsTimerSignal()), this, SLOT(OnCancelSensorsTimerSlot()), Qt::QueuedConnection);
 
-
+//    m_pNVidiaManager = new CNvidiaManager();
+//    if( 0 == m_pNVidiaManager->GetPhysicalGPUCount() )
+//        SAFE_DELETE(m_pNVidiaManager);
 }
 
 Controller::~Controller()
@@ -205,10 +207,20 @@ Controller::~Controller()
     SAFE_DELETE(m_pSensorsManager)
     SAFE_DELETE(m_pProcessesManager);
     SAFE_DELETE(m_pStartupAppsManager);
+    SAFE_DELETE(m_pUserInformationManager);
+//    SAFE_DELETE(m_pNVidiaManager);
 
     m_HDDModelToPhysicalDrive.clear();
 
     OnUnloadDriverFile();
+
+    if( NULL != m_pUninstallerProcess )
+    {
+        m_pUninstallerProcess->Stop();
+        m_pUninstallerProcess->WaitForFinished();
+
+        SAFE_DELETE(m_pUninstallerProcess);
+    }
 
     CoUninitialize();
 }
@@ -225,6 +237,10 @@ void Controller::StartController()
     }
 
     OnLoadDriverFile();
+
+    // CREATE UNINSTALLER PROCESS
+    m_pUninstallerProcess = new QProcessWrapper();
+    connect(m_pUninstallerProcess, SIGNAL(OnErrorSignal(QString)), this, SLOT(OnUninstallApplicationErrorReportSlot(QString)), Qt::QueuedConnection);
 
     // Create main window
     emit OnCreateMainWindowSignal();
@@ -274,6 +290,8 @@ void Controller::StartController()
     pChildItem = new QStandardItem(QString("Processes"));
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("System drivers"));
+    qChildList.append(pChildItem);
+    pChildItem = new QStandardItem(QString("System users"));
     qChildList.append(pChildItem);
 
     pDataItem->appendRows(qChildList);
@@ -458,7 +476,9 @@ void Controller::OnStorageATAOptClickedSlot()
         if (NULL == pProp)
             continue;
         m_HDDModelToPhysicalDrive.insert(pProp->Model, List.at(i));
-        pModel->setItem(i, 0, new QStandardItem(pProp->Model));
+        QStandardItem *pItem = new QStandardItem(pProp->Model);
+        pItem->setIcon(QIcon(":/img/hdd.png"));
+        pModel->setItem(i, 0, pItem);
         delete pProp;
     }
 
@@ -585,6 +605,7 @@ void Controller::OnSensorsOptClickedSlot()
     MotherboardData *pMBData = 0;
     CpuData *pCpuData = 0;
     RAMData *pRAMData = 0;
+    GPUData *pGPUData = 0;
 
     double *pResults = 0;
     VoltageReading *pVoltages = 0;
@@ -724,7 +745,88 @@ RAM:
     pItemPair->set_name("Value");
     pItemPair->set_value(pMemoryStatus->qzMemoryLoad.toLatin1().data());
 
+//    if( NULL != m_pNVidiaManager )
+//        goto NVIDIA;
+
+//NVIDIA:
+//    pGPUData = pSensorData.mutable_gpudata();
+//    pGPUData->set_name(m_pNVidiaManager->GetGPUInformations(0)->qzFullName.toLatin1().data());
+
+//    NVidiaThermalReport *pThermalReport = m_pNVidiaManager->GetThermalReport(0);
+
+//    if( pThermalReport->qzTemp != "" )
+//    {
+//        // Temperature
+//        pDataType = pGPUData->add_data();
+//        pDataType->set_dataname("Temperatures: ");
+
+//        pItemPair = pDataType->add_datavalue();
+
+//        pItemPair->set_name(pThermalReport->qzTarget.toLatin1().data());
+//        pItemPair->set_value(pThermalReport->qzTemp.toLatin1().data());
+//    }
+
+//    // Fan speed
+//    pDataType = pGPUData->add_data();
+//    pDataType->set_dataname("Fan speed: ");
+
+//    pItemPair = pDataType->add_datavalue();
+//    pItemPair->set_name("Fan: ");
+//    pItemPair->set_value((QString::number(m_pNVidiaManager->GetFanSpeedReport(0)) + QString("RPM")).toLatin1().data());
+
+//    // Clocks
+//    pDataType = pGPUData->add_data();
+//    pDataType->set_dataname("Clocks: ");
+
+//    pItemPair = pDataType->add_datavalue();
+//    pItemPair->set_name("GPU: ");
+//    pItemPair->set_value(m_pNVidiaManager->GetGPUInformations(0)->qzGraphicsClock.toLatin1().data());
+
+//    pItemPair = pDataType->add_datavalue();
+//    pItemPair->set_name("Memory: ");
+//    pItemPair->set_value(m_pNVidiaManager->GetGPUInformations(0)->qzMemoryClock.toLatin1().data());
+
+//    // Usage
+//    pDataType = pGPUData->add_data();
+//    pDataType->set_dataname("Usage: ");
+
+//    pItemPair = pDataType->add_datavalue();
+//    pItemPair->set_name("GPU usage: ");
+//    pItemPair->set_value(m_pNVidiaManager->GetGPUUtilizationReport(0)->qzGPUUtilization.toLatin1().data());
+
+//    pItemPair = pDataType->add_datavalue();
+//    pItemPair->set_name("FB usage: ");
+//    pItemPair->set_value(m_pNVidiaManager->GetGPUUtilizationReport(0)->qzFBUtilization.toLatin1().data());
+
+//    pItemPair = pDataType->add_datavalue();
+//    pItemPair->set_name("VID usage: ");
+//    pItemPair->set_value(m_pNVidiaManager->GetGPUUtilizationReport(0)->qzVIDUtilization.toLatin1().data());
+
+//    pItemPair = pDataType->add_datavalue();
+//    pItemPair->set_name("BUS usage: ");
+//    pItemPair->set_value(m_pNVidiaManager->GetGPUUtilizationReport(0)->qzBUSUtilization.toLatin1().data());
+
+//    goto END;
+
+END:
+
     emit OnSetSensorsInformations(pSensorData.SerializeAsString());
+}
+
+void Controller::OnUserInformationsOptClickedSlot()
+{
+    emit OnCancelSensorsTimerSignal();
+
+    SAFE_DELETE(m_pUserInformationManager);
+
+    m_pUserInformationManager = new CSystemUsersInformation;
+
+    CHECK_ALLOCATION(m_pUserInformationManager);
+
+    QStandardItemModel *pModel = m_pUserInformationManager->GetUserInformations();
+
+    if (0 != pModel)
+        emit OnSetUsersInformations(pModel);
 }
 
 void Controller::OnRequestDeviceDetailsSlot(QString qzDeviceID)
@@ -828,9 +930,12 @@ void Controller::OnRequestSMARTProperties(QString qzModel)
         emit OnSetSMARTItemPropertiesInformation(pModel);
 }
 
-void Controller::OnUninstallApplicationSlot()
+void Controller::OnUninstallApplicationSlot(QString qzUninstallString)
 {
-    qDebug() << __FUNCTION__;
+    if( !m_pUninstallerProcess )
+        return;
+
+    m_pUninstallerProcess->StartProcess(qzUninstallString);
 }
 
 void Controller::OnRequestNetworkDeviceInfomationsSlot(QString qzAdapterName)
@@ -858,4 +963,9 @@ void Controller::OnRequestModulesInformationsSlot(int nPid)
 void Controller::OnCancelSensorsTimerSlot()
 {
     m_pSensorsTimer->stop();
+}
+
+void Controller::OnUninstallApplicationErrorReportSlot(QString)
+{
+
 }

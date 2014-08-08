@@ -4,7 +4,7 @@
 CATAWidget::CATAWidget(QWidget *parent, AbstractController *pController) :
     QWidget(parent),
     ui(new Ui::CATAWidget),
-    m_pController(NULL)
+    m_pController(NULL), m_pPropertiesModel(NULL)
 {
     ui->setupUi(this);
     m_pController = pController;
@@ -13,10 +13,12 @@ CATAWidget::CATAWidget(QWidget *parent, AbstractController *pController) :
     ui->propertiesTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->propertiesTree->header()->setStretchLastSection(true);
     ui->propertiesTree->header()->setDefaultAlignment(Qt::AlignLeft);
+    ui->propertiesTree->setRootIsDecorated(false);
 
     ui->hddTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->hddTree->header()->setStretchLastSection(true);
     ui->hddTree->header()->setDefaultAlignment(Qt::AlignLeft);
+    ui->hddTree->setRootIsDecorated(false);
 
     // connects
     connect(ui->hddTree, SIGNAL(clicked(QModelIndex)),
@@ -41,13 +43,31 @@ void CATAWidget::OnSetHddItemsTreeModel(QStandardItemModel *pModel)
         ui->hddTree->setModel(pModel);
     ui->hddTree->resizeColumnToContents(0);
 
+    int nTableSize = ui->hddTree->model()->rowCount() * 30 + 20;
+    if( nTableSize > 100 )
+        ui->hddTree->setFixedHeight(100);
+    else
+        ui->hddTree->setFixedHeight(nTableSize);
+
+    if( NULL != m_pPropertiesModel )
+    {
+        delete m_pPropertiesModel;
+        m_pPropertiesModel = NULL;
+    }
+
+    ui->propertiesTree->reset();
+
+
     emit OnShowWidget(this);
 }
 
 void CATAWidget::OnSetPropertiesTreeModel(QStandardItemModel *pModel)
 {
     if (pModel)
+    {
         ui->propertiesTree->setModel(pModel);
+        m_pPropertiesModel = pModel;
+    }
     ui->propertiesTree->resizeColumnToContents(0);
     ui->propertiesTree->resizeColumnToContents(1);
 }

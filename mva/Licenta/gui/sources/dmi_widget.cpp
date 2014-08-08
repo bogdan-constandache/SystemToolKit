@@ -11,10 +11,12 @@ CDMIWidget::CDMIWidget(QWidget *parent, AbstractController *pController) :
 
     // set properties
     ui->propertiesTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->propertiesTree->setRootIsDecorated(false);
     ui->propertiesTree->header()->setStretchLastSection(true);
     ui->propertiesTree->header()->setDefaultAlignment(Qt::AlignLeft);
 
     ui->itemsTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->itemsTree->setRootIsDecorated(false);
     ui->itemsTree->header()->setDefaultAlignment(Qt::AlignLeft);
 
     ui->itemsTree->setFixedHeight(110);

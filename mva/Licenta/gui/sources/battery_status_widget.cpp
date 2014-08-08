@@ -13,6 +13,7 @@ CBatteryStatusWidget::CBatteryStatusWidget(QWidget *parent, AbstractController *
     ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->treeView->header()->setStretchLastSection(true);
     ui->treeView->header()->setDefaultAlignment(Qt::AlignLeft);
+    ui->treeView->setRootIsDecorated(false);
 
     // connects
     connect(m_pController, SIGNAL(OnSetPowerManagementInformation(QStandardItemModel*)),

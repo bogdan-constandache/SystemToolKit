@@ -1,0 +1,15 @@
+QDialog#CAboutDialog {
+    background-color: rgb(65, 65, 65);
+}
+
+QLabel#titleLabel {
+    color: rgb( 255, 255, 255 );
+    font-family: Segoe Ui;
+    font-size: 30px;
+}
+
+QTextBrowser#aboutContentTBrowser {
+    background-color: rgb(65, 65, 65);
+    color: rgb( 255, 255, 255 );
+    border: 0px;
+}

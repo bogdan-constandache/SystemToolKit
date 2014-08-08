@@ -2,11 +2,13 @@
 #include "ui_mainwindow.h"
 
 #include <QFile>
+#include <QFont>
+#include <QPicture>
 
 MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    m_pController(NULL),
+    m_pController(NULL), m_pAboutDialog(NULL),
     m_pItemTreeModel(NULL), m_pPowerManagementWidget(NULL),
     m_pApplicationManagerWidget(NULL), m_pDMIManagerWidget(NULL),
     m_pSMARTManagerWidget(NULL), m_pATAManagerWidget(NULL),
@@ -17,9 +19,22 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     ui->setupUi(this);
     this->setMinimumWidth(1000);
     this->setMinimumHeight(600);
-    this->setWindowTitle(QString("System Toolkit"));
+    this->setWindowTitle(QString("System Monitoring"));
+    this->setWindowIcon(QIcon(":/img/logo.png"));
+
+    // LOGO
+    ui->labelLogo->setFixedSize(48, 48);
+    ui->labelLogo->setPixmap(QPixmap(":/img/logo.png"));
+    ui->labelText->setFixedHeight(48);
+    ui->labelText->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    ui->labelText->setText("System Monitoring");
+
+    // LINES
+    ui->lineLogo->setFixedHeight(1);
+    ui->lineMenu->setFixedWidth(1);
 
     ui->menuTreeView->setEditTriggers(QTreeView::NoEditTriggers);
+    ui->menuTreeView->setSelectionMode(QAbstractItemView::SingleSelection);
 
     m_pController = pController;
 
@@ -60,6 +75,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
             m_pController, SLOT(OnCPUIDOptClickedSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnSensorsOptClickedSignal()),
             m_pController, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
+    connect(this, SIGNAL(OnSystemUsersOptClickedSignal()),
+            m_pController, SLOT(OnUserInformationsOptClickedSlot()), Qt::QueuedConnection);
 
     InitializeStackedWidget();
 
@@ -71,6 +88,12 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
 
     setStyleSheet(qzStyleSheet);
     ensurePolished();
+
+    // Create about dialog
+    m_pAboutDialog = new CAboutDialog(this);
+
+    connect(ui->btnAbout, SIGNAL(clicked()),
+            m_pAboutDialog, SLOT(show()), Qt::QueuedConnection);
 }
 
 MainWindow::~MainWindow()
@@ -120,6 +143,9 @@ void MainWindow::InitializeStackedWidget()
     m_pDeviceManagerWidget = new CDeviceManagerWidget(ui->stackedWidget, m_pController);
     connect(m_pDeviceManagerWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
 
+    m_pUserInformationWidget = new CUserInformationWidget(ui->stackedWidget, m_pController);
+    connect(m_pUserInformationWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
+
     // Add widget to the stacked widget
     ui->stackedWidget->addWidget(m_pDMIManagerWidget);
     ui->stackedWidget->addWidget(m_pPowerManagementWidget);
@@ -134,6 +160,7 @@ void MainWindow::InitializeStackedWidget()
     ui->stackedWidget->addWidget(m_pProcessesWidget);
     ui->stackedWidget->addWidget(m_pStartupAppsWidget);
     ui->stackedWidget->addWidget(m_pDeviceManagerWidget);
+    ui->stackedWidget->addWidget(m_pUserInformationWidget);
 
     // remove first to pages
     ui->stackedWidget->removeWidget(ui->page_2);
@@ -176,6 +203,11 @@ void MainWindow::OnItemsTreeClickedSlot(QModelIndex index)
     {
         qDebug() << "System drivers clicked";
         emit OnSystemDriversOptClickedSignal();
+    }
+    if( "System users" == qzItemText )
+    {
+        qDebug() << "System users clicked";
+        emit OnSystemUsersOptClickedSignal();
     }
     if( "ATA" == qzItemText)
     {

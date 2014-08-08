@@ -353,12 +353,19 @@ QStandardItemModel* CApplicationManager::GetApplicationList()
     for (int i = 0; i < this->m_qApplicationList.count();i++)
     {
         pItem = new QStandardItem(this->m_qApplicationList.at(i)->Name);
+        pItem->setData(this->m_qApplicationList.at(i)->UninstallString);
         pModel->setItem(i, 0, pItem);
+
         pItem = new QStandardItem(this->m_qApplicationList.at(i)->Publisher);
+        pItem->setData(this->m_qApplicationList.at(i)->UninstallString);
         pModel->setItem(i, 1, pItem);
+
         pItem = new QStandardItem(this->m_qApplicationList.at(i)->InstallDate);
+        pItem->setData(this->m_qApplicationList.at(i)->UninstallString);
         pModel->setItem(i, 2, pItem);
+
         pItem = new QStandardItem(this->m_qApplicationList.at(i)->Version);
+        pItem->setData(this->m_qApplicationList.at(i)->UninstallString);
         pModel->setItem(i, 3, pItem);
     }
 

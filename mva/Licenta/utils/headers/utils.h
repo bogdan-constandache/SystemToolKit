@@ -9,10 +9,15 @@
 //Qt includes
 #include <QString>
 #include <QDebug>
+#include <QIcon>
+#include <QPixmap>
+#include <QtWinExtras>
+#include <QtWin>
+#include <QDir>
 
 //Defines
 #define UNUSED(expr) do { (void)(expr); } while (0)
-#define DEBUG_STATUS(expr) printf("\nEXCEPTION ON: \"%s\"(%d)\nFUNCTION: \"%s\"\nStatus: %d\n",__FILE__, __LINE__, __FUNCTION__, expr)
+#define DEBUG_STATUS(expr) qDebug("\nEXCEPTION ON: \"%s\"(%d)\nFUNCTION: \"%s\"\nStatus: %d\n",__FILE__, __LINE__, __FUNCTION__, expr)
 
 #define SAFE_DELETE(X) if(X) { delete (X); X = 0; }
 
@@ -43,6 +48,7 @@ char* WCharArrayToCharArray(wchar_t* pwszParam);
 wchar_t* CharArrayToWcharArray(char* pszParam);
 int SafeDelete(void *pParam);
 bool WIN32_FROM_HRESULT(HRESULT hr, OUT DWORD *pdwWin32);
+QIcon GetIconFromHICON(QString qzFileName);
 
 
 #endif // UTILS_H

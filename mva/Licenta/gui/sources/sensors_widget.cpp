@@ -50,6 +50,7 @@ void CSensorsWidget::OnSetTreeModel(std::string buffer)
     MotherboardData pmbData;
     CpuData pCpuData;
     RAMData pRamData;
+    GPUData pGpuData;
     DataType pDataType;
     ItemPair pItemPair;
 
@@ -87,7 +88,7 @@ CPU_LABEL:
     if (pSensorsData.has_cpudata())
         pCpuData = pSensorsData.cpudata();
     else
-        goto RAM;
+        goto RAM_LABEL;
 
     pRootItem = new QTreeWidgetItem(ui->treeWidget);
     pRootItem->setText(0, pCpuData.name().c_str());
@@ -107,11 +108,11 @@ CPU_LABEL:
         }
     }
 
-RAM:
+RAM_LABEL:
     if (pSensorsData.has_ramdata())
         pRamData = pSensorsData.ramdata();
     else
-        goto EXIT;
+        goto GPU_LABEL;
 
     pRootItem = new QTreeWidgetItem(ui->treeWidget);
     pRootItem->setText(0, pRamData.name().c_str());
@@ -120,6 +121,29 @@ RAM:
     for(int i = 0; i < pRamData.data_size(); i++)
     {
         pDataType = pRamData.data(i);
+
+        pItem = OnAddChildItem(pRootItem, pDataType.dataname().c_str(), "");
+        for(int j = 0; j < pDataType.datavalue_size(); j++)
+        {
+            pItemPair = pDataType.datavalue(j);
+
+            OnAddChildItem(pItem, pItemPair.name().c_str(), pItemPair.value().c_str());
+        }
+    }
+
+GPU_LABEL:
+    if (pSensorsData.has_gpudata())
+        pGpuData = pSensorsData.gpudata();
+    else
+        goto EXIT;
+
+    pRootItem = new QTreeWidgetItem(ui->treeWidget);
+    pRootItem->setText(0, pGpuData.name().c_str());
+    ui->treeWidget->addTopLevelItem(pRootItem);
+
+    for(int i = 0; i < pGpuData.data_size(); i++)
+    {
+        pDataType = pGpuData.data(i);
 
         pItem = OnAddChildItem(pRootItem, pDataType.dataname().c_str(), "");
         for(int j = 0; j < pDataType.datavalue_size(); j++)
@@ -141,6 +165,7 @@ void CSensorsWidget::OnUpdateTree(std::string buffer)
     MotherboardData pmbData;
     CpuData pCpuData;
     RAMData pRamData;
+    GPUData pGpuData;
     DataType pDataType;
     ItemPair pItemPair;
 
@@ -217,7 +242,7 @@ RAM_UPDATE:
     if (pSensorsData.has_ramdata())
         pRamData = pSensorsData.ramdata();
     else
-        goto EXIT;
+        goto GPU_UPDATE;
 
     for(int i = 0; i < pRamData.data_size(); i++)
     {
@@ -238,6 +263,36 @@ RAM_UPDATE:
             }
         }
     }
+    nCount++;
+
+GPU_UPDATE:
+    pRootItem = ui->treeWidget->topLevelItem(nCount);
+
+    if (pSensorsData.has_gpudata())
+        pGpuData = pSensorsData.gpudata();
+    else
+        goto EXIT;
+
+    for(int i = 0; i < pGpuData.data_size(); i++)
+    {
+        pDataType = pGpuData.data(i);
+
+        pItem = pRootItem->child(i);
+
+        for(int j = 0; j < pDataType.datavalue_size(); j++)
+        {
+            pItemPair = pDataType.datavalue(j);
+
+            if( pItem->text(0) == QString(pDataType.dataname().c_str()))
+            {
+                pItem2 = pItem->child(j);
+
+                if( pItem2->text(0) == QString(pItemPair.name().c_str()))
+                    pItem2->setText(1, pItemPair.value().c_str());
+            }
+        }
+    }
+    nCount++;
 
 EXIT:;
 //    ExpandTreeAndResizeColumns();

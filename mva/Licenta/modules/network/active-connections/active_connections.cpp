@@ -269,7 +269,7 @@ QStandardItemModel *CActiveConnections::GetActiveConnections()
     pModel->setRowCount(m_Connections.count());
 
 
-    pModel->setHorizontalHeaderLabels(QStringList() << "Process name" << "PID" << "Connection type" << "State" << "Local address" << "Local port"
+    pModel->setHorizontalHeaderLabels(QStringList() << "Name" << "PID" << "Type" << "State" << "Local address" << "Local port"
                                       << "Remote address" << "Remote port" << "Creation time");
 
     for(int i = 0; i < m_Connections.count(); i++)

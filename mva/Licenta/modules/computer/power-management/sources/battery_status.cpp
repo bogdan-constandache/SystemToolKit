@@ -8,6 +8,7 @@ BatteryStatus::BatteryStatus():
 
 BatteryStatus::~BatteryStatus()
 {
+    SAFE_DELETE(m_data);
 }
 
 int BatteryStatus::Initialize()

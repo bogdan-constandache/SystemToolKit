@@ -48,6 +48,8 @@ signals:
 
     void OnSetStartupApplicationsInformations(QStandardItemModel *);
 
+    void OnSetUsersInformations(QStandardItemModel*);
+
 public slots:
     virtual void OnComputerDeviceManagerOptClickedSlot() = 0;
     virtual void OnComputerDMIOptClickedSlot() = 0;
@@ -66,6 +68,7 @@ public slots:
     virtual void OnCPUOptClickedSlot() = 0;
     virtual void OnCPUIDOptClickedSlot() = 0;
     virtual void OnSensorsOptClickedSlot() = 0;
+    virtual void OnUserInformationsOptClickedSlot() = 0;
 
     // Device manager slots
     virtual void OnRequestDeviceDetailsSlot(QString) = 0;
@@ -82,7 +85,7 @@ public slots:
     // Power management slots
 
     // Application manager slots
-    virtual void OnUninstallApplicationSlot() = 0;
+    virtual void OnUninstallApplicationSlot(QString) = 0;
 
     // Network devices manager slots
     virtual void OnRequestNetworkDeviceInfomationsSlot(QString) = 0;

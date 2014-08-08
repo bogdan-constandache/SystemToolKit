@@ -1,1 +1,1 @@
-protoc --cpp_out=. sensors_data.proto
+compiler\protoc --cpp_out=. configuration_data.proto

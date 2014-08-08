@@ -16,6 +16,8 @@ private:
     Ui::CATAWidget *ui;
     AbstractController *m_pController;
 
+    QStandardItemModel *m_pPropertiesModel;
+
 public:
     explicit CATAWidget(QWidget *parent = 0, AbstractController *pController = 0);
     ~CATAWidget();

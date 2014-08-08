@@ -1,0 +1,10 @@
+message AboutData {
+	required bytes		applicationName 	= 1;
+	required bytes		companyName			= 2;
+	required bytes		author				= 3;
+	required bytes 		os					= 4;
+	required bytes		platform			= 5;
+	required bytes		version 			= 6;
+}
+
+option optimize_for = LITE_RUNTIME;

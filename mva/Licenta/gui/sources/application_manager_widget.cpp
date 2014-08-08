@@ -10,12 +10,13 @@ CApplicationManagerWidget::CApplicationManagerWidget(QWidget *parent, AbstractCo
     m_pController = pController;
 
     // set properties
-    ui->tableView->verticalHeader()->setVisible(false);
-    ui->tableView->setShowGrid(false);
-    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
-    ui->tableView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    ui->tableView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
+    ui->applicationTreeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->applicationTreeView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->applicationTreeView->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->applicationTreeView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    ui->applicationTreeView->header()->setDefaultAlignment(Qt::AlignLeft);
+    ui->applicationTreeView->setRootIsDecorated(false);
+    ui->applicationTreeView->setSortingEnabled(true);
 
     // connects
     connect(m_pController, SIGNAL(OnSetApplicationManagerInformation(QStandardItemModel*)),
@@ -23,7 +24,9 @@ CApplicationManagerWidget::CApplicationManagerWidget(QWidget *parent, AbstractCo
     connect(ui->refreshButton, SIGNAL(clicked()),
             m_pController, SLOT(OnApplicationManagerOptClickedSlot()), Qt::QueuedConnection);
     connect(ui->uninstallButton, SIGNAL(clicked()),
-            m_pController, SLOT(OnUninstallApplicationSlot()), Qt::QueuedConnection);
+            this, SLOT(OnUninstallApplicationSlot()), Qt::QueuedConnection);
+    connect(this, SIGNAL(OnUninstallApplicationSignal(QString)),
+            m_pController, SLOT(OnUninstallApplicationSlot(QString)), Qt::QueuedConnection);
 }
 
 CApplicationManagerWidget::~CApplicationManagerWidget()
@@ -35,8 +38,19 @@ CApplicationManagerWidget::~CApplicationManagerWidget()
 void CApplicationManagerWidget::OnSetTableModel(QStandardItemModel *pModel)
 {
     if (pModel)
-        ui->tableView->setModel(pModel);
-    ui->tableView->resizeColumnsToContents();
+        ui->applicationTreeView->setModel(pModel);
+    ui->applicationTreeView->resizeColumnToContents(0);
 
     emit OnShowWidget(this);
+}
+
+void CApplicationManagerWidget::OnUninstallApplicationSlot()
+{
+    QStandardItemModel *pModel = dynamic_cast<QStandardItemModel*>(ui->applicationTreeView->model());
+    if( NULL == pModel )
+        return;
+
+    QStandardItem *pItem = pModel->itemFromIndex(ui->applicationTreeView->currentIndex());
+
+    emit OnUninstallApplicationSignal(pItem->data().toString());
 }

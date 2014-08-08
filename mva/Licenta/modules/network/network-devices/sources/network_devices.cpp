@@ -208,6 +208,8 @@ QStandardItemModel *CNetworkDevices::GetAdapterNames()
 
     QStandardItemModel *pModel = new QStandardItemModel;
 
+    pModel->setHorizontalHeaderLabels(QStringList() <<"Select a device to get more informations:");
+
     pModel->setColumnCount(1);
     pModel->setRowCount(m_qAdapterNames.count());
 
@@ -238,6 +240,8 @@ QStandardItemModel *CNetworkDevices::GetAdapterInformations(QString qzAdapterNam
     }
 
     pModel = new QStandardItemModel;
+
+    pModel->setHorizontalHeaderLabels(QStringList() << "Field" << "Value");
 
     pModel->setColumnCount(2);
     pModel->setRowCount(15);

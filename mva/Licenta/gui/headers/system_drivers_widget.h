@@ -21,7 +21,7 @@ public:
     ~CSystemDriversWidget();
 
 public slots:
-    void OnSetTableModel(QStandardItemModel *pModel);
+    void OnSetTreeModel(QStandardItemModel *pModel);
 
 signals:
     void OnShowWidget(QWidget*);
