@@ -11,9 +11,10 @@ CBatteryStatusWidget::CBatteryStatusWidget(QWidget *parent, AbstractController *
 
     // set tree properties
     ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->treeView->setFocusPolicy(Qt::NoFocus);
+    ui->treeView->setRootIsDecorated(false);
     ui->treeView->header()->setStretchLastSection(true);
     ui->treeView->header()->setDefaultAlignment(Qt::AlignLeft);
-    ui->treeView->setRootIsDecorated(false);
 
     // connects
     connect(m_pController, SIGNAL(OnSetPowerManagementInformation(QStandardItemModel*)),
@@ -31,6 +32,7 @@ void CBatteryStatusWidget::OnSetTreeModel(QStandardItemModel *pModel)
     if (pModel)
         ui->treeView->setModel(pModel);
     ui->treeView->resizeColumnToContents(0);
+    ui->treeView->setColumnWidth(0, 150);
 
     emit OnShowWidget(this);
 }

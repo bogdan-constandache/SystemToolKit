@@ -26,6 +26,7 @@ int BatteryStatus::Initialize()
     BATTERY_STATUS batteryStatus = {0};
     int count = 0;
 
+    SAFE_DELETE(m_data);
     m_data = new BatteryInformationStruct;
     if( 0 == m_data )
     {

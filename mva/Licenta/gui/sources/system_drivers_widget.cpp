@@ -14,6 +14,7 @@ CSystemDriversWidget::CSystemDriversWidget(QWidget *parent, AbstractController *
     ui->treeView->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->treeView->setRootIsDecorated(false);
+    ui->treeView->setFocusPolicy(Qt::NoFocus);
     ui->treeView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     ui->treeView->header()->setDefaultAlignment(Qt::AlignLeft);
 

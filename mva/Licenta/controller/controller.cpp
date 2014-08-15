@@ -965,7 +965,7 @@ void Controller::OnCancelSensorsTimerSlot()
     m_pSensorsTimer->stop();
 }
 
-void Controller::OnUninstallApplicationErrorReportSlot(QString)
+void Controller::OnUninstallApplicationErrorReportSlot(QString qzErrorMessage)
 {
-
+    qDebug() << qzErrorMessage;
 }

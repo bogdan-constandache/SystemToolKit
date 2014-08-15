@@ -98,6 +98,7 @@ QStringList GetPhysicalDrivesList()
                 }
             }
 
+            delete pVolumeDiskExtends;
         }
 
         // check next drive letter

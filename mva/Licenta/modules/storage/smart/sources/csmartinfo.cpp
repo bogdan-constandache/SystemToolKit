@@ -15,6 +15,8 @@ CSmartInfo::CSmartInfo():
     for(int i = 0; i < m_PhysicalDrives.count(); i++)
     {
         ATADeviceProperties *pProp = GetATADeviceProperties(m_PhysicalDrives.at(i).toStdWString().c_str());
+        if( !pProp )
+            continue;
         m_PhysicalDrivesToModel.insert(pProp->Model, m_PhysicalDrives.at(i));
         delete pProp;
     }
@@ -55,16 +57,16 @@ int CSmartInfo::Initialize(int nDriveIndex)
         return nStatus;
     }
     qzDriveName = m_PhysicalDrives.at(nDriveIndex);
-    pDriveInfo = new DriveInfo;
-    if( 0 == pDriveInfo )
-    {
-        nStatus = NotAllocated;
-        DEBUG_STATUS(nStatus);
-        return nStatus;
-    }
+//    pDriveInfo = new DriveInfo;
+//    if( 0 == pDriveInfo )
+//    {
+//        nStatus = NotAllocated;
+//        DEBUG_STATUS(nStatus);
+//        return nStatus;
+//    }
 
     // we save the drive index
-    pDriveInfo->DriveIndex = qzDriveName.right(qzDriveName.count() - 1).toShort();
+    m_data->DriveIndex = qzDriveName.right(qzDriveName.count() - 1).toShort();
 
     // check for cmd commands;
     bResult = CheckForCMDCommands(qzDriveName.toStdWString().c_str());
@@ -418,7 +420,6 @@ QStandardItemModel *CSmartInfo::GetSMARTPropertiesForHDD(QString qzModel)
         return 0;
 
     QStandardItemModel *pModel = new QStandardItemModel();
-    QStandardItem *pItem = 0;
     SmartDetails *pSmartDetails = 0;
     SmartData *pSmartData = 0;
     QString qzDrive = m_PhysicalDrivesToModel.value(qzModel);
@@ -427,37 +428,31 @@ QStandardItemModel *CSmartInfo::GetSMARTPropertiesForHDD(QString qzModel)
     if (Success != nStatus)
         return 0;
 
-
-    pModel->setColumnCount(6);
-    pModel->setRowCount(m_data->SmartEntries.count());
     pModel->setHorizontalHeaderLabels(QStringList() << "ID" << "Property name" << "Raw" << "Value" << "Worst" << "Threshold");
+
+    QList<QStandardItem*> qList;
 
     for(int i = 0; i < m_data->SmartEntries.count(); i++)
     {
         pSmartData = m_data->SmartEntries.at(i);
         pSmartDetails = this->GetSMARTDetailsFromDB(pSmartData->m_ucAttribIndex);
 
-        pItem = new QStandardItem(QString().setNum(pSmartDetails->m_ucAttribId));
-        pModel->setItem(i, 0, pItem);
+        if( !pSmartData || !pSmartDetails )
+            continue;
 
-        pItem = new QStandardItem(pSmartDetails->m_csAttribName);
-        pModel->setItem(i, 1, pItem);
-
+        qList << new QStandardItem(QString().setNum(pSmartDetails->m_ucAttribId));
+        qList << new QStandardItem(pSmartDetails->m_csAttribName);
         // raw
-        pItem = new QStandardItem(QString().setNum(pSmartData->m_dwAttribValue));
-        pModel->setItem(i, 2, pItem);
-
+        qList << new QStandardItem(QString().setNum(pSmartData->m_dwAttribValue));
         // value
-        pItem = new QStandardItem(QString().setNum(pSmartData->m_ucValue));
-        pModel->setItem(i, 3, pItem);
-
+        qList << new QStandardItem(QString().setNum(pSmartData->m_ucValue));
         // worst
-        pItem = new QStandardItem(QString().setNum(pSmartData->m_ucWorst));
-        pModel->setItem(i, 4, pItem);
-
+        qList << new QStandardItem(QString().setNum(pSmartData->m_ucWorst));
         // threshold
-        pItem = new QStandardItem(QString().setNum(pSmartData->m_dwThreshold));
-        pModel->setItem(i, 5, pItem);
+        qList << new QStandardItem(QString().setNum(pSmartData->m_dwThreshold));
+
+        pModel->appendRow(qList);
+        qList.clear();
     }
 
     return pModel;

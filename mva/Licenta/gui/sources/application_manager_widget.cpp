@@ -17,6 +17,7 @@ CApplicationManagerWidget::CApplicationManagerWidget(QWidget *parent, AbstractCo
     ui->applicationTreeView->header()->setDefaultAlignment(Qt::AlignLeft);
     ui->applicationTreeView->setRootIsDecorated(false);
     ui->applicationTreeView->setSortingEnabled(true);
+    ui->applicationTreeView->setFocusPolicy(Qt::NoFocus);
 
     // connects
     connect(m_pController, SIGNAL(OnSetApplicationManagerInformation(QStandardItemModel*)),
@@ -40,6 +41,7 @@ void CApplicationManagerWidget::OnSetTableModel(QStandardItemModel *pModel)
     if (pModel)
         ui->applicationTreeView->setModel(pModel);
     ui->applicationTreeView->resizeColumnToContents(0);
+    ui->applicationTreeView->sortByColumn(0, Qt::AscendingOrder);
 
     emit OnShowWidget(this);
 }
