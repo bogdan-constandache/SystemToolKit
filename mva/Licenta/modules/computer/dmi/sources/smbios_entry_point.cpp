@@ -3,241 +3,303 @@
 CSMBiosEntryPoint::CSMBiosEntryPoint() : bBiosFound(false), m_pSmbiosTableData(0)
 {
     this->m_pSmbiosVersion = new SmbiosVersion;
+
+    m_pDataModel = new QStandardItemModel();
+    m_pStructsModel = new QStandardItemModel();
+
+    m_pStructsModel->setHorizontalHeaderLabels(QStringList() << "DMI modules");
+
+    m_pStructsModel->appendRow(new QStandardItem("DMI - Access level"));
+    m_pStructsModel->appendRow(new QStandardItem("BIOS"));
+    m_pStructsModel->item(1, 0)->setData(DMI_BIOS);
+    m_pStructsModel->appendRow(new QStandardItem("Baseboard"));
+    m_pStructsModel->item(2, 0)->setData(DMI_BASEBOARD);
+    m_pStructsModel->appendRow(new QStandardItem("Chassis"));
+    m_pStructsModel->item(3, 0)->setData(DMI_ENCLOSURE);
+    m_pStructsModel->appendRow(new QStandardItem("CPU"));
+    m_pStructsModel->item(4, 0)->setData(DMI_CPU);
+    m_pStructsModel->appendRow(new QStandardItem("Memory devices"));
+    m_pStructsModel->item(5, 0)->setData(DMI_MEMORY_DEVICE);
 }
 
 CSMBiosEntryPoint::~CSMBiosEntryPoint()
 {
+    SAFE_DELETE(m_pStructsModel);
+    SAFE_DELETE(m_pDataModel);
+    SAFE_DELETE(m_pSmbiosVersion);
+    m_pSmbiosTableData = 0;
 }
 
 QStandardItemModel *CSMBiosEntryPoint::GetItemsModel()
 {
-    this->InitializeData();
+    // Get SMBios data
+    InitializeData();
 
-    QStandardItemModel *pModel = new QStandardItemModel();
-    QStandardItem *pItem = 0;
-
-    pModel->setColumnCount(1);
-    pModel->setRowCount(5);
-    pModel->setHorizontalHeaderLabels(QStringList() << "DMI modules");
-
-    pItem = new QStandardItem("DMI - Access level");
-    pModel->setItem(0, 0, pItem);
-    pItem = new QStandardItem("BIOS");
-    pModel->setItem(1, 0, pItem);
-    pItem = new QStandardItem("Baseboard");
-    pModel->setItem(2, 0, pItem);
-    pItem = new QStandardItem("CPU");
-    pModel->setItem(3, 0, pItem);
-    pItem = new QStandardItem("Memory devices");
-    pModel->setItem(4, 0, pItem);
-
-    return pModel;
+    return m_pStructsModel;
 }
 
-QStandardItemModel *CSMBiosEntryPoint::GetItemPropertiesModel(DMIModuleType ItemType)
+QStandardItemModel *CSMBiosEntryPoint::GetItemPropertiesModel()
 {
-    QStandardItemModel *pModel = new QStandardItemModel();
-    QStandardItem *pItem = 0;
+    return m_pDataModel;
+}
 
-    ISMBiosGenericStructure *pStructure = 0;
+void CSMBiosEntryPoint::OnRefreshData(DMIModuleType ItemType)
+{
+    QList<ISMBiosGenericStructure *> qStructureList;
+    QList<ISMBiosGenericStructure *>::const_iterator it;
     PT4ProcessorInformation pData = 0;
     PT0BiosInformation pData0 = 0;
+    PT3EnclosureInformation pData3 = 0;
     PT2BaseBoardInformation pData2 = 0;
     PT17MemoryDeviceInformation pData17 = 0;
 
-    pModel->setColumnCount(2);
-    pModel->setHorizontalHeaderLabels(QStringList() << "Field" << "Value");
+    m_pDataModel->clear();
+    m_pDataModel->setHorizontalHeaderLabels(QStringList() << "Field" << "Value");
+
+    QList<QStandardItem*> qList;
 
     switch (ItemType)
     {
     case DMI_BIOS:
-        pStructure = GetStructure(BIOS_INFORMATION_TYPE);
-        pData0 = (PT0BiosInformation)pStructure->GetStructureData();
+        qStructureList = GetStructure(BIOS_INFORMATION_TYPE);
+        for(it = qStructureList.begin(); it != qStructureList.end(); it++)
+        {
+            pData0 = (PT0BiosInformation)(*it)->GetStructureData();
 
-        pModel->setRowCount(5);
+            qList << new QStandardItem(QString("Vendor:")) << new QStandardItem(pData0->Vendor == "" ? "N/A" : pData0->Vendor);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Vendor:"));
-        pModel->setItem(0, 0, pItem);
-        pItem = new QStandardItem(pData0->Vendor == "" ? "N/A" : pData0->Vendor);
-        pModel->setItem(0, 1, pItem);
+            qList << new QStandardItem(QString("Version:")) << new QStandardItem(pData0->BiosVersion == "" ? "N/A" : pData0->BiosVersion);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Version:"));
-        pModel->setItem(1, 0, pItem);
-        pItem = new QStandardItem(pData0->BiosVersion == "" ? "N/A" : pData0->BiosVersion);
-        pModel->setItem(1, 1, pItem);
+            qList << new QStandardItem(QString("System BIOS version:")) << new QStandardItem(pData0->SystemBiosVersion == "" ? "N/A" : pData0->SystemBiosVersion);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("System BIOS version:"));
-        pModel->setItem(2, 0, pItem);
-        pItem = new QStandardItem(pData0->SystemBiosVersion == "" ? "N/A" : pData0->SystemBiosVersion);
-        pModel->setItem(2, 1, pItem);
+            qList << new QStandardItem(QString("Release date:")) << new QStandardItem(pData0->ReleaseDate == "" ? "N/A" : pData0->ReleaseDate);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Release date:"));
-        pModel->setItem(3, 0, pItem);
-        pItem = new QStandardItem(pData0->ReleaseDate == "" ? "N/A" : pData0->ReleaseDate);
-        pModel->setItem(3, 1, pItem);
+            qList << new QStandardItem(QString("ROM memory size:")) << new QStandardItem(pData0->BiosROMSize == "" ? "N/A" : pData0->BiosROMSize);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("ROM memory size:"));
-        pModel->setItem(4, 0, pItem);
-        pItem = new QStandardItem(pData0->BiosROMSize == "" ? "N/A" : pData0->BiosROMSize);
-        pModel->setItem(4, 1, pItem);
+            m_pDataModel->appendRow(qList);
+        }
+
+        m_pDataModel->removeRow(m_pDataModel->rowCount() - 1);
         break;
+
     case DMI_BASEBOARD:
-        pStructure = GetStructure(BASEBOARD_INFORMATION_TYPE);
-        pData2 = (PT2BaseBoardInformation)pStructure->GetStructureData();
+        qStructureList = GetStructure(BASEBOARD_INFORMATION_TYPE);
+        for(it = qStructureList.begin(); it != qStructureList.end(); it++)
+        {
+            pData2 = (PT2BaseBoardInformation)(*it)->GetStructureData();
 
-        pModel->setRowCount(10);
+            qList << new QStandardItem(QString("Manufacturer:")) << new QStandardItem(pData2->Manufacturer == "" ? "N/A" : pData2->Manufacturer);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Manufacturer:"));
-        pModel->setItem(0, 0, pItem);
-        pItem = new QStandardItem(pData2->Manufacturer == "" ? "N/A" : pData2->Manufacturer);
-        pModel->setItem(0, 1, pItem);
+            qList << new QStandardItem(QString("Product:")) << new QStandardItem(pData2->Product == "" ? "N/A" : pData2->Product);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Product:"));
-        pModel->setItem(1, 0, pItem);
-        pItem = new QStandardItem(pData2->Product == "" ? "N/A" : pData2->Product);
-        pModel->setItem(1, 1, pItem);
+            qList << new QStandardItem(QString("Version:")) << new QStandardItem(pData2->Version == "" ? "N/A" : pData2->Version);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Version:"));
-        pModel->setItem(2, 0, pItem);
-        pItem = new QStandardItem(pData2->Version == "" ? "N/A" : pData2->Version);
-        pModel->setItem(2, 1, pItem);
+            qList << new QStandardItem(QString("Serial number:")) << new QStandardItem(pData2->SerialNumber == "" ? "N/A" : pData2->SerialNumber);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Serial number:"));
-        pModel->setItem(3, 0, pItem);
-        pItem = new QStandardItem(pData2->SerialNumber == "" ? "N/A" : pData2->SerialNumber);
-        pModel->setItem(3, 1, pItem);
+            qList << new QStandardItem(QString("Location:")) << new QStandardItem(pData2->Location == "" ? "N/A" : pData2->Location);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Location:"));
-        pModel->setItem(4, 0, pItem);
-        pItem = new QStandardItem(pData2->Location == "" ? "N/A" : pData2->Location);
-        pModel->setItem(4, 1, pItem);
+            qList << new QStandardItem(QString("Hot swappable:")) << new QStandardItem(pData2->HotSwappable == "" ? "N/A" : pData2->HotSwappable);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Hot swappable:"));
-        pModel->setItem(5, 0, pItem);
-        pItem = new QStandardItem(pData2->HotSwappable == "" ? "N/A" : pData2->HotSwappable);
-        pModel->setItem(5, 1, pItem);
+            qList << new QStandardItem(QString("Replaceable:")) << new QStandardItem(pData2->Replaceable == "" ? "N/A" : pData2->Replaceable);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Replaceable:"));
-        pModel->setItem(6, 0, pItem);
-        pItem = new QStandardItem(pData2->Replaceable == "" ? "N/A" : pData2->Replaceable);
-        pModel->setItem(6, 1, pItem);
+            qList << new QStandardItem(QString("Removable:")) << new QStandardItem(pData2->Removable == "" ? "N/A" : pData2->Removable);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Removable:"));
-        pModel->setItem(7, 0, pItem);
-        pItem = new QStandardItem(pData2->Removable == "" ? "N/A" : pData2->Removable);
-        pModel->setItem(7, 1, pItem);
+            qList << new QStandardItem(QString("HostingBoard:")) << new QStandardItem(pData2->HostingBoard == "" ? "N/A" : pData2->HostingBoard);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("HostingBoard:"));
-        pModel->setItem(8, 0, pItem);
-        pItem = new QStandardItem(pData2->HostingBoard == "" ? "N/A" : pData2->HostingBoard);
-        pModel->setItem(8, 1, pItem);
+            qList << new QStandardItem(QString("Type:")) << new QStandardItem(pData2->Type == "" ? "N/A" : pData2->Type);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Type:"));
-        pModel->setItem(9, 0, pItem);
-        pItem = new QStandardItem(pData2->Type == "" ? "N/A" : pData2->Type);
-        pModel->setItem(9, 1, pItem);
+            m_pDataModel->appendRow(qList);
+        }
+
+        m_pDataModel->removeRow(m_pDataModel->rowCount() - 1);
         break;
+
+    case DMI_ENCLOSURE:
+        qStructureList = GetStructure(ENCLOSURE_INFORMATION_TYPE);
+        for(it = qStructureList.begin(); it != qStructureList.end(); it++)
+        {
+            pData3 = (PT3EnclosureInformation)(*it)->GetStructureData();
+
+            qList << new QStandardItem(QString("Manufacturer:")) << new QStandardItem(pData3->Manufacturer == "" ? "N/A" : pData3->Manufacturer);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Type:")) << new QStandardItem(pData3->Type == "" ? "N/A" : pData3->Type);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Version:")) << new QStandardItem(pData3->Version == "" ? "N/A" : pData3->Version);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Serial number:")) << new QStandardItem(pData3->SerialNumber == "" ? "N/A" : pData3->SerialNumber);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Boot-up state:")) << new QStandardItem(pData3->BootUpState == "" ? "N/A" : pData3->BootUpState);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Power-supply state:")) << new QStandardItem(pData3->PowerSupplyState == "" ? "N/A" : pData3->PowerSupplyState);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Thermal state:")) << new QStandardItem(pData3->ThermalState == "" ? "N/A" : pData3->ThermalState);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Security status:")) << new QStandardItem(pData3->SecurityStatus == "" ? "N/A" : pData3->SecurityStatus);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            m_pDataModel->appendRow(qList);
+        }
+
+        m_pDataModel->removeRow(m_pDataModel->rowCount() - 1);
+        break;
+
     case DMI_CPU:
-        pStructure = GetStructure(PROCESSOR_INFORMATION_TYPE);
-        pData = (PT4ProcessorInformation)pStructure->GetStructureData();
+        qStructureList = GetStructure(PROCESSOR_INFORMATION_TYPE);
+        for(it = qStructureList.begin(); it != qStructureList.end(); it++)
+        {
+            pData = (PT4ProcessorInformation)(*it)->GetStructureData();
 
-        pModel->setRowCount(8);
+            qList << new QStandardItem(QString("Type:")) << new QStandardItem(pData->ProcessorType == "" ? "N/A" : pData->ProcessorType);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Type:"));
-        pModel->setItem(0, 0, pItem);
-        pItem = new QStandardItem(pData->ProcessorType == "" ? "N/A" : pData->ProcessorType);
-        pModel->setItem(0, 1, pItem);
+            qList << new QStandardItem(QString("Version:")) << new QStandardItem(pData->Version == "" ? "N/A" : pData->Version);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Family:"));
-        pModel->setItem(1, 0, pItem);
-        pItem = new QStandardItem(pData->ProcessorFamily == "" ? "N/A" : pData->ProcessorFamily);
-        pModel->setItem(1, 1, pItem);
+            qList << new QStandardItem(QString("Family:")) << new QStandardItem(pData->ProcessorFamily == "" ? "N/A" : pData->ProcessorFamily);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Manufacturer:"));
-        pModel->setItem(2, 0, pItem);
-        pItem = new QStandardItem(pData->ProcessorManufacturer == "" ? "N/A" : pData->ProcessorManufacturer);
-        pModel->setItem(2, 1, pItem);
+            qList << new QStandardItem(QString("Manufacturer:")) << new QStandardItem(pData->ProcessorManufacturer == "" ? "N/A" : pData->ProcessorManufacturer);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Voltage:"));
-        pModel->setItem(3, 0, pItem);
-        pItem = new QStandardItem(pData->Voltage == "" ? "N/A" : pData->Voltage);
-        pModel->setItem(3, 1, pItem);
+            qList << new QStandardItem(QString("Voltage:")) << new QStandardItem(pData->Voltage == "" ? "N/A" : pData->Voltage);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("External clock:"));
-        pModel->setItem(4, 0, pItem);
-        pItem = new QStandardItem(pData->ExtClock == "" ? "N/A" : pData->ExtClock);
-        pModel->setItem(4, 1, pItem);
+            qList << new QStandardItem(QString("External clock:")) << new QStandardItem(pData->ExtClock == "" ? "N/A" : pData->ExtClock);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Serial number:"));
-        pModel->setItem(5, 0, pItem);
-        pItem = new QStandardItem(pData->SerialNumber == "" ? "N/A" : pData->SerialNumber);
-        pModel->setItem(5, 1, pItem);
+            qList << new QStandardItem(QString("Serial number:")) << new QStandardItem(pData->SerialNumber == "" ? "N/A" : pData->SerialNumber);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Max Speed:"));
-        pModel->setItem(6, 0, pItem);
-        pItem = new QStandardItem(pData->MaxSpeed == "" ? "N/A" : pData->MaxSpeed);
-        pModel->setItem(6, 1, pItem);
+            qList << new QStandardItem(QString("Max speed:")) << new QStandardItem(pData->MaxSpeed == "" ? "N/A" : pData->MaxSpeed);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Core count:"));
-        pModel->setItem(7, 0, pItem);
-        pItem = new QStandardItem(pData->CoreCount == "" ? "N/A" : pData->CoreCount);
-        pModel->setItem(7, 1, pItem);
+            qList << new QStandardItem(QString("Current speed:")) << new QStandardItem(pData->CurrentSpeed == "" ? "N/A" : pData->CurrentSpeed);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Core count:")) << new QStandardItem(pData->CoreCount == "" ? "N/A" : pData->CoreCount);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            m_pDataModel->appendRow(qList);
+        }
+
+        m_pDataModel->removeRow(m_pDataModel->rowCount() - 1);
         break;
+
     case DMI_MEMORY_DEVICE:
+        qStructureList = GetStructure(MEMORY_DEVICE_INFORMATION_TYPE);
+        for(it = qStructureList.begin(); it != qStructureList.end(); it++)
+        {
+            pData17 = (PT17MemoryDeviceInformation)(*it)->GetStructureData();
 
-        pStructure = GetStructure(MEMORY_DEVICE_INFORMATION_TYPE);
-        pData17 = (PT17MemoryDeviceInformation)pStructure->GetStructureData();
+            qList << new QStandardItem(QString("Form factor:")) << new QStandardItem(pData17->FormFactor == "" ? "N/A" : pData17->FormFactor);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pModel->setRowCount(9);
+            qList << new QStandardItem(QString("Type")) << new QStandardItem(pData17->Type == "" ? "N/A" : pData17->Type);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Total width:"));
-        pModel->setItem(0, 0, pItem);
-        pItem = new QStandardItem(pData17->TotalWidth == "" ? "N/A" : pData17->TotalWidth);
-        pModel->setItem(0, 1, pItem);
+            qList << new QStandardItem(QString("Type details")) << new QStandardItem(pData17->TypeDetails == "" ? "N/A" : pData17->TypeDetails);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Data width:"));
-        pModel->setItem(1, 0, pItem);
-        pItem = new QStandardItem(pData17->DataWidth == "" ? "N/A" : pData17->DataWidth);
-        pModel->setItem(1, 1, pItem);
+            qList << new QStandardItem(QString("Size:")) << new QStandardItem(pData17->Size == "" ? "N/A" : pData17->Size);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Size:"));
-        pModel->setItem(2, 0, pItem);
-        pItem = new QStandardItem(pData17->Size == "" ? "N/A" : pData17->Size);
-        pModel->setItem(2, 1, pItem);
+            qList << new QStandardItem(QString("Speed:")) << new QStandardItem(pData17->CurrentClockSpeed == "" ? "N/A" : pData17->CurrentClockSpeed);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Form factor:"));
-        pModel->setItem(3, 0, pItem);
-        pItem = new QStandardItem(pData17->FormFactor == "" ? "N/A" : pData17->FormFactor);
-        pModel->setItem(3, 1, pItem);
+            qList << new QStandardItem(QString("Total width:")) << new QStandardItem(pData17->TotalWidth == "" ? "N/A" : pData17->TotalWidth);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Device locator:"));
-        pModel->setItem(4, 0, pItem);
-        pItem = new QStandardItem(pData17->DeviceLocator == "" ? "N/A" : pData17->DeviceLocator);
-        pModel->setItem(4, 1, pItem);
+            qList << new QStandardItem(QString("Data width:")) << new QStandardItem(pData17->DataWidth == "" ? "N/A" : pData17->DataWidth);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Speed:"));
-        pModel->setItem(5, 0, pItem);
-        pItem = new QStandardItem(pData17->Speed == "" ? "N/A" : pData17->Speed);
-        pModel->setItem(5, 1, pItem);
+            qList << new QStandardItem(QString("Device locator:")) << new QStandardItem(pData17->DeviceLocator == "" ? "N/A" : pData17->DeviceLocator);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Manufacturer:"));
-        pModel->setItem(6, 0, pItem);
-        pItem = new QStandardItem(pData17->Manufacturer == "" ? "N/A" : pData17->Manufacturer);
-        pModel->setItem(6, 1, pItem);
+            qList << new QStandardItem(QString("Bank locator:")) << new QStandardItem(pData17->BankLocator == "" ? "N/A" : pData17->BankLocator);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Serial number:"));
-        pModel->setItem(7, 0, pItem);
-        pItem = new QStandardItem(pData17->SerialNumber == "" ? "N/A" : pData17->SerialNumber);
-        pModel->setItem(7, 1, pItem);
+            qList << new QStandardItem(QString("Manufacturer:")) << new QStandardItem(pData17->Manufacturer == "" ? "N/A" : pData17->Manufacturer);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
 
-        pItem = new QStandardItem(QString("Configured memory clock speed:"));
-        pModel->setItem(8, 0, pItem);
-        pItem = new QStandardItem(pData17->ConfiguredMemoryClockSpeed == "" ? "N/A" : pData17->ConfiguredMemoryClockSpeed);
-        pModel->setItem(8, 1, pItem);
+            qList << new QStandardItem(QString("Serial number:")) << new QStandardItem(pData17->SerialNumber == "" ? "N/A" : pData17->SerialNumber);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Part number:")) << new QStandardItem(pData17->PartNumber == "" ? "N/A" : pData17->PartNumber);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            m_pDataModel->appendRow(qList);
+        }
+
+        m_pDataModel->removeRow(m_pDataModel->rowCount() - 1);
         break;
     }
-
-    return pModel;
 }
 
 QList<unsigned char *> CSMBiosEntryPoint::ReturnTableOfTypeAndLength(int nType, int nLength)
@@ -274,15 +336,6 @@ int CSMBiosEntryPoint::InitializeData(void)
     IWbemServices* pService = 0;
     IEnumWbemClassObject* pEnumerator = NULL;
 
-    hResult = CoInitializeEx(0, COINIT_MULTITHREADED);
-    if( 0 > hResult )
-    {
-        if( TRUE == WIN32_FROM_HRESULT(hResult,(DWORD*)&nStatus) )
-            return nStatus;
-        else
-            return ERROR_CAN_NOT_COMPLETE;
-    }
-
     hResult = CoCreateInstance(
                 CLSID_WbemLocator,
                 0,
@@ -291,7 +344,6 @@ int CSMBiosEntryPoint::InitializeData(void)
 
     if( 0 > hResult )
     {
-        CoUninitialize();
         if(TRUE == WIN32_FROM_HRESULT(hResult,(DWORD*)&nStatus))
             return nStatus;
         else
@@ -312,7 +364,6 @@ int CSMBiosEntryPoint::InitializeData(void)
     if( 0 > hResult )
     {
         pLocator->Release();
-        CoUninitialize();
         if(TRUE == WIN32_FROM_HRESULT(hResult,(DWORD*)&nStatus))
             return nStatus;
         else
@@ -334,7 +385,6 @@ int CSMBiosEntryPoint::InitializeData(void)
     {
         pService->Release();
         pLocator->Release();
-        CoUninitialize();
         if(TRUE == WIN32_FROM_HRESULT(hResult,(DWORD*)&nStatus))
             return nStatus;
         else
@@ -352,7 +402,6 @@ int CSMBiosEntryPoint::InitializeData(void)
     {
         pService->Release();
         pLocator->Release();
-        CoUninitialize();
         if(TRUE == WIN32_FROM_HRESULT(hResult,(DWORD*)&nStatus))
             return nStatus;
         else
@@ -416,21 +465,20 @@ int CSMBiosEntryPoint::InitializeData(void)
 
     } while (hResult == WBEM_S_NO_ERROR);
 
-    CoUninitialize();
-
     return ERROR_SUCCESS;
 }
 
-ISMBiosGenericStructure *CSMBiosEntryPoint::GetStructure(SMStructureType type)
+QList<ISMBiosGenericStructure *> CSMBiosEntryPoint::GetStructure(SMStructureType type)
 {
+    QList<ISMBiosGenericStructure *> qList;
     for(int i = 0; i < qSMBiosData.count(); i++)
     {
         if( type == qSMBiosData.at(i)->GetStructureType() )
         {
-            return qSMBiosData.at(i);
+            qList.append(qSMBiosData.at(i));
         }
     }
-    return 0;
+    return qList;
 }
 
 int CSMBiosEntryPoint::ParseData()
@@ -438,6 +486,7 @@ int CSMBiosEntryPoint::ParseData()
     ISMBiosGenericStructure *pItem = NULL;
     QList<unsigned char *> pTable;
 
+    // bios information
     pTable = ReturnTableOfTypeAndLength(BIOS_INFORMATION_TYPE, 0x18);
     for(int k = 0; k < pTable.count(); k++)
     {
@@ -453,6 +502,7 @@ int CSMBiosEntryPoint::ParseData()
     }
     pTable.clear();
 
+    // baseboard information
     pTable = ReturnTableOfTypeAndLength(BASEBOARD_INFORMATION_TYPE, 0x0f);
     if( 0 == pTable.count() )
         pTable = ReturnTableOfTypeAndLength(BASEBOARD_INFORMATION_TYPE, 0x10);
@@ -469,6 +519,27 @@ int CSMBiosEntryPoint::ParseData()
     }
     pTable.clear();
 
+    // enclosure information
+    if( '0' == m_pSmbiosVersion->Minor[0].toLatin1() )
+        pTable = ReturnTableOfTypeAndLength(ENCLOSURE_INFORMATION_TYPE, 0x9);
+    else if( '1' == m_pSmbiosVersion->Minor[0].toLatin1() )
+        pTable = ReturnTableOfTypeAndLength(ENCLOSURE_INFORMATION_TYPE, 0xD);
+    else
+        pTable = ReturnTableOfTypeAndLength(ENCLOSURE_INFORMATION_TYPE, 0x16);
+    for(int k = 0; k < pTable.count(); k++)
+    {
+        pItem = new CType3EnclosureInformation;
+        if( 0 == pItem )
+        {
+            DEBUG_STATUS(NotAllocated);
+            return NotAllocated;
+        }
+        pItem->AddInformation(pTable.at(k));
+        qSMBiosData.append(pItem);
+    }
+    pTable.clear();
+
+    // processor information
     pTable = ReturnTableOfTypeAndLength(PROCESSOR_INFORMATION_TYPE, 0x2a);
     for(int k = 0; k < pTable.count(); k++)
     {

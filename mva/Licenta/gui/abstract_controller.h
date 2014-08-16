@@ -17,19 +17,30 @@ public:
     virtual ~AbstractController() {}
 
 signals:
+    /*** View Adapter Signals ***/
     void OnCreateMainWindowSignal();
     void OnShowMainWindowSignal();
     void OnPopulateMenuTreeSignal(QStandardItemModel*);
 
+    /*** Device Manager Signals ***/
     void OnSetDeviceManagerInformation(QStandardItemModel*);
+    void OnDeviceManagerInformationDataChanged();
     void OnSetDevicePropertiesInformation(QStandardItemModel*);
+    void OnDevicePropertiesInformationChanged();
+
+    /*** DMI Signals ***/
     void OnSetDMIItemsInformation(QStandardItemModel*);
     void OnSetDMIPropertiesInfomation(QStandardItemModel*);
+    void OnDMIPropertiesInformationDataChanged();
+
+    /*** Battery Manager Signals ***/
+    void OnSetPowerManagementInformation(QStandardItemModel *);
+    void OnPowerManagementInformationDataChanged();
+
     void OnSetATAHDDItemsInformation(QStandardItemModel*);
     void OnSetATAItemPropertiesInformation(QStandardItemModel*);
     void OnSetSMARTHDDItemsInformation(QStandardItemModel*);
     void OnSetSMARTItemPropertiesInformation(QStandardItemModel*);
-    void OnSetPowerManagementInformation(QStandardItemModel *);
     void OnSetApplicationManagerInformation(QStandardItemModel *);
 
     void OnSetSystemDriversModelInformation(QStandardItemModel *);

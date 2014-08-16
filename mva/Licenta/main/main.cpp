@@ -14,6 +14,10 @@ int main(int argc, char *argv[])
     qRegisterMetaType< DMIModuleType > ( "DMIModuleType" );
     qRegisterMetaType< std::string > ( "std::string" );
     qRegisterMetaType< HANDLE > ( "HANDLE" );
+    qRegisterMetaType< Qt::Orientation > ( "Qt::Orientation" );
+    qRegisterMetaType< QVector<int> > ( "QVector<int>" );
+    qRegisterMetaType< QList<QPersistentModelIndex> > ( "QList<QPersistentModelIndex>" );
+    qRegisterMetaType< QAbstractItemModel::LayoutChangeHint > ( "QAbstractItemModel::LayoutChangeHint" );
 
     pController->moveToThread(&ControllerThread);
     pViewAdapter->SetController(pController);

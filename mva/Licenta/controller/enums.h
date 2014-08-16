@@ -19,6 +19,7 @@ typedef enum _DMI_MODULE_TYPE_
 {
     DMI_BIOS,
     DMI_BASEBOARD,
+    DMI_ENCLOSURE,
     DMI_CPU,
     DMI_MEMORY_DEVICE
 }DMIModuleType;

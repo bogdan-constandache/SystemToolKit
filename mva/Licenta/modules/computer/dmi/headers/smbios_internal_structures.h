@@ -13,6 +13,7 @@ typedef enum
 {
     BIOS_INFORMATION_TYPE = 0x00,
     BASEBOARD_INFORMATION_TYPE = 0x02,
+    ENCLOSURE_INFORMATION_TYPE = 0x03,
     PROCESSOR_INFORMATION_TYPE = 0x04,
     MEMORY_DEVICE_INFORMATION_TYPE = 0x11
 }SMStructureType;
@@ -98,6 +99,24 @@ typedef struct _SMBIOS_TYPE2_BASEBOARD_INFORMATION
     unsigned char   NrOfObjHandles;
 }Type2BaseBoardInformation, *PType2BaseBoardInformation;
 
+//type 3 ENCLOSURE_INFORMATION
+typedef struct _SMBIOS_TYPE3_ENCLOSURE_INFORMATION
+{
+    unsigned char   Manufacturer;
+    unsigned char   Type;
+    unsigned char   Version;
+    unsigned char   SerialNumber;
+    unsigned char   AssetTagNumber;
+    unsigned char   BootUpState;
+    unsigned char   PowerSupplyState;
+    unsigned char   ThermalState;
+    unsigned char   SecurityStatus;
+    unsigned int    OEMDefined;
+    unsigned char   Height;
+    unsigned char   NumberOfPowerCords;
+    unsigned char   ContainedElementCount;
+    unsigned char   ContainedElementRecordLength;
+}Type3EnclosureInformation, *PType3EnclosureInfomation;
 
 //type 4 PROCESSOR INFORMATION
 typedef struct _SMBIOS_TYPE4_PROCESSOR_INFORMATION

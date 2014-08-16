@@ -73,7 +73,7 @@ int CType4ProcessorInformation::AddInformation(BYTE *pData)
     else
     {
         double fVoltage = (double)(pInformation->Voltage - 0x80);
-        m_data->Voltage.sprintf("%1fV", (fVoltage / 10));
+        m_data->Voltage.sprintf("%.1f V", (fVoltage / 10));
     }
 
     if( 0 == pInformation->MaxSpeed )
@@ -84,6 +84,13 @@ int CType4ProcessorInformation::AddInformation(BYTE *pData)
         m_data->MaxSpeed.sprintf("%d MHz", pInformation->MaxSpeed);
         qDebug() << m_data->MaxSpeed;
     }
+
+    if( 0 == pInformation->CurrentSpeed )
+        m_data->CurrentSpeed = "N/A";
+    else
+        m_data->CurrentSpeed.sprintf("%d MHz", pInformation->CurrentSpeed);
+
+    m_data->ProcessorFamily.sprintf("0x%x", pInformation->ProcessorFamily);
 
     if( 0 == pInformation->ExternalClock )
         m_data->ExtClock = "N/A";
@@ -103,6 +110,8 @@ int CType4ProcessorInformation::AddInformation(BYTE *pData)
             m_data->SerialNumber = QString(pTempString);
         if( count == pInformation->ProcessorManufactor )
             m_data->ProcessorManufacturer = QString(pTempString);
+        if( count == pInformation->ProcessorVersion )
+            m_data->Version = QString(pTempString);
         count++;
         pTempString = (char*)(pTempString + strlen(pTempString) + 1);
     }while(pTempString[0] != 0);

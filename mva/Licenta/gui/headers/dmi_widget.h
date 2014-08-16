@@ -24,6 +24,7 @@ private slots:
     void OnSetItemsTreeModel(QStandardItemModel *pModel);
     void OnSetPropertiesTreeModel(QStandardItemModel *pModel);
     void OnItemsTreeClicked(QModelIndex index);
+    void OnDataChangedSlot();
 
 signals:
     void OnRequestPropertiesModel(DMIModuleType);

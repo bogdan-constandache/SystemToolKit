@@ -44,6 +44,8 @@ private: // internal objects
     int OnLoadDriverFile();
     int OnUnloadDriverFile();
 
+    int AssignStandardModelsToUi();
+
 public:
     Controller();
     virtual ~Controller();

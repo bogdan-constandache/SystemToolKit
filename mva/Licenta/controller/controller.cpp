@@ -176,6 +176,22 @@ int Controller::OnUnloadDriverFile()
     return Success;
 }
 
+int Controller::AssignStandardModelsToUi()
+{
+    // Device Manager Models
+    emit OnSetDeviceManagerInformation(m_pDeviceManager->GetAllDeviceDetails());
+    emit OnSetDevicePropertiesInformation(m_pDeviceManager->GetDeviceProperties());
+
+    // DMI Manager Models
+    emit OnSetDMIItemsInformation(m_pDMIManager->GetItemsModel());
+    emit OnSetDMIPropertiesInfomation(m_pDMIManager->GetItemPropertiesModel());
+
+    // Battery status Models
+    emit OnSetPowerManagementInformation(m_pBatteryStatus->GetBatteryInformation());
+
+    return Success;
+}
+
 Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pDMIManager(NULL), m_pSmartManager(NULL), m_pSystemDriversManager(NULL),
     m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL),
@@ -191,6 +207,13 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
 //    m_pNVidiaManager = new CNvidiaManager();
 //    if( 0 == m_pNVidiaManager->GetPhysicalGPUCount() )
 //        SAFE_DELETE(m_pNVidiaManager);
+
+    // Create device manager obj
+    m_pDeviceManager = new CDeviceInfo();
+    // Create DMI manager obj
+    m_pDMIManager = new CSMBiosEntryPoint();
+    // Create battery manager obj
+    m_pBatteryStatus = new BatteryStatus();
 }
 
 Controller::~Controller()
@@ -337,6 +360,8 @@ void Controller::StartController()
 
     emit OnPopulateMenuTreeSignal(pModel);
 
+    AssignStandardModelsToUi();
+
     emit OnShowMainWindowSignal();
 
     // Create Sensor Object
@@ -367,17 +392,9 @@ void Controller::OnComputerDeviceManagerOptClickedSlot()
     // cancel all timers
     emit OnCancelSensorsTimerSignal();
 
-    // delete previous object
-    SAFE_DELETE(m_pDeviceManager);
+    m_pDeviceManager->OnRefreshDevices();
 
-    m_pDeviceManager = new CDeviceInfo;
-
-    CHECK_ALLOCATION(m_pDeviceManager);
-
-    QStandardItemModel *pModel = m_pDeviceManager->GetAllDeviceDetails();
-
-    if (0 != pModel)
-        emit OnSetDeviceManagerInformation(pModel);
+    emit OnDeviceManagerInformationDataChanged();
 }
 
 void Controller::OnComputerDMIOptClickedSlot()
@@ -385,17 +402,7 @@ void Controller::OnComputerDMIOptClickedSlot()
     // cancel all timers
     emit OnCancelSensorsTimerSignal();
 
-    // delete previous object
-    SAFE_DELETE(m_pDMIManager);
-
-    m_pDMIManager = new CSMBiosEntryPoint;
-
-    CHECK_ALLOCATION(m_pDMIManager);
-
-    QStandardItemModel *pModel = m_pDMIManager->GetItemsModel();
-
-    if (0 != pModel)
-        emit OnSetDMIItemsInformation(pModel);
+    // Do nothing - Model contains static data
 }
 
 void Controller::OnComputerPowerManagementOptClickedSlot()
@@ -403,17 +410,9 @@ void Controller::OnComputerPowerManagementOptClickedSlot()
     // cancel all timers
     emit OnCancelSensorsTimerSignal();
 
-    // delete previous object
-    SAFE_DELETE(m_pBatteryStatus);
+    m_pBatteryStatus->OnRefresh();
 
-    m_pBatteryStatus = new BatteryStatus;
-
-    CHECK_ALLOCATION(m_pBatteryStatus);
-
-    QStandardItemModel *pModel = m_pBatteryStatus->GetBatteryInformation();
-
-    if (0 != pModel)
-        emit OnSetPowerManagementInformation(pModel);
+    emit OnPowerManagementInformationDataChanged();
 }
 
 void Controller::OnHddInformationOptClickedSlot()
@@ -831,18 +830,16 @@ void Controller::OnUserInformationsOptClickedSlot()
 
 void Controller::OnRequestDeviceDetailsSlot(QString qzDeviceID)
 {
-    QStandardItemModel *pModel = m_pDeviceManager->GetDeviceProperties(qzDeviceID);
+    m_pDeviceManager->OnRefreshDetails(qzDeviceID);
 
-    if (0 != pModel)
-        emit OnSetDevicePropertiesInformation(pModel);
+    emit OnDevicePropertiesInformationChanged();
 }
 
 void Controller::OnRequestDMIItemProperties(DMIModuleType ItemType)
 {
-    QStandardItemModel *pModel = m_pDMIManager->GetItemPropertiesModel(ItemType);
+    m_pDMIManager->OnRefreshData(ItemType);
 
-    if (0 != pModel)
-        emit OnSetDMIPropertiesInfomation(pModel);
+    emit OnDMIPropertiesInformationDataChanged();
 }
 
 void Controller::OnRequestATAItemProperties(QString qzModel)

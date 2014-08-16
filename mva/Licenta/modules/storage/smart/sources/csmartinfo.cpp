@@ -30,7 +30,6 @@ int CSmartInfo::Initialize(int nDriveIndex)
 {
     int nStatus = Uninitialized;
     QString qzDriveName = "";
-    DriveInfo *pDriveInfo = NULL;
     bool bResult;
 
     if( 0 == m_data )

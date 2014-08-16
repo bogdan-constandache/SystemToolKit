@@ -2,12 +2,14 @@
 
 
 BatteryStatus::BatteryStatus():
-    m_data(NULL), m_bIsDesktop(false)
+    m_data(NULL), m_bIsDesktop(false), m_pModel(NULL)
 {
+    m_pModel = new QStandardItemModel();
 }
 
 BatteryStatus::~BatteryStatus()
 {
+    SAFE_DELETE(m_pModel);
     SAFE_DELETE(m_data);
 }
 
@@ -17,8 +19,9 @@ int BatteryStatus::Initialize()
     bool bResult = 0;
     DWORD dwBytesRequired = 0, dwBytesReturned = 0, dwWait = 0;
     SP_DEVICE_INTERFACE_DATA dData = {0};
-    PSP_DEVICE_INTERFACE_DETAIL_DATA deviceDataDetails = 0;
     dData.cbSize = sizeof(dData);
+    PSP_DEVICE_INTERFACE_DETAIL_DATA deviceDataDetails = 0;
+
     HANDLE hBattery = 0;
     BATTERY_QUERY_INFORMATION batteryQueryInformation = {0};
     BATTERY_INFORMATION batteryInformation = {0};
@@ -337,140 +340,98 @@ Cleanup:
 
 QStandardItemModel* BatteryStatus::GetBatteryInformation()
 {
-    int nRet = Initialize();
-    if (Success != nRet)
-        return 0;
+    return m_pModel;
+}
 
-    QStandardItemModel *pModel = new QStandardItemModel();
-    QStandardItem *pItem = 0;
+void BatteryStatus::OnRefresh()
+{
+    int nRet = Initialize();
+    if( Success != nRet )
+        return;
+
+   m_pModel->clear();
+   m_pModel->setHorizontalHeaderLabels(QStringList() << "Property name" << "Property value");
+
+   QList<QStandardItem*> qList;
 
     if( m_bIsDesktop )
     {
-        pModel->setColumnCount(2);
-        pModel->setRowCount(4);
+        qList << new QStandardItem("AC-Line status:") << new QStandardItem("Online");
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-        pModel->setHorizontalHeaderLabels(QStringList() << "Property name" << "Property value");
+        qList << new QStandardItem("Battery status:") << new QStandardItem("No battery");
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-        pItem = new QStandardItem("AC-Line status:");
-        pModel->setItem(0, 0, pItem);
+        qList << new QStandardItem("Life time:") << new QStandardItem("Unknown");
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-        pItem = new QStandardItem("Online");
-        pModel->setItem(0, 1, pItem);
-
-        pItem = new QStandardItem("Battery status:");
-        pModel->setItem(1, 0, pItem);
-
-        pItem = new QStandardItem("No battery");
-        pModel->setItem(1, 1, pItem);
-
-        pItem = new QStandardItem("Life time:");
-        pModel->setItem(2, 0, pItem);
-
-        pItem = new QStandardItem("Unknown");
-        pModel->setItem(2, 1, pItem);
-
-        pItem = new QStandardItem("Full life-time:");
-        pModel->setItem(3, 0, pItem);
-
-        pItem = new QStandardItem("Unknown");
-        pModel->setItem(3, 1, pItem);
-
-        return pModel;
+        qList << new QStandardItem("Full life-time:") << new QStandardItem("Unknown");
+        m_pModel->appendRow(qList);
+        qList.clear();
     }
+    else
+    {
+        qList << new QStandardItem("AC-Line status:") << new QStandardItem(this->m_data->ACLineStatus);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pModel->setColumnCount(2);
-    pModel->setRowCount(15);
-    pModel->setHorizontalHeaderLabels(QStringList() << "Property name" << "Property value");
+        qList << new QStandardItem("Battery status:") << new QStandardItem(this->m_data->BatteryStatus);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem("AC-Line status:");
-    pModel->setItem(0, 0, pItem);
+        qList << new QStandardItem("Life percent:") << new QStandardItem(this->m_data->LifePercent);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem(this->m_data->ACLineStatus);
-    pModel->setItem(0, 1, pItem);
+        qList << new QStandardItem("Life time:") << new QStandardItem(this->m_data->LifeTime);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem("Battery status:");
-    pModel->setItem(1, 0, pItem);
+        qList << new QStandardItem("Full life-time:") << new QStandardItem(this->m_data->FullLifeTime);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem(this->m_data->BatteryStatus);
-    pModel->setItem(1, 1, pItem);
+        qList << new QStandardItem("Technology:") << new QStandardItem(this->m_data->Technology);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem("Life percent:");
-    pModel->setItem(2, 0, pItem);
+        qList << new QStandardItem("Chemistry:") << new QStandardItem(this->m_data->Chemistry);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem(this->m_data->LifePercent);
-    pModel->setItem(2, 1, pItem);
+        qList << new QStandardItem("Designed capacity:") << new QStandardItem(this->m_data->DesignedCapacity);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem("Life time:");
-    pModel->setItem(3, 0, pItem);
+        qList << new QStandardItem("Full charged capacity:") << new QStandardItem(this->m_data->FullChargedCapacity);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem(this->m_data->LifeTime);
-    pModel->setItem(3, 1, pItem);
+        qList << new QStandardItem("Current capacity:") << new QStandardItem(this->m_data->CurrentCapacity);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem("Full life-time:");
-    pModel->setItem(4, 0, pItem);
+        qList << new QStandardItem("Low Battery Alert 1:") << new QStandardItem(this->m_data->LowBatteryAlert1);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem(this->m_data->FullLifeTime);
-    pModel->setItem(4, 1, pItem);
+        qList << new QStandardItem("Low Battery Alert 2:") << new QStandardItem(this->m_data->LowBatteryAlert2);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem("Technology:");
-    pModel->setItem(5, 0, pItem);
+        qList << new QStandardItem("Cycle count:") << new QStandardItem(this->m_data->CycleCount);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem(this->m_data->Technology);
-    pModel->setItem(5, 1, pItem);
+        qList << new QStandardItem("Voltage:") << new QStandardItem(this->m_data->Voltage);
+        m_pModel->appendRow(qList);
+        qList.clear();
 
-    pItem = new QStandardItem("Chemistry:");
-    pModel->setItem(6, 0, pItem);
-
-    pItem = new QStandardItem(this->m_data->Chemistry);
-    pModel->setItem(6, 1, pItem);
-
-    pItem = new QStandardItem("Designed capacity:");
-    pModel->setItem(7, 0, pItem);
-
-    pItem = new QStandardItem(this->m_data->DesignedCapacity);
-    pModel->setItem(7, 1, pItem);
-
-    pItem = new QStandardItem("Full charged capacity:");
-    pModel->setItem(8, 0, pItem);
-
-    pItem = new QStandardItem(this->m_data->FullChargedCapacity);
-    pModel->setItem(8, 1, pItem);
-
-    pItem = new QStandardItem("Current capacity:");
-    pModel->setItem(9, 0, pItem);
-
-    pItem = new QStandardItem(this->m_data->CurrentCapacity);
-    pModel->setItem(9, 1, pItem);
-
-    pItem = new QStandardItem("Low Battery Alert 1:");
-    pModel->setItem(10, 0, pItem);
-
-    pItem = new QStandardItem(this->m_data->LowBatteryAlert1);
-    pModel->setItem(10, 1, pItem);
-
-    pItem = new QStandardItem("Low Battery Alert 2:");
-    pModel->setItem(11, 0, pItem);
-
-    pItem = new QStandardItem(this->m_data->LowBatteryAlert2);
-    pModel->setItem(11, 1, pItem);
-
-    pItem = new QStandardItem("Cycle count:");
-    pModel->setItem(12, 0, pItem);
-
-    pItem = new QStandardItem(this->m_data->CycleCount);
-    pModel->setItem(12, 1, pItem);
-
-    pItem = new QStandardItem("Voltage:");
-    pModel->setItem(13, 0, pItem);
-
-    pItem = new QStandardItem(this->m_data->Voltage);
-    pModel->setItem(13, 1, pItem);
-
-    pItem = new QStandardItem("Wear level:");
-    pModel->setItem(14, 0, pItem);
-
-    pItem = new QStandardItem(this->m_data->WearLevel);
-    pModel->setItem(14, 1, pItem);
-
-    return pModel;
+        qList << new QStandardItem("Wear level:") << new QStandardItem(this->m_data->WearLevel);
+        m_pModel->appendRow(qList);
+        qList.clear();
+    }
 }

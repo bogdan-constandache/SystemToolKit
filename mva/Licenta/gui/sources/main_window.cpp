@@ -178,16 +178,19 @@ void MainWindow::OnItemsTreeClickedSlot(QModelIndex index)
     {
         qDebug() << "Device manager clicked!";
         emit OnComputerDeviceManagerOptClickedSignal();
+        ui->stackedWidget->setCurrentWidget(m_pDeviceManagerWidget);
     }
     if( "DMI" == qzItemText )
     {
         qDebug() << "DMI clicked!";
         emit OnComputerDMIOptClickedSignal();
+        ui->stackedWidget->setCurrentWidget(m_pDMIManagerWidget);
     }
     if( "Power management" == qzItemText )
     {
         qDebug() << "Power management";
         emit OnComputerPowerManagementOptClickedSignal();
+        ui->stackedWidget->setCurrentWidget(m_pPowerManagementWidget);
     }
     if( "Operating system" == qzItemText )
     {

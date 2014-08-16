@@ -37,6 +37,7 @@ typedef struct _BATTERY_INFORMATION_
 class BatteryStatus
 {
 private:
+    QStandardItemModel *m_pModel;
     PBatteryInformationStruct m_data;
     bool m_bIsDesktop;
     int Initialize();
@@ -45,6 +46,7 @@ public:
     BatteryStatus();
     ~BatteryStatus();
     QStandardItemModel *GetBatteryInformation();
+    void OnRefresh();
 };
 
 #endif

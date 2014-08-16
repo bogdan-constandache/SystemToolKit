@@ -101,7 +101,8 @@ SOURCES += main/main.cpp \
         gui/sources/startup_apps_widget.cpp \
         gui/sources/device_manager_widget.cpp \
         gui/sources/user_information_widget.cpp \
-    modules/software/applications-manager/sources/process_wrapper.cpp
+    modules/software/applications-manager/sources/process_wrapper.cpp \
+    modules/computer/dmi/sources/type3_enclosure_information.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -172,7 +173,8 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/startup_apps_widget.h \
         gui/headers/device_manager_widget.h \
         gui/headers/user_information_widget.h \
-    modules/software/applications-manager/headers/process_wrapper.h
+    modules/software/applications-manager/headers/process_wrapper.h \
+    modules/computer/dmi/headers/type3_enclosure_information.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \

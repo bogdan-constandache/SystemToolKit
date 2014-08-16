@@ -19,6 +19,8 @@ CBatteryStatusWidget::CBatteryStatusWidget(QWidget *parent, AbstractController *
     // connects
     connect(m_pController, SIGNAL(OnSetPowerManagementInformation(QStandardItemModel*)),
             this, SLOT(OnSetTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnPowerManagementInformationDataChanged()),
+            this, SLOT(OnDataChangedSlot()), Qt::QueuedConnection);
 }
 
 CBatteryStatusWidget::~CBatteryStatusWidget()
@@ -31,8 +33,12 @@ void CBatteryStatusWidget::OnSetTreeModel(QStandardItemModel *pModel)
 {
     if (pModel)
         ui->treeView->setModel(pModel);
-    ui->treeView->resizeColumnToContents(0);
-    ui->treeView->setColumnWidth(0, 150);
 
-    emit OnShowWidget(this);
+//    emit OnShowWidget(this);
 }
+
+void CBatteryStatusWidget::OnDataChangedSlot()
+{
+    ui->treeView->setColumnWidth(0, 150);
+}
+

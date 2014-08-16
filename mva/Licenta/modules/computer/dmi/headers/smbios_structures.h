@@ -69,6 +69,21 @@ typedef struct _T2_BASEBOARD_INFORMATION
     QString HostingBoard; // done
 }T2BaseBoardInformation, *PT2BaseBoardInformation;
 
+typedef struct _T3_ENCLOSURE_INFORMATION
+{
+    QString Manufacturer;
+    QString Type;
+    QString Version;
+    QString SerialNumber;
+    QString BootUpState;
+    QString PowerSupplyState;
+    QString ThermalState;
+    QString SecurityStatus;
+    QString OEMSpecific;
+    QString Height;
+    QString NumberOfPowerCords;
+}T3EnclosureInformation, *PT3EnclosureInformation;
+
 typedef struct _T4_PROCESSOR_INFORMATION
 {
     QString ProcessorID; // N/A
@@ -80,19 +95,24 @@ typedef struct _T4_PROCESSOR_INFORMATION
     QString ExtClock; // done
     QString SerialNumber; // done
     QString CoreCount; // done
+    QString Version;
+    QString CurrentSpeed;
 }T4ProcessorInformation, *PT4ProcessorInformation;
 
 typedef struct _T17_MEMORY_DEVICE_INFORMATION
 {
-    QString TotalWidth;     // done
-    QString DataWidth;      // done
-    QString Size;           // done
-    QString FormFactor;     // done
-    QString DeviceLocator;  // string
-    QString Speed;          // done
-    QString Manufacturer;   // string
-    QString SerialNumber;   // string
-    QString ConfiguredMemoryClockSpeed;
+    QString FormFactor;
+    QString Type;
+    QString TypeDetails;
+    QString Size;
+    QString CurrentClockSpeed;
+    QString TotalWidth;
+    QString DataWidth;
+    QString DeviceLocator;
+    QString BankLocator;
+    QString Manufacturer;
+    QString SerialNumber;
+    QString PartNumber;
 }T17MemoryDeviceInformation, *PT17MemoryDeviceInformation;
 
 #endif

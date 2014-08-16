@@ -16,6 +16,7 @@ private:
 public:
     CType17MemoryDeviceInformation();
     ~CType17MemoryDeviceInformation();
+
     SMStructureType GetStructureType(void);
     int AddInformation(BYTE *pData);
     void *GetStructureData();

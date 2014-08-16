@@ -37,18 +37,26 @@ private:
     QList<DeviceDetails*>   m_qDeviceDetails;
     QStringList             m_qTopLevelItems;
 
+    QStandardItemModel      *m_pDeviceModel;
+    QStandardItemModel      *m_pDetailsModel;
+
     BOOL ResetInternalCounters();
     BOOL RetrieveDeviceDetails(DeviceDetails **);
     BOOL EnumerateDeviceInformation();
     BOOL GetDeviceRegistryProperty(DWORD, LPBYTE);
     BOOL GetClassDescription(LPWSTR);
 
+    BOOL InternalRefresh();
+
 public:
     CDeviceInfo();
     ~CDeviceInfo();
 
     QStandardItemModel *GetAllDeviceDetails();
-    QStandardItemModel *GetDeviceProperties(QString qzDeviceID);
+    QStandardItemModel *GetDeviceProperties();
+
+    void OnRefreshDevices();
+    void OnRefreshDetails(QString);
 };
 
 #endif

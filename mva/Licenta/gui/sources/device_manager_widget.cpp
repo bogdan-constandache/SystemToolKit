@@ -47,7 +47,7 @@ void CDeviceManagerWidget::OnSetTreeModelSlot(QStandardItemModel *pModel)
     ui->treeView->resizeColumnToContents(0);
     ui->treeView->sortByColumn(0, Qt::AscendingOrder);
 
-    emit OnShowWidget(this);
+//    emit OnShowWidget(this);
 }
 
 void CDeviceManagerWidget::OnSetDevicePropertiesSlot(QStandardItemModel *pModel)
@@ -77,21 +77,3 @@ void CDeviceManagerWidget::OnItemTreeClickedSlot(QModelIndex qIndex)
     }
 
 }
-
-//void CDeviceManagerWidget::OnPropertiesButtonClickedSlot()
-//{
-//    QModelIndexList qIndexList = ui->treeView->selectionModel()->selectedIndexes();
-//    if( 0 == qIndexList.count() )
-//        return;
-
-//    QStandardItemModel *pModel = dynamic_cast<QStandardItemModel*>(ui->treeView->model());
-//    QStandardItem *pItem = pModel->itemFromIndex(qIndexList.at(0));
-//    QString qzItemText = pItem->data().toString();
-
-//    if( "" == qzItemText )
-//        return;
-//    else
-//        emit OnRequestDeviceDetailsSignal(qzItemText);
-
-//    ui->treeViewProperties->show();
-//}

@@ -15,6 +15,7 @@ CSensorsWidget::CSensorsWidget(QWidget *parent, AbstractController *pController)
     ui->treeWidget->header()->setStretchLastSection(true);
     ui->treeWidget->header()->setDefaultAlignment(Qt::AlignLeft);
     ui->treeWidget->setColumnCount(2);
+    ui->treeWidget->setFocusPolicy(Qt::NoFocus);
 
     ui->treeWidget->setHeaderLabels(QStringList() << "Sensor" << "Value");
 
@@ -296,6 +297,7 @@ GPU_UPDATE:
 
 EXIT:;
 //    ExpandTreeAndResizeColumns();
+    emit OnShowWidget(this);
 }
 
 QTreeWidgetItem* CSensorsWidget::OnAddChildItem(QTreeWidgetItem *pParent, QString qzText1, QString qzText2)

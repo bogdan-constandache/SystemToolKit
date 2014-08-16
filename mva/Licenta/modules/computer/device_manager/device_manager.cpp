@@ -10,10 +10,16 @@ CDeviceInfo::CDeviceInfo()
     m_hDeviceInfo = SetupDiGetClassDevs(NULL, NULL, NULL, DIGCF_ALLCLASSES | DIGCF_PRESENT);
     if( INVALID_HANDLE_VALUE == m_hDeviceInfo )
         qDebug() << "SetupDiGetClassDevs - Failed";
+
+    m_pDeviceModel = new QStandardItemModel();
+    m_pDetailsModel = new QStandardItemModel();
 }
 
 CDeviceInfo::~CDeviceInfo()
 {
+    SAFE_DELETE(m_pDetailsModel);
+    SAFE_DELETE(m_pDeviceModel);
+
     if( m_hDeviceInfo )
     {
         SetupDiDestroyDeviceInfoList(m_hDeviceInfo);
@@ -37,6 +43,174 @@ BOOL CDeviceInfo::GetDeviceRegistryProperty(DWORD dwProperty, LPBYTE lpPropertyB
 BOOL CDeviceInfo::GetClassDescription(LPWSTR lpClassBuffer)
 {
     return SetupDiGetClassDescription(&m_pDeviceInfoData.ClassGuid, lpClassBuffer, MAX_PATH, NULL);
+}
+
+BOOL CDeviceInfo::InternalRefresh()
+{
+    BOOL bResult = ResetInternalCounters();
+    CHECK_OPERATION(bResult);
+
+    DeviceDetails *pDevDetails = 0;
+
+    while(EnumerateDeviceInformation())
+    {
+        GUID    Guid;
+        WCHAR   wBuff[1024] = {0};
+
+        bResult = GetDeviceRegistryProperty(SPDRP_CLASSGUID, (LPBYTE)wBuff);
+        CHECK_OPERATION(bResult);
+
+        CLSIDFromString(wBuff, &Guid);
+
+        pDevDetails = new DeviceDetails;
+
+        WCHAR szBuff[MAX_PATH] = {0};
+
+        if( InlineIsEqualGUID(Guid, GUID_SOUND) )
+        {
+            pDevDetails->qzParent = "Sound, video and game controllers";
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_AUDIO) )
+        {
+            pDevDetails->qzParent = ("Audio inputs and outputs");
+            GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_COMPUTER) )
+        {
+            pDevDetails->qzParent = "Computer";
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_DISKDRIVE) )
+        {
+            pDevDetails->qzParent = ("Disk drives");
+            GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_DISPLAY) )
+        {
+            pDevDetails->qzParent = ("Display adapters");
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_HIDCLASS) )
+        {
+            pDevDetails->qzParent = ("Human Interface Devices (HID)");
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_HDC) )
+        {
+            pDevDetails->qzParent = ("IDE ATA/ATAPI Controllers");
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_KEYBOARD) )
+        {
+            pDevDetails->qzParent = ("Keyboards");
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_MOUSE) )
+        {
+            pDevDetails->qzParent = ("Pointing devices");
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_MONITOR) )
+        {
+            pDevDetails->qzParent = ("Monitors");
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_NET) )
+        {
+            pDevDetails->qzParent = ("Network adapters");
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_WPD) )
+        {
+            pDevDetails->qzParent = ("Portable devices");
+            GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_PORTS) )
+        {
+            pDevDetails->qzParent = ("Ports (COM & LPT)");
+            GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_PRINTER) )
+        {
+            pDevDetails->qzParent = ("Print queues");
+            GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_PROCESSOR) )
+        {
+            pDevDetails->qzParent = ("Processors");
+            GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_SENSOR) )
+        {
+            pDevDetails->qzParent = ("Sensors");
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_USB) )
+        {
+            pDevDetails->qzParent = ("Universal Serial Bus controllers");
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_SYSTEM) )
+        {
+            pDevDetails->qzParent = ("System devices");
+            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
+            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
+        }
+
+        if( pDevDetails->qzDisplayName == "" )
+        {
+            SAFE_DELETE(pDevDetails);
+            continue;
+        }
+
+        DWORD dwJunk;
+        SetupDiGetDeviceInstanceId(m_hDeviceInfo, &m_pDeviceInfoData, szBuff, 2048, &dwJunk);
+        pDevDetails->qzID = QString::fromWCharArray(szBuff);
+
+        if( !m_qTopLevelItems.contains(pDevDetails->qzParent, Qt::CaseInsensitive) )
+            m_qTopLevelItems.append(pDevDetails->qzParent);
+
+        RetrieveDeviceDetails(&pDevDetails);
+
+        m_qDeviceDetails.append(pDevDetails);
+    }
+
+    return TRUE;
 }
 
 BOOL CDeviceInfo::ResetInternalCounters()
@@ -213,180 +387,29 @@ BOOL CDeviceInfo::RetrieveDeviceDetails(DeviceDetails **ppDevInfo)
 
 QStandardItemModel *CDeviceInfo::GetAllDeviceDetails()
 {
-    BOOL bResult = ResetInternalCounters();
+    return m_pDeviceModel;
+}
+
+QStandardItemModel *CDeviceInfo::GetDeviceProperties()
+{
+    return m_pDetailsModel;
+}
+
+void CDeviceInfo::OnRefreshDevices()
+{
+    BOOL bResult = InternalRefresh();
     CHECK_OPERATION(bResult);
 
     DeviceDetails *pDevDetails = 0;
-
-    while(EnumerateDeviceInformation())
-    {
-        GUID    Guid;
-        WCHAR   wBuff[1024] = {0};
-
-        bResult = GetDeviceRegistryProperty(SPDRP_CLASSGUID, (LPBYTE)wBuff);
-        CHECK_OPERATION(bResult);
-
-        CLSIDFromString(wBuff, &Guid);
-
-        pDevDetails = new DeviceDetails;
-
-        WCHAR szBuff[MAX_PATH] = {0};
-
-        if( InlineIsEqualGUID(Guid, GUID_SOUND) )
-        {
-            pDevDetails->qzParent = "Sound, video and game controllers";
-            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_AUDIO) )
-        {
-            pDevDetails->qzParent = ("Audio inputs and outputs");
-            GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_COMPUTER) )
-        {
-            pDevDetails->qzParent = "Computer";
-            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_DISKDRIVE) )
-        {
-            pDevDetails->qzParent = ("Disk drives");
-            GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_DISPLAY) )
-        {
-            pDevDetails->qzParent = ("Display adapters");
-            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_HIDCLASS) )
-        {
-            pDevDetails->qzParent = ("Human Interface Devices (HID)");
-            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_HDC) )
-        {
-            pDevDetails->qzParent = ("IDE ATA/ATAPI Controllers");
-            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_KEYBOARD) )
-        {
-            pDevDetails->qzParent = ("Keyboards");
-            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_MOUSE) )
-        {
-            pDevDetails->qzParent = ("Pointing devices");
-            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_MONITOR) )
-        {
-            pDevDetails->qzParent = ("Monitors");
-            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_NET) )
-        {
-            pDevDetails->qzParent = ("Network adapters");
-            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_WPD) )
-        {
-            pDevDetails->qzParent = ("Portable devices");
-            GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_PORTS) )
-        {
-            pDevDetails->qzParent = ("Ports (COM & LPT)");
-            GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_PRINTER) )
-        {
-            pDevDetails->qzParent = ("Print queues");
-            GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_PROCESSOR) )
-        {
-            pDevDetails->qzParent = ("Processors");
-            GetDeviceRegistryProperty(SPDRP_FRIENDLYNAME, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_SENSOR) )
-        {
-            pDevDetails->qzParent = ("Sensors");
-            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_USB) )
-        {
-            pDevDetails->qzParent = ("Universal Serial Bus controllers");
-            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( InlineIsEqualGUID(Guid, GUID_DEVCLASS_SYSTEM) )
-        {
-            pDevDetails->qzParent = ("System devices");
-            GetDeviceRegistryProperty(SPDRP_DEVICEDESC, (PBYTE)szBuff);
-            pDevDetails->qzDisplayName = QString::fromWCharArray(szBuff);
-        }
-
-        if( pDevDetails->qzDisplayName == "" )
-        {
-            SAFE_DELETE(pDevDetails);
-            continue;
-        }
-
-        DWORD dwJunk;
-        SetupDiGetDeviceInstanceId(m_hDeviceInfo, &m_pDeviceInfoData, szBuff, 2048, &dwJunk);
-        pDevDetails->qzID = QString::fromWCharArray(szBuff);
-
-        if( !m_qTopLevelItems.contains(pDevDetails->qzParent, Qt::CaseInsensitive) )
-            m_qTopLevelItems.append(pDevDetails->qzParent);
-
-        RetrieveDeviceDetails(&pDevDetails);
-
-        m_qDeviceDetails.append(pDevDetails);
-    }
-
-    // form tree
-    QStandardItemModel *pModel = new QStandardItemModel;
-    QStandardItem *pRoot = pModel->invisibleRootItem();
     QStandardItem *pItem = 0, *pItem2 = 0;
 
-    pModel->setHorizontalHeaderLabels(QStringList() << "Devices:");
+    m_pDeviceModel->clear();
+    m_pDeviceModel->setHorizontalHeaderLabels(QStringList() << "Devices:");
 
     for(int i = 0; i < m_qTopLevelItems.count(); i++)
     {
         pItem = new QStandardItem(m_qTopLevelItems.at(i));
-        pRoot->appendRow(pItem);
+        m_pDeviceModel->appendRow(pItem);
 
         for(int j = 0; j < m_qDeviceDetails.count(); j++)
         {
@@ -400,14 +423,12 @@ QStandardItemModel *CDeviceInfo::GetAllDeviceDetails()
             }
         }
     }
-
-    return pModel;
 }
 
-QStandardItemModel *CDeviceInfo::GetDeviceProperties(QString qzDeviceID)
+void CDeviceInfo::OnRefreshDetails(QString qzDeviceID)
 {
-    QStandardItemModel *pModel = new QStandardItemModel;
-    pModel->setHorizontalHeaderLabels(QStringList() << "Property" << "Value");
+    m_pDetailsModel->clear();
+    m_pDetailsModel->setHorizontalHeaderLabels(QStringList() << "Property" << "Value");
 
     DeviceDetails *pDevDetails = 0;
     int nCount = 0;
@@ -425,16 +446,14 @@ QStandardItemModel *CDeviceInfo::GetDeviceProperties(QString qzDeviceID)
         for(it = pDevDetails->qDetails.begin();
             it != pDevDetails->qDetails.end(); it++)
         {
-            pModel->setItem(nCount, 0, new QStandardItem(it.key()));
+            m_pDetailsModel->setItem(nCount, 0, new QStandardItem(it.key()));
             qzTemp = "";
             for(int j = 0; j < it.value().count(); j++)
                 qzTemp += it.value().at(j) + QString(", ");
             qzTemp.chop(2);
-            pModel->setItem(nCount++, 1, new QStandardItem(qzTemp == "" ? "N/A" : qzTemp));
+            m_pDetailsModel->setItem(nCount++, 1, new QStandardItem(qzTemp == "" ? "N/A" : qzTemp));
         }
     }
-
-    return pModel;
 }
 
 
