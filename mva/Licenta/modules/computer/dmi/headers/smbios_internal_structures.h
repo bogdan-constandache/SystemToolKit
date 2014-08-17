@@ -15,6 +15,7 @@ typedef enum
     BASEBOARD_INFORMATION_TYPE = 0x02,
     ENCLOSURE_INFORMATION_TYPE = 0x03,
     PROCESSOR_INFORMATION_TYPE = 0x04,
+    CACHE_INFORMATION_TYPE = 0x07,
     MEMORY_DEVICE_INFORMATION_TYPE = 0x11
 }SMStructureType;
 
@@ -145,6 +146,21 @@ typedef struct _SMBIOS_TYPE4_PROCESSOR_INFORMATION
     unsigned short      ProcessorCharacteristics;
     unsigned short      ProcessorFamily2;
 }Type4ProcessorInformation, *PType4ProcessorInformation;
+
+// type 7 CACHE INFORMATION
+typedef struct _SMBIOS_TYPE7_CACHE_INFORMATION
+{
+    unsigned char       SocketDesignation;
+    unsigned short      CacheConfiguration;
+    unsigned short      MaximumCacheSize;
+    unsigned short      InstalledSize;
+    unsigned short      SupportedSRAMType;
+    unsigned short      CurrentSRAMType;
+    unsigned char       CacheSpeed;
+    unsigned char       ErrorCorrectionType;
+    unsigned char       SystemCacheType;
+    unsigned char       Associativity;
+}Type7CacheInformation, *PType7CacheInformation;
 
 //type 17 MEMORY DEVICE INFORMATION
 typedef struct _SMBIOS_TYPE17_MEMORY_DEVICE_INFORMATION

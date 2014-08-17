@@ -18,8 +18,10 @@ CSMBiosEntryPoint::CSMBiosEntryPoint() : bBiosFound(false), m_pSmbiosTableData(0
     m_pStructsModel->item(3, 0)->setData(DMI_ENCLOSURE);
     m_pStructsModel->appendRow(new QStandardItem("CPU"));
     m_pStructsModel->item(4, 0)->setData(DMI_CPU);
+    m_pStructsModel->appendRow(new QStandardItem("Cache"));
+    m_pStructsModel->item(5, 0)->setData(DMI_CACHE);
     m_pStructsModel->appendRow(new QStandardItem("Memory devices"));
-    m_pStructsModel->item(5, 0)->setData(DMI_MEMORY_DEVICE);
+    m_pStructsModel->item(6, 0)->setData(DMI_MEMORY_DEVICE);
 }
 
 CSMBiosEntryPoint::~CSMBiosEntryPoint()
@@ -51,6 +53,7 @@ void CSMBiosEntryPoint::OnRefreshData(DMIModuleType ItemType)
     PT0BiosInformation pData0 = 0;
     PT3EnclosureInformation pData3 = 0;
     PT2BaseBoardInformation pData2 = 0;
+    PT7CacheInformation pData7 = 0;
     PT17MemoryDeviceInformation pData17 = 0;
 
     m_pDataModel->clear();
@@ -231,6 +234,54 @@ void CSMBiosEntryPoint::OnRefreshData(DMIModuleType ItemType)
             qList.clear();
 
             qList << new QStandardItem(QString("Core count:")) << new QStandardItem(pData->CoreCount == "" ? "N/A" : pData->CoreCount);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            m_pDataModel->appendRow(qList);
+        }
+
+        m_pDataModel->removeRow(m_pDataModel->rowCount() - 1);
+        break;
+
+    case DMI_CACHE:
+        qStructureList = GetStructure(CACHE_INFORMATION_TYPE);
+        for(it = qStructureList.begin(); it != qStructureList.end(); it++)
+        {
+            pData7 = (PT7CacheInformation)(*it)->GetStructureData();
+
+            qList << new QStandardItem(QString("Type:")) << new QStandardItem(pData7->Type == "" ? "N/A" : pData7->Type);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("System-cache type:")) << new QStandardItem(pData7->SystemCacheType == "" ? "N/A" : pData7->SystemCacheType);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Status:")) << new QStandardItem(pData7->Status == "" ? "N/A" : pData7->Status);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Operational mode:")) << new QStandardItem(pData7->OperationalMode == "" ? "N/A" : pData7->OperationalMode);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Associativity:")) << new QStandardItem(pData7->Associativity == "" ? "N/A" : pData7->Associativity);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Maximum size:")) << new QStandardItem(pData7->MaxSize == "" ? "N/A" : pData7->MaxSize);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Installed size:")) << new QStandardItem(pData7->InstalledSize == "" ? "N/A" : pData7->InstalledSize);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Error correction:")) << new QStandardItem(pData7->ErrorCorrection == "" ? "N/A" : pData7->ErrorCorrection);
+            m_pDataModel->appendRow(qList);
+            qList.clear();
+
+            qList << new QStandardItem(QString("Socket designation:")) << new QStandardItem(pData7->SocketDesignation == "" ? "N/A" : pData7->SocketDesignation);
             m_pDataModel->appendRow(qList);
             qList.clear();
 
@@ -544,6 +595,24 @@ int CSMBiosEntryPoint::ParseData()
     for(int k = 0; k < pTable.count(); k++)
     {
         pItem = new CType4ProcessorInformation;
+        if( 0 == pItem )
+        {
+            DEBUG_STATUS(NotAllocated);
+            return NotAllocated;
+        }
+        pItem->AddInformation(pTable.at(k));
+        qSMBiosData.append(pItem);
+    }
+    pTable.clear();
+
+    // cache information
+    if( '0' == m_pSmbiosVersion->Minor[0].toLatin1() )
+        pTable = ReturnTableOfTypeAndLength(CACHE_INFORMATION_TYPE, 0xF);
+    else
+        pTable = ReturnTableOfTypeAndLength(CACHE_INFORMATION_TYPE, 0x13);
+    for(int k = 0; k < pTable.count(); k++)
+    {
+        pItem = new CType7CacheInformation;
         if( 0 == pItem )
         {
             DEBUG_STATUS(NotAllocated);

@@ -99,6 +99,19 @@ typedef struct _T4_PROCESSOR_INFORMATION
     QString CurrentSpeed;
 }T4ProcessorInformation, *PT4ProcessorInformation;
 
+typedef struct _T7_CACHE_INFORMATION
+{
+    QString Type;
+    QString Status;
+    QString OperationalMode;
+    QString Associativity;
+    QString MaxSize;
+    QString InstalledSize;
+    QString ErrorCorrection;
+    QString SocketDesignation;
+    QString SystemCacheType;
+}T7CacheInformation, *PT7CacheInformation;
+
 typedef struct _T17_MEMORY_DEVICE_INFORMATION
 {
     QString FormFactor;

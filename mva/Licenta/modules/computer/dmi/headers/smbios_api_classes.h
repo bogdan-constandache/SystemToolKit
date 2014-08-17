@@ -5,6 +5,7 @@
 #include "type2_baseboard_information.h"
 #include "type3_enclosure_information.h"
 #include "type4_processor_information.h"
+#include "type7_cache_information.h"
 #include "type17_memory_device_information.h"
 
 #endif
