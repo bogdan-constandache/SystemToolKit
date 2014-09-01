@@ -8,7 +8,7 @@
 MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    m_pController(NULL), m_pAboutDialog(NULL),
+    m_pController(NULL), m_pAboutDialog(NULL), m_pSPDWidget(NULL),
     m_pItemTreeModel(NULL), m_pPowerManagementWidget(NULL),
     m_pApplicationManagerWidget(NULL), m_pDMIManagerWidget(NULL),
     m_pSMARTManagerWidget(NULL), m_pATAManagerWidget(NULL),
@@ -77,6 +77,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
             m_pController, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnSystemUsersOptClickedSignal()),
             m_pController, SLOT(OnUserInformationsOptClickedSlot()), Qt::QueuedConnection);
+    connect(this, SIGNAL(OnMotherboardSPDOptClickedSignal()),
+            m_pController, SLOT(OnSPDOptClickedSlot()), Qt::QueuedConnection);
 
     InitializeStackedWidget();
 
@@ -146,6 +148,9 @@ void MainWindow::InitializeStackedWidget()
     m_pUserInformationWidget = new CUserInformationWidget(ui->stackedWidget, m_pController);
     connect(m_pUserInformationWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
 
+    m_pSPDWidget = new CSPDWidget(ui->stackedWidget, m_pController);
+    connect(m_pSPDWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
+
     // Add widget to the stacked widget
     ui->stackedWidget->addWidget(m_pDMIManagerWidget);
     ui->stackedWidget->addWidget(m_pPowerManagementWidget);
@@ -161,6 +166,7 @@ void MainWindow::InitializeStackedWidget()
     ui->stackedWidget->addWidget(m_pStartupAppsWidget);
     ui->stackedWidget->addWidget(m_pDeviceManagerWidget);
     ui->stackedWidget->addWidget(m_pUserInformationWidget);
+    ui->stackedWidget->addWidget(m_pSPDWidget);
 
     // remove first to pages
     ui->stackedWidget->removeWidget(ui->page_2);
@@ -256,6 +262,12 @@ void MainWindow::OnItemsTreeClickedSlot(QModelIndex index)
     {
         qDebug() << "Sensors clicked";
         emit OnSensorsOptClickedSignal();
+    }
+    if( "SPD" == qzItemText )
+    {
+        qDebug() << "SPD clicked";
+        emit OnMotherboardSPDOptClickedSignal();
+        ui->stackedWidget->setCurrentWidget(m_pSPDWidget);
     }
 }
 

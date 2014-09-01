@@ -29,6 +29,7 @@ private: // internal objects
     Processes                   *m_pProcessesManager;
     CStartupApplication         *m_pStartupAppsManager;
     CSystemUsersInformation     *m_pUserInformationManager;
+    CSPDInformation             *m_pSPDManager;
 //    CNvidiaManager              *m_pNVidiaManager;
 
     CSensorModule *m_pSensorsManager;
@@ -70,6 +71,7 @@ public slots:
     virtual void OnCPUIDOptClickedSlot();
     virtual void OnSensorsOptClickedSlot();
     virtual void OnUserInformationsOptClickedSlot();
+    virtual void OnSPDOptClickedSlot();
 
     // Device manager slots()
     virtual void OnRequestDeviceDetailsSlot(QString);
@@ -77,13 +79,14 @@ public slots:
     // DMI slots()
     virtual void OnRequestDMIItemProperties(DMIModuleType);
 
+    // SPD slots()
+    virtual void OnRequestSPDDimmDetailsSlot(int);
+
     // ATA slots()
     virtual void OnRequestATAItemProperties(QString);
 
     // SMART slots()
     virtual void OnRequestSMARTProperties(QString);
-
-    // Power management slots()
 
     // Application manager slots()
     virtual void OnUninstallApplicationSlot(QString);

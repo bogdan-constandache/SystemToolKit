@@ -152,6 +152,62 @@ int CSTKDriverWrapper::WriteIoPortByte(ULONG ulPort, BYTE bValue)
     return Success;
 }
 
+int CSTKDriverWrapper::ReadIoPortDWORD(ULONG ulPort, DWORD *dwValue)
+{
+    ULONG ulBuffer = 0;
+    bool bResult = false;
+    DWORD dwBytesReturned = 0;
+
+    bResult = DeviceIoControl(m_hDriver,
+                              IOCTL_STK_READ_IO_PORT_DWORD,
+                              (LPVOID)&ulPort,
+                              sizeof(ULONG),
+                              (LPVOID)&ulBuffer,
+                              sizeof(ULONG),
+                              &dwBytesReturned,
+                              NULL);
+
+    if (false == bResult)
+    {
+        *dwValue = 0;
+        DEBUG_STATUS(Unsuccessful);
+        return Unsuccessful;
+    }
+
+    *dwValue = (ULONG) ulBuffer & 0xFFFFFFFF;
+
+    return Success;
+}
+
+int CSTKDriverWrapper::WriteIoPortDWORD(ULONG ulPort, ULONG dwValue)
+{
+    STK_IO_PORT_DWORD *pInput = new STK_IO_PORT_DWORD;
+    bool bResult = false;
+
+    pInput->ulPort = ulPort;
+    pInput->dwData = dwValue;
+
+    DWORD dwRetParam = 0;
+    DWORD dwBytesReceived = 0;
+
+    bResult = DeviceIoControl(m_hDriver,
+                              IOCTL_STK_WRITE_IO_PORT_DWORD,
+                              (LPVOID)pInput,
+                              sizeof(STK_IO_PORT_DWORD),
+                              &dwRetParam,
+                              sizeof(dwRetParam),
+                              &dwBytesReceived,
+                              NULL);
+
+    if (false == bResult)
+    {
+        DEBUG_STATUS(Unsuccessful);
+        return Unsuccessful;
+    }
+
+    return Success;
+}
+
 int CSTKDriverWrapper::ReadPCIConfiguration(ULONG ulPCIAddress, ULONG ulRegAddress, ULONG *ulValue)
 {
     if ((ulRegAddress & 3) != 0)

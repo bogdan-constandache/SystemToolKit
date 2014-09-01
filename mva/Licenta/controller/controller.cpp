@@ -1,5 +1,7 @@
 #include "controller.h"
 
+#pragma warning(disable:4996)
+
 void Controller::OnCreateComputerSummary()
 {
     bool bResult = false; int nStatus;
@@ -59,7 +61,7 @@ int Controller::OnLoadDriverFile()
     SC_HANDLE hSCManager;
     SC_HANDLE hService;
     SYSTEM_INFO SysInfo;
-    GetSystemInfo(&SysInfo);
+    GetNativeSystemInfo(&SysInfo);
     OSVERSIONINFOEX OsVersion;
     OsVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
     GetVersionEx((LPOSVERSIONINFO)&OsVersion);
@@ -189,6 +191,10 @@ int Controller::AssignStandardModelsToUi()
     // Battery status Models
     emit OnSetPowerManagementInformation(m_pBatteryStatus->GetBatteryInformation());
 
+    // SPD models
+    emit OnSetAvailableDIMMSInformation(m_pSPDManager->GetDimmsModel());
+    emit OnSetDimmSPDInformation(m_pSPDManager->GetDimmsInformationModel());
+
     return Success;
 }
 
@@ -197,16 +203,16 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL),
     m_pSensorsManager(NULL), m_pSensor(NULL), m_pSensorsTimer(NULL), m_pCpuSensor(NULL),
     m_pProcessesManager(NULL), m_pStartupAppsManager(NULL), m_pComputerSummaryModel(NULL), m_pDeviceManager(NULL),
-    m_pUserInformationManager(NULL), m_pUninstallerProcess(NULL)
+    m_pUserInformationManager(NULL), m_pUninstallerProcess(NULL), m_pSPDManager(NULL)
 {
     m_pSensorsTimer = new QTimer(this);
     connect(m_pSensorsTimer, SIGNAL(timeout()), this, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
 
     connect(this, SIGNAL(OnCancelSensorsTimerSignal()), this, SLOT(OnCancelSensorsTimerSlot()), Qt::QueuedConnection);
 
-//    m_pNVidiaManager = new CNvidiaManager();
-//    if( 0 == m_pNVidiaManager->GetPhysicalGPUCount() )
-//        SAFE_DELETE(m_pNVidiaManager);
+    OnLoadDriverFile();
+
+//    CSPDInformation pdata;
 
     // Create device manager obj
     m_pDeviceManager = new CDeviceInfo();
@@ -214,6 +220,9 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pDMIManager = new CSMBiosEntryPoint();
     // Create battery manager obj
     m_pBatteryStatus = new BatteryStatus();
+
+    // Create SPD manager obj
+    m_pSPDManager = new CSPDInformation();
 }
 
 Controller::~Controller()
@@ -231,6 +240,7 @@ Controller::~Controller()
     SAFE_DELETE(m_pProcessesManager);
     SAFE_DELETE(m_pStartupAppsManager);
     SAFE_DELETE(m_pUserInformationManager);
+    SAFE_DELETE(m_pSPDManager);
 //    SAFE_DELETE(m_pNVidiaManager);
 
     m_HDDModelToPhysicalDrive.clear();
@@ -258,8 +268,6 @@ void Controller::StartController()
         qDebug() << "Error initializing COM function CoinitializeEx: " << qzError;
         return;
     }
-
-    OnLoadDriverFile();
 
     // CREATE UNINSTALLER PROCESS
     m_pUninstallerProcess = new QProcessWrapper();
@@ -300,6 +308,8 @@ void Controller::StartController()
     pChildItem = new QStandardItem(QString("CPU"));
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("CPUID"));
+    qChildList.append(pChildItem);
+    pChildItem = new QStandardItem(QString("SPD"));
     qChildList.append(pChildItem);
 
     pDataItem->appendRows(qChildList);
@@ -384,7 +394,7 @@ void Controller::StartController()
             m_pCpuSensor = NULL;
         }
 
-    OnCreateComputerSummary();
+//    OnCreateComputerSummary();
 }
 
 void Controller::OnComputerDeviceManagerOptClickedSlot()
@@ -828,6 +838,14 @@ void Controller::OnUserInformationsOptClickedSlot()
         emit OnSetUsersInformations(pModel);
 }
 
+void Controller::OnSPDOptClickedSlot()
+{
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    // Do nothing - Model contains static data
+}
+
 void Controller::OnRequestDeviceDetailsSlot(QString qzDeviceID)
 {
     m_pDeviceManager->OnRefreshDetails(qzDeviceID);
@@ -840,6 +858,13 @@ void Controller::OnRequestDMIItemProperties(DMIModuleType ItemType)
     m_pDMIManager->OnRefreshData(ItemType);
 
     emit OnDMIPropertiesInformationDataChanged();
+}
+
+void Controller::OnRequestSPDDimmDetailsSlot(int nDimm)
+{
+    m_pSPDManager->OnRefreshData(nDimm);
+
+    emit OnSPDDimmInformationDataChanged();
 }
 
 void Controller::OnRequestATAItemProperties(QString qzModel)

@@ -8,6 +8,7 @@
 
 #include "motherboard/cpu/headers/intel_cpuid.h"
 #include "motherboard/memory/memory_data.h"
+#include "motherboard/memory/spd.h"
 //#include "motherboard/video-card/nvidia_card.h"
 
 #include "network/active-connections/active_connections.h"

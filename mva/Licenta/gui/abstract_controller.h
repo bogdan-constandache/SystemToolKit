@@ -37,6 +37,11 @@ signals:
     void OnSetPowerManagementInformation(QStandardItemModel *);
     void OnPowerManagementInformationDataChanged();
 
+    /*** SPD Manager Signals ***/
+    void OnSetAvailableDIMMSInformation(QStandardItemModel*);
+    void OnSetDimmSPDInformation(QStandardItemModel*);
+    void OnSPDDimmInformationDataChanged();
+
     void OnSetATAHDDItemsInformation(QStandardItemModel*);
     void OnSetATAItemPropertiesInformation(QStandardItemModel*);
     void OnSetSMARTHDDItemsInformation(QStandardItemModel*);
@@ -80,6 +85,7 @@ public slots:
     virtual void OnCPUIDOptClickedSlot() = 0;
     virtual void OnSensorsOptClickedSlot() = 0;
     virtual void OnUserInformationsOptClickedSlot() = 0;
+    virtual void OnSPDOptClickedSlot() = 0;
 
     // Device manager slots
     virtual void OnRequestDeviceDetailsSlot(QString) = 0;
@@ -87,13 +93,14 @@ public slots:
     // DMI slots
     virtual void OnRequestDMIItemProperties(DMIModuleType) = 0;
 
+    // SPD slots
+    virtual void OnRequestSPDDimmDetailsSlot(int) = 0;
+
     // ATA slots
     virtual void OnRequestATAItemProperties(QString) = 0;
 
     // SMART slots
     virtual void OnRequestSMARTProperties(QString) = 0;
-
-    // Power management slots
 
     // Application manager slots
     virtual void OnUninstallApplicationSlot(QString) = 0;

@@ -61,6 +61,11 @@ typedef struct STK_IO_PORT_INPUT {
     UCHAR   CharData;
 }STK_IO_PORT_INPUT;
 
+typedef struct STK_IO_PORT_DWORD {
+    ULONG   ulPort;
+    ULONG   dwData;
+}STK_IO_PORT_DWORD;
+
 typedef struct STK_READ_PCI_CONFIG_INPUT
 {
     ULONG ulPCIAddress;

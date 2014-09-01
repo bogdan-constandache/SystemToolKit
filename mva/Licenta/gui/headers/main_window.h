@@ -31,6 +31,7 @@
 #include "startup_apps_widget.h"
 #include "device_manager_widget.h"
 #include "user_information_widget.h"
+#include "spd_widget.h"
 
 namespace Ui {
 class MainWindow;
@@ -63,6 +64,7 @@ private:
     CStartupAppsWidget              *m_pStartupAppsWidget;
     CDeviceManagerWidget            *m_pDeviceManagerWidget;
     CUserInformationWidget          *m_pUserInformationWidget;
+    CSPDWidget                      *m_pSPDWidget;
 
     void InitializeStackedWidget();
 
@@ -94,6 +96,7 @@ signals:
     void OnCPUIDOptClickedSignal();
     void OnSensorsOptClickedSignal();
     void OnSystemUsersOptClickedSignal();
+    void OnMotherboardSPDOptClickedSignal();
 };
 
 #endif // MAINWINDOW_H
