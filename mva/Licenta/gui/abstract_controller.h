@@ -42,6 +42,15 @@ signals:
     void OnSetDimmSPDInformation(QStandardItemModel*);
     void OnSPDDimmInformationDataChanged();
 
+    /*** Video card Manager Signals ***/
+    void OnSetAvailableVCardsInformation(QStandardItemModel*);
+    void OnSetVCardInfromation(QStandardItemModel*);
+    void OnVideoCardInformationDataChanged();
+
+    /*** Operating system Manager Signals ***/
+    void OnSetOperatingSystemInformation(QStandardItemModel*);
+    void OnOperatingSystemInformationDataChanged();
+
     void OnSetATAHDDItemsInformation(QStandardItemModel*);
     void OnSetATAItemPropertiesInformation(QStandardItemModel*);
     void OnSetSMARTHDDItemsInformation(QStandardItemModel*);
@@ -86,6 +95,7 @@ public slots:
     virtual void OnSensorsOptClickedSlot() = 0;
     virtual void OnUserInformationsOptClickedSlot() = 0;
     virtual void OnSPDOptClickedSlot() = 0;
+    virtual void OnMotherboardVCardOptClickedSlot() = 0;
 
     // Device manager slots
     virtual void OnRequestDeviceDetailsSlot(QString) = 0;
@@ -95,6 +105,9 @@ public slots:
 
     // SPD slots
     virtual void OnRequestSPDDimmDetailsSlot(int) = 0;
+
+    // Video card slots
+    virtual void OnRequestVCardInformationSlot(int) = 0;
 
     // ATA slots
     virtual void OnRequestATAItemProperties(QString) = 0;

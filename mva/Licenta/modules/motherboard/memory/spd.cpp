@@ -56,6 +56,8 @@ CSPDInformation::CSPDInformation():
         }
     }
 
+    m_pDimmsModel->setHorizontalHeaderLabels(QStringList() << "Description:");
+
     // Fill main model
     QMap<int, SpdInformation*>::const_iterator it2;
     for(it2 = m_qDimmsInformation.begin(); it2 != m_qDimmsInformation.end(); it2++)
@@ -112,6 +114,8 @@ void CSPDInformation::OnRefreshData(int nDimm)
     SpdInformation *pData = m_qDimmsInformation[nDimm];
 
     m_pDimmInformationModel->clear();
+
+    m_pDimmInformationModel->setHorizontalHeaderLabels(QStringList() << "Field" << "Value");
 
     QList<QStandardItem*> qList;
 

@@ -25,11 +25,11 @@ LIBS += -lPdh
 LIBS += -lNetapi32
 LIBS += -lShell32
 
-#contains(QMAKE_TARGET.arch, x86_64) {
-#LIBS += -l$$PWD/modules/motherboard/video-card/api/nvidia-api/amd64/nvapi64
-#} else {
-#LIBS += -l$$PWD/modules/motherboard/video-card/api/nvidia-api/x86/nvapi
-#}
+contains(QMAKE_TARGET.arch, x86_64) {
+LIBS += -l$$PWD/modules/motherboard/video-card/api/nvidia-api/amd64/nvapi64
+} else {
+LIBS += -l$$PWD/modules/motherboard/video-card/api/nvidia-api/x86/nvapi
+}
 
 DEFINES += NOMINMAX
 DEFINES += STK_WINDOWS
@@ -82,13 +82,14 @@ SOURCES += main/main.cpp \
         modules/computer/sensors/sources/amd0f_temperature.cpp \
         modules/computer/sensors/sources/amd10_temperature.cpp \
         modules/computer/device_manager/device_manager.cpp \
-#    modules/motherboard/video-card/nvidia_card.cpp \
+        modules/motherboard/video-card/nvidia_card.cpp \
         modules/motherboard/memory/memory_data.cpp \
         modules/operating-system/system-users/system_users_information.cpp \
         modules/software/applications-manager/sources/process_wrapper.cpp \
         modules/computer/dmi/sources/type3_enclosure_information.cpp \
         modules/computer/dmi/sources/type7_cache_information.cpp \
         modules/motherboard/memory/spd.cpp \
+        modules/operating-system/summary/sources/operating_system.cpp \
         gui/sources/main_window.cpp \
         gui/sources/battery_status_widget.cpp \
         gui/sources/application_manager_widget.cpp \
@@ -105,7 +106,9 @@ SOURCES += main/main.cpp \
         gui/sources/startup_apps_widget.cpp \
         gui/sources/device_manager_widget.cpp \
         gui/sources/user_information_widget.cpp \
-        gui/sources/spd_widget.cpp
+        gui/sources/spd_widget.cpp \
+        gui/sources/video_card_widget.cpp \
+        gui/sources/operating_system_widget.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -156,8 +159,8 @@ HEADERS  += gui/abstract_controller.h \
         modules/computer/sensors/headers/amd0f_temperature.h \
         modules/computer/sensors/headers/amd10_temperature.h \
         modules/computer/device_manager/device_manager.h \
-#    modules/motherboard/video-card/video_structures.h \
-#    modules/motherboard/video-card/nvidia_card.h \
+        modules/motherboard/video-card/video_structures.h \
+        modules/motherboard/video-card/nvidia_card.h \
         modules/motherboard/memory/memory_data.h \
         modules/operating-system/system-users/system_users_information.h \
         modules/operating-system/system-users/system_users_information_structs.h \
@@ -166,6 +169,7 @@ HEADERS  += gui/abstract_controller.h \
         modules/computer/dmi/headers/type7_cache_information.h \
         modules/motherboard/memory/spd.h \
         modules/motherboard/memory/spd_defines.h \
+        modules/operating-system/summary/headers/operating_system.h \
         gui/headers/battery_status_widget.h \
         gui/headers/application_manager_widget.h \
         gui/headers/dmi_widget.h \
@@ -181,7 +185,9 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/startup_apps_widget.h \
         gui/headers/device_manager_widget.h \
         gui/headers/user_information_widget.h \
-        gui/headers/spd_widget.h
+        gui/headers/spd_widget.h \
+        gui/headers/video_card_widget.h \
+        gui/headers/operating_system_widget.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
@@ -200,7 +206,9 @@ FORMS    += \
         gui/forms/device_manager_widget.ui \
         gui/forms/about_dialog.ui \
         gui/forms/user_information_widget.ui \
-        gui/forms/spd_widget.ui
+        gui/forms/spd_widget.ui \
+        gui/forms/video_card_widget.ui \
+        gui/forms/operating_system_widget.ui
 
 OTHER_FILES += \
         resources/qss/main_dialog.qss \

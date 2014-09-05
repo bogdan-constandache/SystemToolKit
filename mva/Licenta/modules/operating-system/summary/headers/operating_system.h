@@ -9,6 +9,7 @@
 // Qt includes
 #include <QString>
 #include <QStringList>
+#include <QStandardItemModel>
 
 // My includes
 #include "../../../../utils/headers/utils.h"
@@ -22,21 +23,36 @@ typedef struct _OS_INFORMATION
     QString qszServicePack;
     QString qszInstallDate;
     QString qszRoot;
+    QString qszRegisteredOwner;
+    QString qszRegisteredOrganization;
+    QString qszProductID;
+    QString qszProductKey;
+    QString qszSystemBoot;
+    bool    bDBCS;
+    bool    bDebug;
+    bool    bIMM;
+    bool    bNetwork;
+    bool    bRemote;
+    bool    bTerminalServices;
+    bool    bSlowMachine;
+    bool    bSecure;
 }OSInformation;
 
-class OperatingSystem
+class COperatingSystemInformation
 {
 private:
     OSInformation *m_pOSInfo;
-public:
-    OperatingSystem();
-    ~OperatingSystem();
 
-    int Initialize();
-    int Destroy();
+    QStandardItemModel *m_pDataModel;
 
-private:
     int GetOSProperties();
+    QString DecodeProductKey(BYTE *bData);
+
+public:
+    COperatingSystemInformation();
+    ~COperatingSystemInformation();
+
+    QStandardItemModel* GetOSModelInformation();
 };
 
 #endif

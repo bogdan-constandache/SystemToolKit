@@ -14,7 +14,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     m_pSMARTManagerWidget(NULL), m_pATAManagerWidget(NULL),
     m_pSystemDriversWidget(NULL), m_pActiveConnectionsWidget(NULL),
     m_pNetworkDevicesWidget(NULL), m_pCPUIDWidget(NULL), m_pSensorsWidget(NULL),
-    m_pProcessesWidget(NULL), m_pStartupAppsWidget(NULL), m_pDeviceManagerWidget(NULL)
+    m_pProcessesWidget(NULL), m_pStartupAppsWidget(NULL), m_pDeviceManagerWidget(NULL),
+    m_pVideoCardWidget(NULL), m_pOperatingSystemWidget(NULL)
 {
     ui->setupUi(this);
     this->setMinimumWidth(1000);
@@ -79,6 +80,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
             m_pController, SLOT(OnUserInformationsOptClickedSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnMotherboardSPDOptClickedSignal()),
             m_pController, SLOT(OnSPDOptClickedSlot()), Qt::QueuedConnection);
+    connect(this, SIGNAL(OnMotherboardVideoCardOptClickedSignal()),
+            m_pController, SLOT(OnMotherboardVCardOptClickedSlot()), Qt::QueuedConnection);
 
     InitializeStackedWidget();
 
@@ -151,6 +154,12 @@ void MainWindow::InitializeStackedWidget()
     m_pSPDWidget = new CSPDWidget(ui->stackedWidget, m_pController);
     connect(m_pSPDWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
 
+    m_pVideoCardWidget = new CVideoCardWidget(ui->stackedWidget, m_pController);
+    connect(m_pVideoCardWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
+
+    m_pOperatingSystemWidget = new COperatingSystemWidget(ui->stackedWidget, m_pController);
+    connect(m_pOperatingSystemWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
+
     // Add widget to the stacked widget
     ui->stackedWidget->addWidget(m_pDMIManagerWidget);
     ui->stackedWidget->addWidget(m_pPowerManagementWidget);
@@ -167,6 +176,8 @@ void MainWindow::InitializeStackedWidget()
     ui->stackedWidget->addWidget(m_pDeviceManagerWidget);
     ui->stackedWidget->addWidget(m_pUserInformationWidget);
     ui->stackedWidget->addWidget(m_pSPDWidget);
+    ui->stackedWidget->addWidget(m_pVideoCardWidget);
+    ui->stackedWidget->addWidget(m_pOperatingSystemWidget);
 
     // remove first to pages
     ui->stackedWidget->removeWidget(ui->page_2);
@@ -202,6 +213,7 @@ void MainWindow::OnItemsTreeClickedSlot(QModelIndex index)
     {
         qDebug() << "Operating system clicked";
         emit OnOperatingSystemOptClickedSignal();
+        ui->stackedWidget->setCurrentWidget(m_pOperatingSystemWidget);
     }
     if( "Processes" == qzItemText )
     {
@@ -268,6 +280,12 @@ void MainWindow::OnItemsTreeClickedSlot(QModelIndex index)
         qDebug() << "SPD clicked";
         emit OnMotherboardSPDOptClickedSignal();
         ui->stackedWidget->setCurrentWidget(m_pSPDWidget);
+    }
+    if( "Video card" == qzItemText )
+    {
+        qDebug() << "Video card clicked";
+        emit OnMotherboardVideoCardOptClickedSignal();
+        ui->stackedWidget->setCurrentWidget(m_pVideoCardWidget);
     }
 }
 

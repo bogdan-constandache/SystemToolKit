@@ -32,6 +32,8 @@
 #include "device_manager_widget.h"
 #include "user_information_widget.h"
 #include "spd_widget.h"
+#include "video_card_widget.h"
+#include "operating_system_widget.h"
 
 namespace Ui {
 class MainWindow;
@@ -65,6 +67,8 @@ private:
     CDeviceManagerWidget            *m_pDeviceManagerWidget;
     CUserInformationWidget          *m_pUserInformationWidget;
     CSPDWidget                      *m_pSPDWidget;
+    CVideoCardWidget                *m_pVideoCardWidget;
+    COperatingSystemWidget          *m_pOperatingSystemWidget;
 
     void InitializeStackedWidget();
 
@@ -97,6 +101,7 @@ signals:
     void OnSensorsOptClickedSignal();
     void OnSystemUsersOptClickedSignal();
     void OnMotherboardSPDOptClickedSignal();
+    void OnMotherboardVideoCardOptClickedSignal();
 };
 
 #endif // MAINWINDOW_H

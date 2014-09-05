@@ -30,12 +30,14 @@ private: // internal objects
     CStartupApplication         *m_pStartupAppsManager;
     CSystemUsersInformation     *m_pUserInformationManager;
     CSPDInformation             *m_pSPDManager;
-//    CNvidiaManager              *m_pNVidiaManager;
+    CNvidiaManager              *m_pNVidiaManager;
+    COperatingSystemInformation *m_pOperatingSystemManager;
 
     CSensorModule *m_pSensorsManager;
     ISensor *m_pSensor;
     ICPUSensor *m_pCpuSensor;
     QTimer *m_pSensorsTimer;
+    QTimer *m_pGPUTimer;
 
     QMap<QString, QString> m_HDDModelToPhysicalDrive;
 
@@ -72,6 +74,7 @@ public slots:
     virtual void OnSensorsOptClickedSlot();
     virtual void OnUserInformationsOptClickedSlot();
     virtual void OnSPDOptClickedSlot();
+    virtual void OnMotherboardVCardOptClickedSlot();
 
     // Device manager slots()
     virtual void OnRequestDeviceDetailsSlot(QString);
@@ -81,6 +84,9 @@ public slots:
 
     // SPD slots()
     virtual void OnRequestSPDDimmDetailsSlot(int);
+
+    // Video card slots()
+    virtual void OnRequestVCardInformationSlot(int);
 
     // ATA slots()
     virtual void OnRequestATAItemProperties(QString);
@@ -102,6 +108,7 @@ signals:
 
 private slots:
     void OnCancelSensorsTimerSlot();
+    void OnRefreshVCardInformations();
     void OnUninstallApplicationErrorReportSlot(QString);
 };
 

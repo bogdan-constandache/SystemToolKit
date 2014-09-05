@@ -33,8 +33,6 @@ void CBatteryStatusWidget::OnSetTreeModel(QStandardItemModel *pModel)
 {
     if (pModel)
         ui->treeView->setModel(pModel);
-
-//    emit OnShowWidget(this);
 }
 
 void CBatteryStatusWidget::OnDataChangedSlot()

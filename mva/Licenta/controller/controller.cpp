@@ -195,6 +195,13 @@ int Controller::AssignStandardModelsToUi()
     emit OnSetAvailableDIMMSInformation(m_pSPDManager->GetDimmsModel());
     emit OnSetDimmSPDInformation(m_pSPDManager->GetDimmsInformationModel());
 
+    // Nvidia models
+    emit OnSetAvailableVCardsInformation(m_pNVidiaManager->GetPhysicalGPUModel());
+    emit OnSetVCardInfromation(m_pNVidiaManager->GetGPUDetailsModel());
+
+    // Operating system models
+    emit OnSetOperatingSystemInformation(m_pOperatingSystemManager->GetOSModelInformation());
+
     return Success;
 }
 
@@ -203,16 +210,16 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL),
     m_pSensorsManager(NULL), m_pSensor(NULL), m_pSensorsTimer(NULL), m_pCpuSensor(NULL),
     m_pProcessesManager(NULL), m_pStartupAppsManager(NULL), m_pComputerSummaryModel(NULL), m_pDeviceManager(NULL),
-    m_pUserInformationManager(NULL), m_pUninstallerProcess(NULL), m_pSPDManager(NULL)
+    m_pUserInformationManager(NULL), m_pUninstallerProcess(NULL), m_pSPDManager(NULL), m_pOperatingSystemManager(NULL)
 {
     m_pSensorsTimer = new QTimer(this);
     connect(m_pSensorsTimer, SIGNAL(timeout()), this, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
+    m_pGPUTimer = new QTimer(this);
+    connect(m_pGPUTimer, SIGNAL(timeout()), this, SLOT(OnRefreshVCardInformations()), Qt::QueuedConnection);
 
     connect(this, SIGNAL(OnCancelSensorsTimerSignal()), this, SLOT(OnCancelSensorsTimerSlot()), Qt::QueuedConnection);
 
     OnLoadDriverFile();
-
-//    CSPDInformation pdata;
 
     // Create device manager obj
     m_pDeviceManager = new CDeviceInfo();
@@ -223,6 +230,12 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
 
     // Create SPD manager obj
     m_pSPDManager = new CSPDInformation();
+
+    // Create nvidia manager obj
+    m_pNVidiaManager = new CNvidiaManager();
+
+    // Create operating system manager obj
+    m_pOperatingSystemManager = new COperatingSystemInformation();
 }
 
 Controller::~Controller()
@@ -241,7 +254,8 @@ Controller::~Controller()
     SAFE_DELETE(m_pStartupAppsManager);
     SAFE_DELETE(m_pUserInformationManager);
     SAFE_DELETE(m_pSPDManager);
-//    SAFE_DELETE(m_pNVidiaManager);
+    SAFE_DELETE(m_pNVidiaManager);
+    SAFE_DELETE(m_pOperatingSystemManager);
 
     m_HDDModelToPhysicalDrive.clear();
 
@@ -310,6 +324,8 @@ void Controller::StartController()
     pChildItem = new QStandardItem(QString("CPUID"));
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("SPD"));
+    qChildList.append(pChildItem);
+    pChildItem = new QStandardItem(QString("Video card"));
     qChildList.append(pChildItem);
 
     pDataItem->appendRows(qChildList);
@@ -432,7 +448,10 @@ void Controller::OnHddInformationOptClickedSlot()
 
 void Controller::OnOperatingSystemOptClickedSlot()
 {
-    qDebug() << __FUNCTION__;
+    emit OnCancelSensorsTimerSignal();
+
+    // Do nothing - Model contains static data
+    emit OnOperatingSystemInformationDataChanged();
 }
 
 void Controller::OnProcessesOptClickedSlot()
@@ -846,6 +865,11 @@ void Controller::OnSPDOptClickedSlot()
     // Do nothing - Model contains static data
 }
 
+void Controller::OnMotherboardVCardOptClickedSlot()
+{
+    emit OnCancelSensorsTimerSignal();
+}
+
 void Controller::OnRequestDeviceDetailsSlot(QString qzDeviceID)
 {
     m_pDeviceManager->OnRefreshDetails(qzDeviceID);
@@ -865,6 +889,17 @@ void Controller::OnRequestSPDDimmDetailsSlot(int nDimm)
     m_pSPDManager->OnRefreshData(nDimm);
 
     emit OnSPDDimmInformationDataChanged();
+}
+
+void Controller::OnRequestVCardInformationSlot(int nIndex)
+{
+    m_pNVidiaManager->OnRefreshData(nIndex);
+
+    m_pGPUTimer->setProperty("VCardIndex", nIndex);
+    if (!m_pGPUTimer->isActive())
+        m_pGPUTimer->start(750);
+
+    emit OnVideoCardInformationDataChanged();
 }
 
 void Controller::OnRequestATAItemProperties(QString qzModel)
@@ -985,6 +1020,14 @@ void Controller::OnRequestModulesInformationsSlot(int nPid)
 void Controller::OnCancelSensorsTimerSlot()
 {
     m_pSensorsTimer->stop();
+    m_pGPUTimer->stop();
+}
+
+void Controller::OnRefreshVCardInformations()
+{
+    m_pNVidiaManager->OnRefreshData(m_pGPUTimer->property("VCardIndex").toInt());
+
+    emit OnVideoCardInformationDataChanged();
 }
 
 void Controller::OnUninstallApplicationErrorReportSlot(QString qzErrorMessage)
