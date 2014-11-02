@@ -9,20 +9,27 @@
 // QT includes
 #include <QStringList>
 #include <QDebug>
+#include <QStandardItemModel>
 
 // My includes
 #include "cpuid_defines.h"
-#include "../utils/utils.h"
+#include "../../../../utils/headers/utils.h"
 
 // Defines
 
-class CAMDCpuID
+class CAMDCpuID : public ICpuId
 {
 private:
     PCpuIDInformation m_data;
+    QStandardItemModel *m_pDataModel;
+
+private:
+    int Initialize();
+
 public:
     CAMDCpuID();
     ~CAMDCpuID();
+    virtual QStandardItemModel* GetCPUIDInformations();
 };
 
 #endif

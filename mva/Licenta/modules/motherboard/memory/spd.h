@@ -57,6 +57,9 @@ private:
     int ReadDDR3Informations(int nDIMM);
     int InterpretDDR3SPDArray(BYTE *pbArray, int nDimm);
 
+    int ReadDDR2Informations(int nDIMM);
+    int InterpretDDR2SPDArray(BYTE *pbArray, int nDimm);
+
     int CollectSPDInformations();
     BOOL CheckIfDIMMIsAvailable(int nDIMM);
     int CollectDIMMSType();
@@ -65,6 +68,7 @@ private:
 
     int ReadManufacturersDataFromDB();
     ManufacturerDetails *GetManufacturerDetails(int nContinuation, int nManufacturerID);
+    ManufacturerDetails *GetManufacturerDetails(int nManufacturerID);
 };
 
 #endif

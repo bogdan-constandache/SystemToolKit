@@ -16,6 +16,8 @@ CUserInformationWidget::CUserInformationWidget(QWidget *parent, AbstractControll
 
     connect(m_pController, SIGNAL(OnSetUsersInformations(QStandardItemModel*)),
             this, SLOT(OnSetTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnUserInformationDataChanged()),
+            this, SLOT(OnUserInformationDataChangedSlot()), Qt::QueuedConnection);
 }
 
 CUserInformationWidget::~CUserInformationWidget()
@@ -23,13 +25,16 @@ CUserInformationWidget::~CUserInformationWidget()
     delete ui;
 }
 
-
 void CUserInformationWidget::OnSetTreeModel(QStandardItemModel *pModel)
 {
     if (pModel)
         ui->treeView->setModel(pModel);
-    ui->treeView->resizeColumnToContents(0);
-    ui->treeView->resizeColumnToContents(1);
+    ui->treeView->setColumnWidth(0, 175);
+}
+
+void CUserInformationWidget::OnUserInformationDataChangedSlot()
+{
+    ui->treeView->setColumnWidth(0, 175);
 
     emit OnShowWidget(this);
 }

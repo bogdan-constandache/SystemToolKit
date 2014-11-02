@@ -14,6 +14,7 @@ CDeviceManagerWidget::CDeviceManagerWidget(QWidget *parent, AbstractController *
     ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->treeView->header()->setStretchLastSection(true);
     ui->treeView->header()->setDefaultAlignment(Qt::AlignLeft);
+    ui->treeView->setFocusPolicy(Qt::NoFocus);
 
     ui->treeViewProperties->setBaseSize(this->width(), 160);
     ui->treeViewProperties->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -22,12 +23,19 @@ CDeviceManagerWidget::CDeviceManagerWidget(QWidget *parent, AbstractController *
     ui->treeViewProperties->header()->setStretchLastSection(true);
     ui->treeViewProperties->header()->setDefaultAlignment(Qt::AlignLeft);
     ui->treeViewProperties->hide();
+    ui->treeViewProperties->setFocusPolicy(Qt::NoFocus);
 
+    ui->treeViewProperties->show();
 
     connect(m_pController, SIGNAL(OnSetDeviceManagerInformation(QStandardItemModel*)),
             this, SLOT(OnSetTreeModelSlot(QStandardItemModel*)), Qt::QueuedConnection);
     connect(m_pController, SIGNAL(OnSetDevicePropertiesInformation(QStandardItemModel*)),
             this, SLOT(OnSetDevicePropertiesSlot(QStandardItemModel*)), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnDeviceManagerInformationDataChanged()),
+            this, SLOT(OnDevicesCategoryDataChangedSlot()), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnDevicePropertiesInformationChanged()),
+            this, SLOT(OnItemProperiesDataChangedSlot()), Qt::QueuedConnection);
+
     connect(ui->treeView, SIGNAL(clicked(QModelIndex)),
             this, SLOT(OnItemTreeClickedSlot(QModelIndex)), Qt::QueuedConnection);
     connect(this, SIGNAL(OnRequestDeviceDetailsSignal(QString)),
@@ -46,8 +54,6 @@ void CDeviceManagerWidget::OnSetTreeModelSlot(QStandardItemModel *pModel)
         ui->treeView->setModel(pModel);
     ui->treeView->resizeColumnToContents(0);
     ui->treeView->sortByColumn(0, Qt::AscendingOrder);
-
-//    emit OnShowWidget(this);
 }
 
 void CDeviceManagerWidget::OnSetDevicePropertiesSlot(QStandardItemModel *pModel)
@@ -68,12 +74,23 @@ void CDeviceManagerWidget::OnItemTreeClickedSlot(QModelIndex qIndex)
     ui->treeViewProperties->reset();
     if( "" == qzItemText )
     {
-        ui->treeViewProperties->hide();
+//        ui->treeViewProperties->hide();
     }
     else
     {
-        ui->treeViewProperties->show();
+//        ui->treeViewProperties->show();
         emit OnRequestDeviceDetailsSignal( qzItemText );
     }
 
+}
+
+void CDeviceManagerWidget::OnDevicesCategoryDataChangedSlot()
+{
+    emit OnShowWidget(this);
+}
+
+void CDeviceManagerWidget::OnItemProperiesDataChangedSlot()
+{
+    ui->treeViewProperties->resizeColumnToContents(0);
+    ui->treeViewProperties->resizeColumnToContents(1);
 }

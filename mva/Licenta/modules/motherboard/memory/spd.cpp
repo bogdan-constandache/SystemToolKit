@@ -30,13 +30,18 @@ CSPDInformation::CSPDInformation():
     int nStatus = m_pDriver->Initialize();
     CHECK_OPERATION_STATUS(nStatus);
 
-    m_dwDataAddr = 0x8000fb20; // INTEL only;
+    if( AMD_CHIPSET_VENDOR_STRING == GetChipsetType() )
+        m_dwDataAddr = 0x8000A090;
+    else if( INTEL_CHIPSET_VENDOR_STRING == GetChipsetType() )
+        m_dwDataAddr = 0x8000fb20;
+    else
+        return;
 
     nStatus = m_pDriver->WriteIoPortDWORD(IO_CONFIG_SPACE_CONTROL_ADDRESS, m_dwDataAddr);
     CHECK_OPERATION_STATUS(nStatus);
     nStatus = m_pDriver->ReadIoPortDWORD(IO_CONFIG_SPACE_DATA_ADDRESS, &m_dwPortVal);
 
-    m_dwBaseAddr = m_dwPortVal & 0xFFFFFFF0;
+    m_dwBaseAddr = (m_dwPortVal & 0xFFFFFFF0);
 
     nStatus = ReadManufacturersDataFromDB();
     CHECK_OPERATION_STATUS(nStatus);
@@ -53,6 +58,8 @@ CSPDInformation::CSPDInformation():
         {
             if( it.value() == DDR3 )
                 ReadDDR3Informations(it.key());
+            if( it.value() == DDR2 )
+                ReadDDR2Informations(it.key());
         }
     }
 
@@ -147,6 +154,17 @@ void CSPDInformation::OnRefreshData(int nDimm)
     m_pDimmInformationModel->appendRow(qList); qList.clear();
     qList << new QStandardItem("ECC method: ") << new QStandardItem(pData->qsECCMethod);
     m_pDimmInformationModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("");
+    m_pDimmInformationModel->appendRow(qList); qList.clear();
+    qList << new QStandardItem("Memory timings:");
+    m_pDimmInformationModel->appendRow(qList); qList.clear();
+    for( int i = 0; i < pData->qTimings.count(); i++ )
+    {
+        QString qsTiming = pData->qTimings.at(i);
+        qList << new QStandardItem(qsTiming.split(":").first()) << new QStandardItem(qsTiming.split(":").last());
+        m_pDimmInformationModel->appendRow(qList); qList.clear();
+    }
 }
 
 BYTE CSPDInformation::ReadSPDByte(DWORD dwBase, BYTE bOffset, BYTE bDevID)
@@ -383,6 +401,225 @@ int CSPDInformation::InterpretDDR3SPDArray(BYTE *pbArray, int nDimm)
     pData->qsName = QString(DIMM_TO_STRING(nDimm)) + QString(": ") + pData->qsManufacturer + " " + pData->qsPartNumber;
 
     m_qDimmsInformation.insert(nDimm, pData);
+
+    return Success;
+}
+
+int CSPDInformation::InterpretDDR2SPDArray(BYTE *pbArray, int nDimm)
+{
+    SpdInformation *pData = new SpdInformation;
+    CHECK_ALLOCATION_STATUS(pData);
+    BYTE bCurrentVal = 0, bAdditional = 0;
+
+    // SPD total size - BYTE 1 -> log2(sizeof SPD)
+    bCurrentVal = pbArray[1];
+    pData->qsSPDSize.sprintf("%d Bytes", (int)pow(2, (double)bCurrentVal));
+
+    // SPD revision - BYTE 62
+    bCurrentVal = pbArray[62];
+    switch( bCurrentVal )
+    {
+    case 0x0:
+        pData->qsSPDVersion = "0.0"; break;
+    case 0x10:
+        pData->qsSPDVersion = "1.0"; break;
+    case 0x11:
+        pData->qsSPDVersion = "1.1"; break;
+    case 0x12:
+        pData->qsSPDVersion = "1.2"; break;
+    case 0x13:
+        pData->qsSPDVersion = "1.3"; break;
+    default:
+        pData->qsSPDVersion = "Undefined"; break;
+    }
+
+    // DATA Width - BYTE 6
+    bCurrentVal = pbArray[6];
+    pData->qsModuleBusWidth.sprintf("%d bits", bCurrentVal);
+
+    // DRAM device type - BYTE 2
+    bCurrentVal = pbArray[2];
+    pData->qsDeviceType = DIMM_TYPE(bCurrentVal);
+
+    // Module type - BYTE 20
+    bCurrentVal = pbArray[20];
+    pData->qsModuleType = MODULE_DDR2_TYPE(bCurrentVal);
+
+    // Voltage - BYTE 8
+    bCurrentVal = pbArray[8];
+    pData->qsModuleVoltage = MODULE_DDR2_VOLTAGE(bCurrentVal);
+
+    // Size
+    BYTE bPrimaryDataWidth = pbArray[13];
+    BYTE bRows = pbArray[3] & 0x1F;
+    BYTE bColumns = pbArray[4] & 0x0F;
+    BYTE bRanks = (pbArray[5] & 0x07) + 1;
+    BYTE bBanks = pbArray[17];
+
+    DWORD dwSize = bPrimaryDataWidth * (1ULL << bRows) * (1ULL << bColumns) * bBanks * bRanks;
+    pData->qsSize.sprintf("%d MB", (dwSize / (1024 * 1024)));
+
+    // ECC - BYTE 11
+    pData->qsECCMethod = "None";
+    if( pbArray[11] & 0x1 )
+        pData->qsECCMethod = "Data parity";
+    if( (pbArray[11] >> 1) & 0x1 )
+        pData->qsECCMethod = "Data ECC";
+
+    // CAS Latency - BYTE 18
+    bCurrentVal = pbArray[18];
+    pData->qsCASLatencies = "CL ";
+    if( bCurrentVal & 0x1 )
+        pData->qsCASLatencies.append("N/A, ");
+    if( bCurrentVal & 0x2 )
+        pData->qsCASLatencies.append("N/A, ");
+    if( bCurrentVal & 0x4 )
+        pData->qsCASLatencies.append("2, ");
+    if( bCurrentVal & 0x8 )
+        pData->qsCASLatencies.append("3, ");
+    if( bCurrentVal & 0x10 )
+        pData->qsCASLatencies.append("4, ");
+    if( bCurrentVal & 0x20 )
+        pData->qsCASLatencies.append("5, ");
+    if( bCurrentVal & 0x40 )
+        pData->qsCASLatencies.append("6, ");
+    if( bCurrentVal & 0x80 )
+        pData->qsCASLatencies.append("7, ");
+    pData->qsCASLatencies.chop(2);
+
+    // SDRAM Device type - BYTE  N/A
+    pData->qsSDRAMDeviceType = "N/A";
+
+    // Module manufaturer - BYTE  64~71
+    BYTE bContinuation = 0;
+    for( bContinuation = 0; bContinuation < 7; bContinuation++ )
+    {
+        if( pbArray[64 + bContinuation] != 0x7F )
+            break;
+    }
+    ManufacturerDetails *pDetails = GetManufacturerDetails(bContinuation + 1, pbArray[64 + bContinuation]);
+    if( pDetails )
+        pData->qsManufacturer = pDetails->qsManufacturer;
+    else
+        pData->qsManufacturer = "N/A";
+
+    // Module manufacturing date - BYTE  93, 94
+    pData->qsManufactureDate = "Week $1, Year $2";
+    QString qsYear = "20$1$2", qsWeek = "$1$2";
+
+    bCurrentVal = (pbArray[93] & 0xF0) >> 4;
+    qsYear.replace("$1", QString().sprintf("%d", bCurrentVal));
+    bCurrentVal = (pbArray[93] & 0xF);
+    qsYear.replace("$2", QString().sprintf("%d", bCurrentVal));
+
+    bCurrentVal = (pbArray[94] & 0xF0) >> 4;
+    qsWeek.replace("$1", QString().sprintf("%d", bCurrentVal));
+    bCurrentVal = (pbArray[94] & 0xF);
+    qsWeek.replace("$2", QString().sprintf("%d", bCurrentVal));
+
+    pData->qsManufactureDate.replace("$1", qsWeek);
+    pData->qsManufactureDate.replace("$2", qsYear);
+
+    // Serial number - BYTE 95, 96, 97, 98
+    DWORD dwSerial = 0;
+    dwSerial |= pbArray[95] << 24;
+    dwSerial |= pbArray[96] << 16;
+    dwSerial |= pbArray[97] << 8;
+    dwSerial |= pbArray[98];
+    pData->qsSerial.sprintf("%Xh", dwSerial);
+
+    // Part number - BYTE 128-145
+    for(int i = 73; i <= 90; i++)
+    {
+        CHAR chLetter = DecodeASCIICharacter(((pbArray[i] & 0xF0) >> 4), (pbArray[i] & 0xF));
+        QString qsLetter = QString(chLetter);
+        pData->qsPartNumber += qsLetter;
+    }
+    if( pData->qsPartNumber.trimmed().isEmpty() )
+        pData->qsPartNumber = "N/A";
+
+    // Name - Manufacturer - Partnumber;
+    pData->qsName = QString(DIMM_TO_STRING(nDimm)) + QString(": ") + pData->qsManufacturer + " " + (pData->qsPartNumber != "N/A" ?
+                pData->qsPartNumber : "");
+
+    BYTE bCASSupported = pbArray[18] & 0xFC;
+    int i = 0;
+    for( i = 7; i >= 0; i-- )
+    {
+        if( bCASSupported & (1 << i) )
+            break;
+    }
+    BYTE bMaxCL = i;
+
+    double bRP = ((pbArray[27] & 0xFC) >> 2) + ((pbArray[27] & 0x3) * 0.25);
+    double bRCD = ((pbArray[29] & 0xFC) >> 2) + ((pbArray[29] & 0x3) * 0.25);
+    double bRAS = pbArray[30];
+
+    DWORD dwFreq = MODULE_DDR2_FREQ_INT(pbArray[9]);
+    double dClockNS = 0;
+    MODULE_DDR2_GET_FREQ_CLOCK_NS(dwFreq, dClockNS);
+
+    int nRP = ceil(bRP / dClockNS);
+    int nRCD = ceil(bRCD / dClockNS);
+    int nRAS  = ceil(bRAS / dClockNS);
+
+    QString qsTiming;
+    qsTiming = QString().sprintf("@ %dMHz: %d-%d-%d-%d (CL-RCD-RP-RAS)", dwFreq, bMaxCL, nRCD, nRP, nRAS);
+    pData->qTimings.append(qsTiming);
+
+    if( bCASSupported & (1 << (bMaxCL - 1)) )
+    {
+        bCurrentVal = pbArray[23];
+        dwFreq = MODULE_DDR2_FREQ_INT(pbArray[23]);
+        MODULE_DDR2_GET_FREQ_CLOCK_NS(dwFreq, dClockNS);
+
+        nRP = ceil(bRP / dClockNS);
+        nRCD = ceil(bRCD / dClockNS);
+        nRAS  = ceil(bRAS / dClockNS);
+
+
+        qsTiming = QString().sprintf("@ %dMHz: %d-%d-%d-%d (CL-RCD-RP-RAS)", dwFreq, bMaxCL - 1, nRCD, nRP, nRAS);
+        pData->qTimings.append(qsTiming);
+    }
+
+    if( bCASSupported & (1 << (bMaxCL - 2)) )
+    {
+        dwFreq = MODULE_DDR2_FREQ_INT(pbArray[25]);
+        MODULE_DDR2_GET_FREQ_CLOCK_NS(dwFreq, dClockNS);
+
+        nRP = ceil(bRP / dClockNS);
+        nRCD = ceil(bRCD / dClockNS);
+        nRAS  = ceil(bRAS / dClockNS);
+
+
+        qsTiming = QString().sprintf("@ %dMHz: %d-%d-%d-%d (CL-RCD-RP-RAS)", dwFreq, bMaxCL - 2, nRCD, nRP, nRAS);
+        pData->qTimings.append(qsTiming);
+    }
+
+    m_qDimmsInformation.insert(nDimm, pData);
+
+    return Success;
+}
+
+int CSPDInformation::ReadDDR2Informations(int nDIMM)
+{
+    switch( nDIMM )
+    {
+    case DIMM0:
+        if( !m_bIsDIMM0Present ) return Unsuccessful;
+        InterpretDDR2SPDArray(m_pDIMM0SPD, nDIMM); break;
+    case DIMM1:
+        if( !m_bIsDIMM1Present ) return Unsuccessful;
+        InterpretDDR2SPDArray(m_pDIMM1SPD, nDIMM); break;
+    case DIMM2:
+        if( !m_bIsDIMM2Present ) return Unsuccessful;
+        InterpretDDR2SPDArray(m_pDIMM2SPD, nDIMM); break;
+    case DIMM3:
+        if( !m_bIsDIMM3Present ) return Unsuccessful;
+        InterpretDDR2SPDArray(m_pDIMM3SPD, nDIMM); break;
+    default:
+        return Unsuccessful;
+    }
 
     return Success;
 }
@@ -641,6 +878,19 @@ ManufacturerDetails *CSPDInformation::GetManufacturerDetails(int nContinuation, 
     for(it = m_qManufacturerDetails.begin(); it != m_qManufacturerDetails.end(); it++)
     {
         if( (*it)->nContinuation == nContinuation && (*it)->nManufacturerID == nManufacturerID )
+            return (*it);
+    }
+
+    return 0;
+}
+
+ManufacturerDetails *CSPDInformation::GetManufacturerDetails(int nManufacturerID)
+{
+    QList<ManufacturerDetails*>::const_iterator it;
+
+    for(it = m_qManufacturerDetails.begin(); it != m_qManufacturerDetails.end(); it++)
+    {
+        if( (*it)->nManufacturerID == nManufacturerID )
             return (*it);
     }
 

@@ -4,7 +4,7 @@
 CATAWidget::CATAWidget(QWidget *parent, AbstractController *pController) :
     QWidget(parent),
     ui(new Ui::CATAWidget),
-    m_pController(NULL), m_pPropertiesModel(NULL)
+    m_pController(NULL)
 {
     ui->setupUi(this);
     m_pController = pController;
@@ -14,11 +14,13 @@ CATAWidget::CATAWidget(QWidget *parent, AbstractController *pController) :
     ui->propertiesTree->header()->setStretchLastSection(true);
     ui->propertiesTree->header()->setDefaultAlignment(Qt::AlignLeft);
     ui->propertiesTree->setRootIsDecorated(false);
+    ui->propertiesTree->setFocusPolicy(Qt::NoFocus);
 
     ui->hddTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->hddTree->header()->setStretchLastSection(true);
     ui->hddTree->header()->setDefaultAlignment(Qt::AlignLeft);
     ui->hddTree->setRootIsDecorated(false);
+    ui->hddTree->setFocusPolicy(Qt::NoFocus);
 
     // connects
     connect(ui->hddTree, SIGNAL(clicked(QModelIndex)),
@@ -29,6 +31,10 @@ CATAWidget::CATAWidget(QWidget *parent, AbstractController *pController) :
             this, SLOT(OnSetHddItemsTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
     connect(m_pController, SIGNAL(OnSetATAItemPropertiesInformation(QStandardItemModel*)),
             this, SLOT(OnSetPropertiesTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnATAHDDInformationDataChanged()),
+            this, SLOT(OnATAHddDataChanged()), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnATAItemPropertiesDataChanged()),
+            this, SLOT(OnATAItemPropDataChanged()), Qt::QueuedConnection);
 }
 
 CATAWidget::~CATAWidget()
@@ -48,35 +54,32 @@ void CATAWidget::OnSetHddItemsTreeModel(QStandardItemModel *pModel)
         ui->hddTree->setFixedHeight(100);
     else
         ui->hddTree->setFixedHeight(nTableSize);
-
-    if( NULL != m_pPropertiesModel )
-    {
-        delete m_pPropertiesModel;
-        m_pPropertiesModel = NULL;
-    }
-
-    ui->propertiesTree->reset();
-
-
-    emit OnShowWidget(this);
 }
 
 void CATAWidget::OnSetPropertiesTreeModel(QStandardItemModel *pModel)
 {
     if (pModel)
-    {
         ui->propertiesTree->setModel(pModel);
-        m_pPropertiesModel = pModel;
-    }
-    ui->propertiesTree->resizeColumnToContents(0);
-    ui->propertiesTree->resizeColumnToContents(1);
+
+    ui->propertiesTree->setColumnWidth(0, 150);
 }
 
 void CATAWidget::OnHddTreeItemClicked(QModelIndex Index)
 {
     QStandardItemModel *pModel = dynamic_cast<QStandardItemModel*>(ui->hddTree->model());
     QStandardItem *pItem = pModel->itemFromIndex(Index);
-    QString qzItemText = pItem->text();
 
-    emit OnRequestHddProperties(qzItemText);
+    QVariant qvData = pItem->data(ATA_HDD_ID_TAG);
+    if( qvData.isValid() )
+        emit OnRequestHddProperties(qvData.toString());
+}
+
+void CATAWidget::OnATAHddDataChanged()
+{
+    emit OnShowWidget(this);
+}
+
+void CATAWidget::OnATAItemPropDataChanged()
+{
+    ui->propertiesTree->setColumnWidth(0, 175);
 }

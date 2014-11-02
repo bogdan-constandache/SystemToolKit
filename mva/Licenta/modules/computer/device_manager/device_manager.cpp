@@ -2,7 +2,7 @@
 #include <QDebug>
 
 #define SAFE_DELETE(X) if(X) { delete X; X = 0; }
-#define CHECK_OPERATION(X) if(!X) { qDebug() << "Operation failed - line: " << __LINE__; }
+#define CHECK_OPERATION(X) if(!X) { qDebug() << "DeviceManager: Operation failed - line: " << __LINE__; }
 
 CDeviceInfo::CDeviceInfo()
 {
@@ -431,8 +431,9 @@ void CDeviceInfo::OnRefreshDetails(QString qzDeviceID)
     m_pDetailsModel->setHorizontalHeaderLabels(QStringList() << "Property" << "Value");
 
     DeviceDetails *pDevDetails = 0;
-    int nCount = 0;
     QString qzTemp = "";
+
+    QList<QStandardItem*> qList;
 
     QMap<QString, QStringList>::iterator it;
 
@@ -446,13 +447,19 @@ void CDeviceInfo::OnRefreshDetails(QString qzDeviceID)
         for(it = pDevDetails->qDetails.begin();
             it != pDevDetails->qDetails.end(); it++)
         {
-            m_pDetailsModel->setItem(nCount, 0, new QStandardItem(it.key()));
+            qList << new QStandardItem(it.key());
             qzTemp = "";
             for(int j = 0; j < it.value().count(); j++)
                 qzTemp += it.value().at(j) + QString(", ");
             qzTemp.chop(2);
-            m_pDetailsModel->setItem(nCount++, 1, new QStandardItem(qzTemp == "" ? "N/A" : qzTemp));
+            qList << new QStandardItem(qzTemp == "" ? "N/A" : qzTemp);
+
+            m_pDetailsModel->appendRow(qList);
+
+            qList.clear();
         }
+
+        break;
     }
 }
 

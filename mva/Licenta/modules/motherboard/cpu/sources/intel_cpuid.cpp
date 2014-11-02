@@ -1,9 +1,65 @@
 #include "../headers/intel_cpuid.h"
 
 
-CIntelCpuID::CIntelCpuID() : m_data(0)
+CIntelCpuID::CIntelCpuID() : m_data(0), m_pDataModel(NULL)
 {
     m_data = new CpuIDInformation();
+
+    int nStatus = Initialize();
+    CHECK_OPERATION_STATUS(nStatus);
+
+    m_pDataModel = new QStandardItemModel();
+    m_pDataModel->setHorizontalHeaderLabels(QStringList() << "Field" << "Value");
+
+    QList<QStandardItem*> qList;
+
+    qList << new QStandardItem("Processor type: ") << new QStandardItem(m_data->ProcessorType);
+    m_pDataModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Manufacturer: ") << new QStandardItem(m_data->Manufacturer);
+    m_pDataModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Name: ") << new QStandardItem(m_data->CPUName);
+    m_pDataModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Stepping: ") << new QStandardItem(m_data->Stepping);
+    m_pDataModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Family: ") << new QStandardItem(m_data->Family);
+    m_pDataModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Model: ") << new QStandardItem(m_data->Model);
+    m_pDataModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Extended family: ") << new QStandardItem(m_data->ExtendedFamily);
+    m_pDataModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Extended model: ") << new QStandardItem(m_data->ExtendedModel);
+    m_pDataModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Max clock: ") << new QStandardItem(m_data->MaxClock);
+    m_pDataModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Multiplier: ") << new QStandardItem(m_data->MinMultiplier);
+    m_pDataModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("") << new QStandardItem("");
+    m_pDataModel->appendRow(qList); qList.clear();
+
+    foreach(PCacheInformation pInf, m_data->CacheInformation)
+    {
+        qList << new QStandardItem(pInf->Level + ", " + pInf->Type) << new QStandardItem(pInf->Size + ", " + pInf->Descriptor);
+        m_pDataModel->appendRow(qList); qList.clear();
+    }
+
+    qList << new QStandardItem("") << new QStandardItem("");
+    m_pDataModel->appendRow(qList); qList.clear();
+
+    foreach(CpuInstruction *pInstr, m_data->Instructions)
+    {
+        qList << new QStandardItem(pInstr->qzName) << new QStandardItem(pInstr->qzDescription);
+        m_pDataModel->appendRow(qList); qList.clear();
+    }
 }
 
 CIntelCpuID::~CIntelCpuID()
@@ -20,94 +76,17 @@ CIntelCpuID::~CIntelCpuID()
         }
         m_data->CacheInformation.clear();
         m_data->Instructions.clear();
+
         delete m_data;
         m_data = 0;
     }
+
+    SAFE_DELETE(m_pDataModel);
 }
 
 QStandardItemModel *CIntelCpuID::GetCPUIDInformations()
 {
-    // delete internal object
-    if (0 != m_data)
-    {
-        for(int i = 0; i < m_data->CacheInformation.count(); i++)
-        {
-            delete m_data->CacheInformation.at(i);
-        }
-        for(int i = 0; i < m_data->Instructions.count(); i++)
-        {
-            delete m_data->Instructions.at(i);
-        }
-        m_data->CacheInformation.clear();
-        m_data->Instructions.clear();
-        delete m_data;
-        m_data = 0;
-    }
-
-    m_data = new CpuIDInformation;
-
-    if (Success != Initialize())
-        return 0;
-
-    QStandardItemModel *pModel = new QStandardItemModel;
-
-    pModel->setColumnCount(2);
-    pModel->setRowCount(14 + m_data->Instructions.count() + m_data->CacheInformation.count());
-
-    pModel->setHorizontalHeaderLabels(QStringList() << "Field" << "Value");
-
-    pModel->setItem(0, 0, new QStandardItem("Processor type: "));
-    pModel->setItem(0, 1, new QStandardItem(m_data->ProcessorType));
-
-    pModel->setItem(1, 0, new QStandardItem("Manufacturer: "));
-    pModel->setItem(1, 1, new QStandardItem(m_data->Manufacturer));
-
-    pModel->setItem(2, 0, new QStandardItem("Name: "));
-    pModel->setItem(2, 1, new QStandardItem(m_data->CPUName));
-
-    pModel->setItem(3, 0, new QStandardItem("Stepping: "));
-    pModel->setItem(3, 1, new QStandardItem(m_data->Stepping));
-
-    pModel->setItem(4, 0, new QStandardItem("Revision: "));
-    pModel->setItem(4, 1, new QStandardItem(m_data->Revision));
-
-    pModel->setItem(5, 0, new QStandardItem("Family: "));
-    pModel->setItem(5, 1, new QStandardItem(m_data->Family));
-
-    pModel->setItem(6, 0, new QStandardItem("Model: "));
-    pModel->setItem(6, 1, new QStandardItem(m_data->Model));
-
-    pModel->setItem(7, 0, new QStandardItem("Extended family: "));
-    pModel->setItem(7, 1, new QStandardItem(m_data->ExtendedFamily));
-
-    pModel->setItem(8, 0, new QStandardItem("Extended model: "));
-    pModel->setItem(8, 1, new QStandardItem(m_data->ExtendedModel));
-
-    pModel->setItem(9, 0, new QStandardItem("Max clock: "));
-    pModel->setItem(9, 1, new QStandardItem(m_data->MaxClock));
-
-    pModel->setItem(10, 0, new QStandardItem("Min multiplier: "));
-    pModel->setItem(10, 1, new QStandardItem(m_data->MinMultiplier));
-
-    pModel->setItem(11, 0, new QStandardItem("Max multiplier: "));
-    pModel->setItem(11, 1, new QStandardItem(m_data->MaxMultiplier));
-
-    for(int i = 0; i < m_data->CacheInformation.count(); i++)
-    {
-        PCacheInformation pInf = m_data->CacheInformation.at(i);
-        pModel->setItem(i + 13, 0, new QStandardItem(pInf->Level + ", " +
-                                                     pInf->Type));
-        pModel->setItem(i + 13, 1, new QStandardItem(pInf->Size + ", " +
-                                                     pInf->Descriptor));
-    }
-
-    for(int i = 0; i < m_data->Instructions.count(); i++)
-    {
-        pModel->setItem(i + 14 + m_data->CacheInformation.count(), 0, new QStandardItem(m_data->Instructions.at(i)->qzName));
-        pModel->setItem(i + 14 + m_data->CacheInformation.count(), 1, new QStandardItem(m_data->Instructions.at(i)->qzDescription));
-    }
-
-    return pModel;
+    return m_pDataModel;
 }
 
 int CIntelCpuID::Initialize()
@@ -155,15 +134,15 @@ int CIntelCpuID::Initialize()
     // determine stepping, model, family, extended family, extended model and revision
     __cpuid(CPUInfo, 1);
     RegisterValue = CPUInfo[0] & 0xF;
-    m_data->Stepping = QString().setNum(RegisterValue);
+    m_data->Stepping = QString().sprintf("0x%.2x", RegisterValue);
     RegisterValue = (CPUInfo[0] >> 4) & 0xF;
-    m_data->Model = QString().setNum(RegisterValue);
+    m_data->Model = QString().sprintf("0x%.2x", RegisterValue);
     RegisterValue = (CPUInfo[0] >> 8) & 0xF;
-    m_data->Family = QString().setNum(RegisterValue);
+    m_data->Family = QString().sprintf("0x%.2x", RegisterValue);
     RegisterValue = (CPUInfo[0] >> 16) & 0xF;
-    m_data->ExtendedFamily = QString().setNum(RegisterValue);
+    m_data->ExtendedFamily = QString().sprintf("0x%.2x", RegisterValue);
     RegisterValue = (CPUInfo[0] >> 20) & 0xFF;
-    m_data->ExtendedModel = QString().setNum(RegisterValue);
+    m_data->ExtendedModel = QString().sprintf("0x%.2x", RegisterValue);
 
     // getting processor type EAX[12:13]
     switch((CPUInfo[0] >> 12) & 0x03)

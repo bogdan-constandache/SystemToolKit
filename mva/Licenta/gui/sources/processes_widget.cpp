@@ -14,6 +14,11 @@ CProcessesWidget::CProcessesWidget(QWidget *parent, AbstractController *pControl
     ui->treeWProcesses->setSelectionBehavior(QTreeView::SelectRows);
     ui->treeWProcesses->setRootIsDecorated(false);
 
+    ui->treeWDlls->setSelectionMode(QTreeView::SingleSelection);
+    ui->treeWDlls->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->treeWDlls->setSelectionBehavior(QTreeView::SelectRows);
+    ui->treeWDlls->setRootIsDecorated(false);
+
     connect(m_pController, SIGNAL(OnSetProcessesInformations(QStandardItemModel*)),
             this, SLOT(OnSetProcessTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
     connect(this, SIGNAL(OnRequestModuleInformationSignal(int)),
@@ -22,6 +27,10 @@ CProcessesWidget::CProcessesWidget(QWidget *parent, AbstractController *pControl
             this, SLOT(OnSetModuleTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
     connect(ui->treeWProcesses, SIGNAL(clicked(QModelIndex)),
             this, SLOT(OnProcessNamesItemClickedSlot(QModelIndex)), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnProcessInformationDataChanged()),
+            this, SLOT(OnProcessesDataChanged()), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnProcessModuleInformationDataChanged()),
+            this, SLOT(OnModulesDataChanged()), Qt::QueuedConnection);
 }
 
 CProcessesWidget::~CProcessesWidget()
@@ -33,19 +42,32 @@ void CProcessesWidget::OnProcessNamesItemClickedSlot(QModelIndex Index)
 {
     QStandardItemModel *pModel = dynamic_cast<QStandardItemModel*>(ui->treeWProcesses->model());
     QStandardItem *pItem = pModel->itemFromIndex(Index);
-    QString qzItemText = pItem->statusTip();
+    QVariant qVar = pItem->data();
 
-    emit OnRequestModuleInformationSignal(qzItemText.toInt());
+    if( qVar.isValid() )
+        emit OnRequestModuleInformationSignal(qVar.toInt());
 }
 
 void CProcessesWidget::OnSetProcessTreeModel(QStandardItemModel *pModel)
 {
     ui->treeWProcesses->setModel(pModel);
-
-    emit OnShowWidget(this);
 }
 
 void CProcessesWidget::OnSetModuleTreeModel(QStandardItemModel *pModel)
 {
     ui->treeWDlls->setModel(pModel);
+}
+
+void CProcessesWidget::OnProcessesDataChanged()
+{
+    ui->treeWProcesses->setColumnWidth(0, 150);
+    ui->treeWProcesses->setColumnWidth(1, 225);
+
+    emit OnShowWidget(this);
+}
+
+void CProcessesWidget::OnModulesDataChanged()
+{
+    ui->treeWDlls->setColumnWidth(0, 150);
+    ui->treeWDlls->setColumnWidth(1, 400);
 }

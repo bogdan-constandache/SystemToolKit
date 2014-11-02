@@ -86,14 +86,16 @@ int Controller::OnLoadDriverFile()
     else if( SysInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_INTEL )
         qzDriverPath += "stk_driver.sys";
 
+    qzDriverPath.replace("/", "\\");
+
     WCHAR *lpDriverPath = CharArrayToWcharArray(qzDriverPath.toLatin1().data());
     if( NULL == lpDriverPath )
-        return Unsuccessful;
+        CHECK_OPERATION_STATUS_EX(Unsuccessful);
 
     // Create service
     hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
     if( NULL == hSCManager )
-        return Unsuccessful;
+        CHECK_OPERATION_STATUS_EX(Unsuccessful);
 
     hService = CreateService(hSCManager, L"STKSensorService", L"STKSensorService",
                              SERVICE_START, SERVICE_KERNEL_DRIVER, SERVICE_DEMAND_START,
@@ -105,15 +107,15 @@ int Controller::OnLoadDriverFile()
         if( ERROR_SERVICE_EXISTS != GetLastError() )
         {
             CloseServiceHandle(hSCManager);
-            return Unsuccessful;
+            CHECK_OPERATION_STATUS_EX(Unsuccessful);
         }
         else
         {
-            hService = OpenService(hSCManager, L"STKSensorService", SERVICE_START);
+            hService = OpenService(hSCManager, L"STKSensorService", SERVICE_ALL_ACCESS);
             if( NULL == hService )
             {
                 CloseServiceHandle(hSCManager);
-                return Unsuccessful;
+                CHECK_OPERATION_STATUS_EX(Unsuccessful);
             }
         }
     }
@@ -121,11 +123,13 @@ int Controller::OnLoadDriverFile()
     bResult = StartService(hService, 0, NULL);
     if( FALSE == bResult  )
     {
-        if( ERROR_SERVICE_ALREADY_RUNNING != GetLastError() )
+        DWORD dwLastError = GetLastError();
+        if( ERROR_SERVICE_ALREADY_RUNNING != dwLastError )
         {
             CloseServiceHandle(hService);
             CloseServiceHandle(hSCManager);
-            return Unsuccessful;
+            qDebug() << "LastErr: " << dwLastError;
+            CHECK_OPERATION_STATUS_EX(Unsuccessful);
         }
     }
 
@@ -191,6 +195,9 @@ int Controller::AssignStandardModelsToUi()
     // Battery status Models
     emit OnSetPowerManagementInformation(m_pBatteryStatus->GetBatteryInformation());
 
+    // CPUID manager models
+    emit OnSetCPUIDInformations(m_pCPUIDManager->GetCPUIDDataModel()); // HEAP CORRUPTION
+
     // SPD models
     emit OnSetAvailableDIMMSInformation(m_pSPDManager->GetDimmsModel());
     emit OnSetDimmSPDInformation(m_pSPDManager->GetDimmsInformationModel());
@@ -202,24 +209,53 @@ int Controller::AssignStandardModelsToUi()
     // Operating system models
     emit OnSetOperatingSystemInformation(m_pOperatingSystemManager->GetOSModelInformation());
 
+    // System users models
+    emit OnSetUsersInformations(m_pUserInformationManager->GetUserInformations());
+
+    // System drivers models
+    emit OnSetSystemDriversModelInformation(m_pSystemDriversManager->GetSystemDriversInformation());
+
+    // Process manager models
+    emit OnSetProcessesInformations(m_pProcessesManager->GetProcessesInformations());
+    emit OnSetModulesInformations(m_pProcessesManager->GetModulesInformationsForProcess());
+
+    // Storage ATA models
+    emit OnSetATAHDDItemsInformation(m_pATAHdds);
+    emit OnSetATAItemPropertiesInformation(m_pATAProp);
+
+    // Storage SMART models
+    emit OnSetSMARTHDDItemsInformation(m_pSmartManager->GetAvailableHDD());
+    emit OnSetSMARTItemPropertiesInformation(m_pSmartManager->GetSMARTPropertiesForHDD());
+
+    // Active connections models
+    emit OnSetActiveConnectionsInformation(m_pActiveConnectionsManager->GetActiveConnections());
+
+    // Network devices models
+    emit OnSetNetworkDevicesNames(m_pNetworkDevicesManager->GetAdapterNames());
+    emit OnSetNetworkDeviceInformation(m_pNetworkDevicesManager->GetAdapterInformations());
+
+    // Startup applications models
+    emit OnSetStartupApplicationsInformations(m_pStartupAppsManager->GetDataModel());
+
     return Success;
 }
 
 Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pDMIManager(NULL), m_pSmartManager(NULL), m_pSystemDriversManager(NULL),
     m_pActiveConnectionsManager(NULL), m_pNetworkDevicesManager(NULL), m_pCPUIDManager(NULL),
-    m_pSensorsManager(NULL), m_pSensor(NULL), m_pSensorsTimer(NULL), m_pCpuSensor(NULL),
+    m_pSensorsManager(NULL), m_pSensor(NULL), m_pSensorsTimer(NULL), m_pCpuSensor(NULL), m_pNVidiaManager(NULL),
     m_pProcessesManager(NULL), m_pStartupAppsManager(NULL), m_pComputerSummaryModel(NULL), m_pDeviceManager(NULL),
-    m_pUserInformationManager(NULL), m_pUninstallerProcess(NULL), m_pSPDManager(NULL), m_pOperatingSystemManager(NULL)
+    m_pUserInformationManager(NULL), m_pUninstallerProcess(NULL), m_pSPDManager(NULL), m_pOperatingSystemManager(NULL),
+    m_pATAHdds(NULL), m_pATAProp(NULL)
 {
     m_pSensorsTimer = new QTimer(this);
-    connect(m_pSensorsTimer, SIGNAL(timeout()), this, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
+    connect(m_pSensorsTimer, SIGNAL(timeout()), this, SLOT(OnComputerSensorsOptClickedSlot()), Qt::QueuedConnection);
     m_pGPUTimer = new QTimer(this);
     connect(m_pGPUTimer, SIGNAL(timeout()), this, SLOT(OnRefreshVCardInformations()), Qt::QueuedConnection);
 
     connect(this, SIGNAL(OnCancelSensorsTimerSignal()), this, SLOT(OnCancelSensorsTimerSlot()), Qt::QueuedConnection);
 
-    OnLoadDriverFile();
+    qDebug() << "DriverLoading status: " << OnLoadDriverFile();
 
     // Create device manager obj
     m_pDeviceManager = new CDeviceInfo();
@@ -228,6 +264,8 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     // Create battery manager obj
     m_pBatteryStatus = new BatteryStatus();
 
+    // Create CPUID manager obj
+    m_pCPUIDManager = new CCPUIDManager(); // HEAP CORRUPTION
     // Create SPD manager obj
     m_pSPDManager = new CSPDInformation();
 
@@ -236,6 +274,42 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
 
     // Create operating system manager obj
     m_pOperatingSystemManager = new COperatingSystemInformation();
+    // Create system users manager obj
+    m_pUserInformationManager = new CSystemUsersInformation();
+    // Create system drivers manager obj
+    m_pSystemDriversManager = new SystemDrivers();
+    // Create process manager obj
+    m_pProcessesManager = new Processes();
+
+    // Create ATA objects
+    m_pATAHdds = new QStandardItemModel();
+    m_pATAProp = new QStandardItemModel();
+    // Populate hdd list
+    QStringList qHddList = GetPhysicalDrivesList();
+    m_pATAHdds->setHorizontalHeaderLabels(QStringList() << "Devices:");
+    foreach(QString qsDrive, qHddList)
+    {
+        ATADeviceProperties *pProperty = GetATADeviceProperties(qsDrive.toStdWString().c_str());
+        if( NULL == pProperty )
+            continue;
+        QStandardItem *pStandardItem = new QStandardItem(pProperty->Model);
+        pStandardItem->setData(qsDrive, ATA_HDD_ID_TAG);
+        pStandardItem->setIcon(QIcon(":/img/hdd.png"));
+
+        m_pATAHdds->appendRow(pStandardItem);
+
+        delete pProperty;
+    }
+    // Create SMART manager obj
+    m_pSmartManager = new CSmartInfo();
+
+    // Create Active connection manager obj
+    m_pActiveConnectionsManager = new CActiveConnections();
+    // Create Network devices manager obj
+    m_pNetworkDevicesManager = new CNetworkDevices();
+
+    // Create Startup manager obj
+    m_pStartupAppsManager = new CStartupManager(/*this*/);
 }
 
 Controller::~Controller()
@@ -248,7 +322,7 @@ Controller::~Controller()
     SAFE_DELETE(m_pSystemDriversManager);
     SAFE_DELETE(m_pActiveConnectionsManager);
     SAFE_DELETE(m_pNetworkDevicesManager);
-    SAFE_DELETE(m_pCPUIDManager);
+//    SAFE_DELETE(m_pCPUIDManager); // HEAP CORRUPTION
     SAFE_DELETE(m_pSensorsManager)
     SAFE_DELETE(m_pProcessesManager);
     SAFE_DELETE(m_pStartupAppsManager);
@@ -256,6 +330,9 @@ Controller::~Controller()
     SAFE_DELETE(m_pSPDManager);
     SAFE_DELETE(m_pNVidiaManager);
     SAFE_DELETE(m_pOperatingSystemManager);
+
+    SAFE_DELETE(m_pATAHdds);
+    SAFE_DELETE(m_pATAProp);
 
     m_HDDModelToPhysicalDrive.clear();
 
@@ -304,12 +381,16 @@ void Controller::StartController()
     qList.append(pDataItem);
 
     pChildItem = new QStandardItem(QString("Device manager"));
+    pChildItem->setData(COMPUTER_DEVICE_MANAGER_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("DMI"));
+    pChildItem->setData(COMPUTER_DMI_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("Power management"));
+    pChildItem->setData(COMPUTER_POWER_MANAGEMENT_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("Sensors"));
+    pChildItem->setData(COMPUTER_SENSORS_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
 
 
@@ -320,12 +401,13 @@ void Controller::StartController()
     qList.append(pDataItem);
 
     pChildItem = new QStandardItem(QString("CPU"));
-    qChildList.append(pChildItem);
-    pChildItem = new QStandardItem(QString("CPUID"));
+    pChildItem->setData(MOTHERBOARD_CPU_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("SPD"));
+    pChildItem->setData(MOTHERBOARD_SPD_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("Video card"));
+    pChildItem->setData(MOTHERBOARD_VIDEO_CARD_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
 
     pDataItem->appendRows(qChildList);
@@ -335,12 +417,16 @@ void Controller::StartController()
     qList.append(pDataItem);
 
     pChildItem = new QStandardItem(QString("Operating system"));
+    pChildItem->setData(OPERATING_SYSTEM_SUMMARY_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("Processes"));
+    pChildItem->setData(OPERATING_SYSTEM_PROCESSES_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("System drivers"));
+    pChildItem->setData(OPERATING_SYSTEM_SYSTEM_DRIVERS_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("System users"));
+    pChildItem->setData(OPERATING_SYSTEM_USERS_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
 
     pDataItem->appendRows(qChildList);
@@ -350,9 +436,10 @@ void Controller::StartController()
     qList.append(pDataItem);
 
     pChildItem = new QStandardItem(QString("ATA"));
+    pChildItem->setData(STORAGE_ATA_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
-
     pChildItem = new QStandardItem(QString("SMART"));
+    pChildItem->setData(STORAGE_SMART_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
 
     pDataItem->appendRows(qChildList);
@@ -362,9 +449,10 @@ void Controller::StartController()
     qList.append(pDataItem);
 
     pChildItem = new QStandardItem(QString("Network devices"));
+    pChildItem->setData(NETWORK_DEVICES_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
-
     pChildItem = new QStandardItem(QString("Connections"));
+    pChildItem->setData(NETWORK_CONNECTIONS_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
 
     pDataItem->appendRows(qChildList);
@@ -374,8 +462,10 @@ void Controller::StartController()
     qList.append(pDataItem);
 
     pChildItem = new QStandardItem(QString("Startup applications"));
+    pChildItem->setData(SOFTWARE_STARTUP_APPLICATIONS_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
     pChildItem = new QStandardItem(QString("Application manager"));
+    pChildItem->setData(SOFTWARE_APPLICATION_MANAGER_ID, MENU_OPTION_ID_TAG);
     qChildList.append(pChildItem);
 
     pDataItem->appendRows(qChildList);
@@ -410,8 +500,65 @@ void Controller::StartController()
             m_pCpuSensor = NULL;
         }
 
-//    OnCreateComputerSummary();
+    if( m_pCpuSensor )
+    {
+        if( m_pCpuSensor->GetMultiplier() )
+            m_pCPUIDManager->GetCPUIDDataModel()->item(9, 1)->setText(QString::number(m_pCpuSensor->GetMultiplier()));
+        else
+            m_pCPUIDManager->GetCPUIDDataModel()->item(9, 1)->setText("N/A");
+    }
 }
+
+
+void Controller::OnDispatchMenuOptionTagSlot(int nOptionTag)
+{
+    switch(nOptionTag)
+    {
+    case COMPUTER_DEVICE_MANAGER_ID:
+        OnComputerDeviceManagerOptClickedSlot(); break;
+    case COMPUTER_DMI_ID:
+        OnComputerDMIOptClickedSlot(); break;
+    case COMPUTER_POWER_MANAGEMENT_ID:
+        OnComputerPowerManagementOptClickedSlot(); break;
+    case COMPUTER_SENSORS_ID:
+        OnComputerSensorsOptClickedSlot(); break;
+
+    case MOTHERBOARD_CPU_ID:
+        OnMotherBoardCPUOptClickedSlot(); break;
+    case MOTHERBOARD_SPD_ID:
+        OnMotherBoardSPDOptClickedSlot(); break;
+    case MOTHERBOARD_VIDEO_CARD_ID:
+        OnMotherboardVCardOptClickedSlot(); break;
+
+    case OPERATING_SYSTEM_SUMMARY_ID:
+        OnOperatingSystemOptClickedSlot(); break;
+    case OPERATING_SYSTEM_PROCESSES_ID:
+        OnOperatingSystemProcessesOptClickedSlot(); break;
+    case OPERATING_SYSTEM_SYSTEM_DRIVERS_ID:
+        OnOperatingSystemDriversOptClickedSlot(); break;
+    case OPERATING_SYSTEM_USERS_ID:
+        OnOperatingSystemUserInformationsOptClickedSlot(); break;
+
+    case STORAGE_ATA_ID:
+        OnStorageATAOptClickedSlot(); break;
+    case STORAGE_SMART_ID:
+        OnStorageSmartOptClickedSlot(); break;
+
+    case NETWORK_DEVICES_ID:
+        OnNetworkDevicesOptClickedSlot(); break;
+    case NETWORK_CONNECTIONS_ID:
+        OnNetworkConnectionsOptClickedSlot(); break;
+
+    case SOFTWARE_APPLICATION_MANAGER_ID:
+        OnSoftwareApplicationManagerOptClickedSlot(); break;
+    case SOFTWARE_STARTUP_APPLICATIONS_ID:
+        OnSoftwareStartupApplicationsOptClickedSlot(); break;
+
+    default:
+        qDebug() << "Invalid Menu Option Clicked";
+    }
+}
+
 
 void Controller::OnComputerDeviceManagerOptClickedSlot()
 {
@@ -429,6 +576,7 @@ void Controller::OnComputerDMIOptClickedSlot()
     emit OnCancelSensorsTimerSignal();
 
     // Do nothing - Model contains static data
+    emit OnDMIItemsInformationDataChanged();
 }
 
 void Controller::OnComputerPowerManagementOptClickedSlot()
@@ -441,190 +589,7 @@ void Controller::OnComputerPowerManagementOptClickedSlot()
     emit OnPowerManagementInformationDataChanged();
 }
 
-void Controller::OnHddInformationOptClickedSlot()
-{
-    qDebug() << __FUNCTION__;
-}
-
-void Controller::OnOperatingSystemOptClickedSlot()
-{
-    emit OnCancelSensorsTimerSignal();
-
-    // Do nothing - Model contains static data
-    emit OnOperatingSystemInformationDataChanged();
-}
-
-void Controller::OnProcessesOptClickedSlot()
-{
-    SAFE_DELETE(m_pProcessesManager);
-
-    m_pProcessesManager = new Processes;
-    CHECK_ALLOCATION(m_pProcessesManager);
-
-    QStandardItemModel *pModel = m_pProcessesManager->GetProcessesInformations();
-
-    if (0 != pModel)
-        emit OnSetProcessesInformations(pModel);
-}
-
-void Controller::OnSystemDriversOptClickedSlot()
-{
-    // cancel all timers
-    emit OnCancelSensorsTimerSignal();
-
-    // delete previous object
-    SAFE_DELETE(m_pSystemDriversManager);
-
-    m_pSystemDriversManager = new SystemDrivers;
-
-    CHECK_ALLOCATION(m_pSystemDriversManager);
-
-    QStandardItemModel *pModel = m_pSystemDriversManager->GetSystemDriversInformation();
-
-    if( 0 != pModel )
-        emit OnSetSystemDriversModelInformation(pModel);
-}
-
-void Controller::OnStorageATAOptClickedSlot()
-{
-    // cancel all timers
-    emit OnCancelSensorsTimerSignal();
-
-    QStandardItemModel *pModel = new QStandardItemModel();
-    QStringList List = GetPhysicalDrivesList();
-
-    pModel->setColumnCount(1);
-    pModel->setRowCount(List.count());
-    pModel->setHorizontalHeaderLabels(QStringList() << "Device description");
-
-    m_HDDModelToPhysicalDrive.clear();
-    for(int i = 0; i < List.count(); i++)
-    {
-        ATADeviceProperties *pProp = GetATADeviceProperties(List.at(i).toStdWString().c_str());
-        if (NULL == pProp)
-            continue;
-        m_HDDModelToPhysicalDrive.insert(pProp->Model, List.at(i));
-        QStandardItem *pItem = new QStandardItem(pProp->Model);
-        pItem->setIcon(QIcon(":/img/hdd.png"));
-        pModel->setItem(i, 0, pItem);
-        delete pProp;
-    }
-
-    emit OnSetATAHDDItemsInformation(pModel);
-}
-
-void Controller::OnStorageSmartOptClickedSlot()
-{
-    // cancel all timers
-    emit OnCancelSensorsTimerSignal();
-
-    // delete previous object
-    SAFE_DELETE(m_pSmartManager);
-
-    m_pSmartManager = new CSmartInfo();
-
-    CHECK_ALLOCATION(m_pSmartManager);
-
-    QStandardItemModel *pModel = m_pSmartManager->GetAvailableHDD();
-
-    if (0 != pModel)
-        emit OnSetSMARTHDDItemsInformation(pModel);
-}
-
-void Controller::OnSmbiosOptClickedSlot()
-{
-    qDebug() << __FUNCTION__;
-}
-
-void Controller::OnApplicationManagerOptClickedSlot()
-{
-    // cancel all timers
-    emit OnCancelSensorsTimerSignal();
-
-    // delete  previous object
-    SAFE_DELETE(m_pApplicationManager);
-
-    m_pApplicationManager = new CApplicationManager();
-
-    CHECK_ALLOCATION(m_pApplicationManager);
-
-    QStandardItemModel *pModel = m_pApplicationManager->GetApplicationList();
-
-    if (0 != pModel)
-        emit OnSetApplicationManagerInformation(pModel);
-}
-
-void Controller::OnStartupApplicationsOptClickedSlot()
-{
-    emit OnCancelSensorsTimerSignal();
-
-    SAFE_DELETE(m_pStartupAppsManager);
-
-    m_pStartupAppsManager = new CStartupApplication;
-
-    CHECK_ALLOCATION(m_pStartupAppsManager);
-
-    QStandardItemModel *pModel = m_pStartupAppsManager->GetStartupApplicationsInformations();
-
-    if (0 != pModel)
-        emit OnSetStartupApplicationsInformations(pModel);
-}
-
-void Controller::OnActiveConnectionsOptClickedSlot()
-{
-    // cancel all timers
-    emit OnCancelSensorsTimerSignal();
-
-    SAFE_DELETE(m_pActiveConnectionsManager);
-
-    m_pActiveConnectionsManager = new CActiveConnections;
-
-    CHECK_ALLOCATION(m_pActiveConnectionsManager);
-
-    QStandardItemModel *pModel = m_pActiveConnectionsManager->GetActiveConnections();
-
-    if (0 != pModel)
-        emit OnSetActiveConnectionsInformation(pModel);
-}
-
-void Controller::OnNetworkDevicesOptClickedSlot()
-{
-    emit OnCancelSensorsTimerSignal();
-
-    SAFE_DELETE(m_pNetworkDevicesManager);
-
-    m_pNetworkDevicesManager = new CNetworkDevices;
-
-    CHECK_ALLOCATION(m_pNetworkDevicesManager);
-
-    QStandardItemModel *pModel = m_pNetworkDevicesManager->GetAdapterNames();
-
-    if (0 != pModel)
-        emit OnSetNetworkDevicesNames(pModel);
-}
-
-void Controller::OnCPUOptClickedSlot()
-{
-
-}
-
-void Controller::OnCPUIDOptClickedSlot()
-{
-    emit OnCancelSensorsTimerSignal();
-
-    SAFE_DELETE(m_pCPUIDManager);
-
-    m_pCPUIDManager = new CIntelCpuID;
-
-    CHECK_ALLOCATION(m_pCPUIDManager);
-
-    QStandardItemModel *pModel = m_pCPUIDManager->GetCPUIDInformations();
-
-    if (0 != pModel )
-        emit OnSetCPUIDInformations(pModel);
-}
-
-void Controller::OnSensorsOptClickedSlot()
+void Controller::OnComputerSensorsOptClickedSlot()
 {
     SensorsData pSensorData;
 
@@ -749,13 +714,13 @@ RAM:
     pItemPair->set_name("Available (Physical): ");
     pItemPair->set_value(pMemoryStatus->qzAvailPhys.toLatin1().data());
 
-    pItemPair = pDataType->add_datavalue();
-    pItemPair->set_name("Total (Virtual): ");
-    pItemPair->set_value(pMemoryStatus->qzTotalVirtual.toLatin1().data());
+//    pItemPair = pDataType->add_datavalue();
+//    pItemPair->set_name("Total (Virtual): ");
+//    pItemPair->set_value(pMemoryStatus->qzTotalVirtual.toLatin1().data());
 
-    pItemPair = pDataType->add_datavalue();
-    pItemPair->set_name("Available (Virtual): ");
-    pItemPair->set_value(pMemoryStatus->qzAvailVirtual.toLatin1().data());
+//    pItemPair = pDataType->add_datavalue();
+//    pItemPair->set_name("Available (Virtual): ");
+//    pItemPair->set_value(pMemoryStatus->qzAvailVirtual.toLatin1().data());
 
     pItemPair = pDataType->add_datavalue();
     pItemPair->set_name("Pagefile (Total): ");
@@ -841,34 +806,154 @@ END:
     emit OnSetSensorsInformations(pSensorData.SerializeAsString());
 }
 
-void Controller::OnUserInformationsOptClickedSlot()
+
+void Controller::OnMotherBoardCPUOptClickedSlot()
 {
+    // cancel all timers
     emit OnCancelSensorsTimerSignal();
 
-    SAFE_DELETE(m_pUserInformationManager);
-
-    m_pUserInformationManager = new CSystemUsersInformation;
-
-    CHECK_ALLOCATION(m_pUserInformationManager);
-
-    QStandardItemModel *pModel = m_pUserInformationManager->GetUserInformations();
-
-    if (0 != pModel)
-        emit OnSetUsersInformations(pModel);
+    // Do nothing, model contains static data
+    emit OnCPUIDInformationDataChanged();
 }
 
-void Controller::OnSPDOptClickedSlot()
+void Controller::OnMotherBoardSPDOptClickedSlot()
 {
     // cancel all timers
     emit OnCancelSensorsTimerSignal();
 
     // Do nothing - Model contains static data
+    emit OnAvailableDIMMSInformationDataChanged();
 }
 
 void Controller::OnMotherboardVCardOptClickedSlot()
 {
+    // cancel all timers
     emit OnCancelSensorsTimerSignal();
+
+    // Do nothing - Model contains static data
+    emit OnAvailableVCardsInformationDataChanged();
 }
+
+
+void Controller::OnOperatingSystemOptClickedSlot()
+{
+    emit OnCancelSensorsTimerSignal();
+
+    // Do nothing - Model contains static data
+    emit OnOperatingSystemInformationDataChanged();
+}
+
+void Controller::OnOperatingSystemProcessesOptClickedSlot()
+{
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    m_pProcessesManager->OnRefreshProcessList();
+
+    emit OnProcessInformationDataChanged();
+}
+
+void Controller::OnOperatingSystemDriversOptClickedSlot()
+{
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    m_pSystemDriversManager->OnRefreshData();
+
+    emit OnSystemDriversInformationDataChanged();
+}
+
+void Controller::OnOperatingSystemUserInformationsOptClickedSlot()
+{
+    emit OnCancelSensorsTimerSignal();
+
+    // Do nothing - Model contains static data
+    emit OnUserInformationDataChanged();
+}
+
+
+void Controller::OnStorageATAOptClickedSlot()
+{
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    // Do nothing - Model contains static data
+    emit OnATAHDDInformationDataChanged();
+}
+
+void Controller::OnStorageSmartOptClickedSlot()
+{
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    // Do nothing - Model contains static data
+    emit OnSMARTHDDInformationDataChanged();
+}
+
+
+void Controller::OnNetworkConnectionsOptClickedSlot()
+{
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    m_pActiveConnectionsManager->OnRefreshData();
+
+    emit OnActiveConnectionsInformationDataChanged();
+}
+
+void Controller::OnNetworkDevicesOptClickedSlot()
+{
+    emit OnCancelSensorsTimerSignal();
+
+    // Do nothing - Model contains static data
+    emit OnNetworkAdaptersInformationDataChanged();
+}
+
+
+void Controller::OnSoftwareApplicationManagerOptClickedSlot()
+{
+    // cancel all timers
+    emit OnCancelSensorsTimerSignal();
+
+    // delete  previous object
+    SAFE_DELETE(m_pApplicationManager);
+
+    m_pApplicationManager = new CApplicationManager();
+
+    CHECK_ALLOCATION(m_pApplicationManager);
+
+    QStandardItemModel *pModel = m_pApplicationManager->GetApplicationList();
+
+    if (0 != pModel)
+        emit OnSetApplicationManagerInformation(pModel);
+}
+
+void Controller::OnSoftwareStartupApplicationsOptClickedSlot()
+{
+    emit OnCancelSensorsTimerSignal();
+
+    m_pStartupAppsManager->OnRefreshData();
+
+    emit OnStartupApplicationInformationDataChanged();
+}
+
+
+
+void Controller::OnCPUOptClickedSlot()
+{
+
+}
+
+void Controller::OnSmbiosOptClickedSlot()
+{
+    qDebug() << __FUNCTION__;
+}
+
+void Controller::OnHddInformationOptClickedSlot()
+{
+    qDebug() << __FUNCTION__;
+}
+
 
 void Controller::OnRequestDeviceDetailsSlot(QString qzDeviceID)
 {
@@ -904,87 +989,68 @@ void Controller::OnRequestVCardInformationSlot(int nIndex)
 
 void Controller::OnRequestATAItemProperties(QString qzModel)
 {
-    QString qzDrive = m_HDDModelToPhysicalDrive.value(qzModel);
-    ATADeviceProperties *pProp = GetATADeviceProperties(qzDrive.toStdWString().c_str());
+    ATADeviceProperties *pProp = GetATADeviceProperties(qzModel.toStdWString().c_str());
     CHECK_ALLOCATION(pProp);
 
-    QStandardItemModel *pModel = new QStandardItemModel();
-    QStandardItem *pItem = 0;
+    m_pATAProp->clear();
+    m_pATAProp->setHorizontalHeaderLabels(QStringList() << "Field" << "Value");
 
-    pModel->setColumnCount(2);
-    pModel->setRowCount(15);
-    pModel->setHorizontalHeaderLabels(QStringList() << "Field" << "Value");
+    QList<QStandardItem*> qList;
 
-    pItem = new QStandardItem("Model:");
-    pModel->setItem(0, 0, pItem);
-    pItem = new QStandardItem(pProp->Model);
-    pModel->setItem(0, 1, pItem);
-    pItem = new QStandardItem("Firmware revision:");
-    pModel->setItem(1, 0, pItem);
-    pItem = new QStandardItem(pProp->FirmwareRevision);
-    pModel->setItem(1, 1, pItem);
-    pItem = new QStandardItem("Serial number:");
-    pModel->setItem(2, 0, pItem);
-    pItem = new QStandardItem(pProp->SerialNumber);
-    pModel->setItem(2, 1, pItem);
-    pItem = new QStandardItem("Rotation speed:");
-    pModel->setItem(3, 0, pItem);
-    pItem = new QStandardItem(pProp->RotationSpeed);
-    pModel->setItem(3, 1, pItem);
-    pItem = new QStandardItem("Buffer size:");
-    pModel->setItem(4, 0, pItem);
-    pItem = new QStandardItem(pProp->BufferSize);
-    pModel->setItem(4, 1, pItem);
-    pItem = new QStandardItem("Type:");
-    pModel->setItem(5, 0, pItem);
-    pItem = new QStandardItem(pProp->DeviceType);
-    pModel->setItem(5, 1, pItem);
-    pItem = new QStandardItem("Cylinders:");
-    pModel->setItem(6, 0, pItem);
-    pItem = new QStandardItem(pProp->Cylinders);
-    pModel->setItem(6, 1, pItem);
-    pItem = new QStandardItem("Heads:");
-    pModel->setItem(7, 0, pItem);
-    pItem = new QStandardItem(pProp->Heads);
-    pModel->setItem(7, 1, pItem);
-    pItem = new QStandardItem("Sectors per track:");
-    pModel->setItem(8, 0, pItem);
-    pItem = new QStandardItem(pProp->SectorPerTrack);
-    pModel->setItem(8, 1, pItem);
-    pItem = new QStandardItem("Bytes per sector:");
-    pModel->setItem(9, 0, pItem);
-    pItem = new QStandardItem(pProp->BytesPerSector);
-    pModel->setItem(9, 1, pItem);
-    pItem = new QStandardItem("ATA standard:");
-    pModel->setItem(10, 0, pItem);
-    pItem = new QStandardItem(pProp->ATAStandard);
-    pModel->setItem(10, 1, pItem);
-    pItem = new QStandardItem("UDMA transfer mode:");
-    pModel->setItem(11, 0, pItem);
-    pItem = new QStandardItem(pProp->UDMATransferMode);
-    pModel->setItem(11, 1, pItem);
-    pItem = new QStandardItem("Active UDMA transfer mode:");
-    pModel->setItem(12, 0, pItem);
-    pItem = new QStandardItem(pProp->ActiveUDMATransferMode);
-    pModel->setItem(12, 1, pItem);
-    pItem = new QStandardItem("PIO transfer mode");
-    pModel->setItem(13, 0, pItem);
-    pItem = new QStandardItem(pProp->PIOTransferMode);
-    pModel->setItem(13, 1, pItem);
-    pItem = new QStandardItem("MWDMA transfer mode:");
-    pModel->setItem(14, 0, pItem);
-    pItem = new QStandardItem(pProp->MWDMATransferMode);
-    pModel->setItem(14, 1, pItem);
+    qList << new QStandardItem("Model:") << new QStandardItem(pProp->Model);
+    m_pATAProp->appendRow(qList); qList.clear();
 
-    emit OnSetATAItemPropertiesInformation(pModel);
+    qList << new QStandardItem("Firmware revision:") << new QStandardItem(pProp->FirmwareRevision);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Serial number:") << new QStandardItem(pProp->SerialNumber);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Rotation speed:") << new QStandardItem(pProp->RotationSpeed);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Buffer size:") << new QStandardItem(pProp->BufferSize == "" ? "N/A (SSD)" : pProp->BufferSize);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Type:") << new QStandardItem(pProp->DeviceType);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Cylinders:") << new QStandardItem(pProp->Cylinders);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Heads:") << new QStandardItem(pProp->Heads);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Sectors per track:") << new QStandardItem(pProp->SectorPerTrack);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Bytes per sector:") << new QStandardItem(pProp->BytesPerSector);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("ATA standard:") << new QStandardItem(pProp->ATAStandard);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("UDMA transfer mode:") << new QStandardItem(pProp->UDMATransferMode);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Active UDMA transfer mode:") << new QStandardItem(pProp->ActiveUDMATransferMode);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("PIO transfer mode") << new QStandardItem(pProp->PIOTransferMode);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("MWDMA transfer mode:") << new QStandardItem(pProp->MWDMATransferMode);
+    m_pATAProp->appendRow(qList); qList.clear();
+
+
+    emit OnATAItemPropertiesDataChanged();
 }
 
 void Controller::OnRequestSMARTProperties(QString qzModel)
 {
-    QStandardItemModel *pModel = m_pSmartManager->GetSMARTPropertiesForHDD(qzModel);
+    m_pSmartManager->OnRefreshData(qzModel);
 
-    if (0 != pModel)
-        emit OnSetSMARTItemPropertiesInformation(pModel);
+    emit OnSMARTItemPropertiesDataChanged();
 }
 
 void Controller::OnUninstallApplicationSlot(QString qzUninstallString)
@@ -997,24 +1063,37 @@ void Controller::OnUninstallApplicationSlot(QString qzUninstallString)
 
 void Controller::OnRequestNetworkDeviceInfomationsSlot(QString qzAdapterName)
 {
-    if (m_pNetworkDevicesManager)
-    {
-       QStandardItemModel *pModel = m_pNetworkDevicesManager->GetAdapterInformations(qzAdapterName);
+    m_pNetworkDevicesManager->OnRefreshAdapterData(qzAdapterName);
 
-       if (pModel)
-           emit OnSetNetworkDeviceInformation(pModel);
-    }
+    emit OnNetworkAdapterPropertiesDataChanged();
 }
 
 void Controller::OnRequestModulesInformationsSlot(int nPid)
 {
-    if( m_pProcessesManager )
-    {
-        QStandardItemModel *pModel = m_pProcessesManager->GetModulesInformationsForProcess(nPid);
+    m_pProcessesManager->OnRefreshModuleList(nPid);
 
-        if (0 != pModel)
-            emit OnSetModulesInformations(pModel);
-    }
+    emit OnProcessModuleInformationDataChanged();
+}
+
+void Controller::OnRemoveStartupApplicationSlot(QString qsApplication)
+{
+    m_pStartupAppsManager->OnRemoveApplication(qsApplication);
+
+    OnSoftwareStartupApplicationsOptClickedSlot();
+}
+
+void Controller::OnChangeStartupApplicationStateSlot(QString qsApplication)
+{
+    m_pStartupAppsManager->OnChangeApplicationState(qsApplication);
+
+    OnSoftwareStartupApplicationsOptClickedSlot();
+}
+
+void Controller::OnAddStartupApplicationSlot(QString qsAppName, QString qsPath)
+{
+    m_pStartupAppsManager->OnAddApplication(qsAppName, qsPath);
+
+    OnSoftwareStartupApplicationsOptClickedSlot();
 }
 
 void Controller::OnCancelSensorsTimerSlot()

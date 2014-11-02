@@ -6,9 +6,6 @@
 #include "../interfaces/isensor.h"
 #include "../../../../utils/headers/utils.h"
 
-#define AMD0F_VENDOR_ID 0x1022
-#define AMD0F_BASE_DEVICE 0x18
-#define AMD0F_INVALID_ADDRESS 0xFFFFFFFF
 #define AMD0F_DEVICE_ID 0x1103
 #define AMD0F_THERM_STATUS_REGISTER 0xE4
 
@@ -38,6 +35,7 @@ public:
     virtual QString GetCpuName();
     virtual QString GetMicroArchitecture();
     virtual int GetNumberOfCores();
+    virtual int GetMultiplier();
 };
 
 #endif // AMD0F_TEMPERATURE_H

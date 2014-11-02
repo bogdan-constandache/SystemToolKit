@@ -17,16 +17,19 @@
 
 //Defines
 #define UNUSED(expr) do { (void)(expr); } while (0)
-#define DEBUG_STATUS(expr) qDebug("\nEXCEPTION ON: \"%s\"(%d)\nFUNCTION: \"%s\"\nStatus: %d\n",__FILE__, __LINE__, __FUNCTION__, expr)
 
 #define SAFE_DELETE(X) if(X) { delete (X); X = 0; }
 
 #ifdef STK_WINDOWS
-    #define CHECK_ALLOCATION(X) if(!X) { printf("Allocation failed in: %s at line %d: ", __FILE__, __LINE__); return; }
+    #define DEBUG_STATUS(expr) qDebug("\nEXCEPTION ON: \"%s\"(%d)\nFUNCTION: \"%s\"\nStatus: %d\n",__FILE__, __LINE__, __FUNCTION__, expr)
+    #define CHECK_ALLOCATION(X) if(!X) { qDebug("Allocation failed in: %s at line %d: ", __FILE__, __LINE__); return; }
     #define CHECK_ALLOCATION_STATUS(X) if(!X) { qDebug("Allocation failed in: %s at line %d: ", __FILE__, __LINE__); return 5; }
     #define CHECK_OPERATION_STATUS(X) if(0 != X) { qDebug("Operation unsuccessful in: %s at line %d with status %d", __FILE__, __LINE__, X); }
     #define CHECK_OPERATION_STATUS_EX(X) if(0 != X) { qDebug("Operation unsuccessful in: %s at line %d with status %d", __FILE__, __LINE__, X); return X; }
 #endif
+
+#define AMD_CHIPSET_VENDOR_STRING QString("AuthenticAMD")
+#define INTEL_CHIPSET_VENDOR_STRING QString("GenuineIntel")
 
 
 typedef enum _SysToolError
@@ -50,6 +53,6 @@ wchar_t* CharArrayToWcharArray(char* pszParam);
 int SafeDelete(void *pParam);
 bool WIN32_FROM_HRESULT(HRESULT hr, OUT DWORD *pdwWin32);
 QIcon GetIconFromHICON(QString qzFileName);
-
+QString GetChipsetType();
 
 #endif // UTILS_H

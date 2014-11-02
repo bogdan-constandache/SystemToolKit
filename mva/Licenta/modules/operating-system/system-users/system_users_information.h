@@ -19,6 +19,7 @@ class CSystemUsersInformation
 {
 private:
     QList<UserInformation*> m_qlUsers;
+    QStandardItemModel      *m_pDataModel;
 
     int Initialize(void);
 

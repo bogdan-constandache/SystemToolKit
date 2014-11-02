@@ -25,6 +25,8 @@ private slots:
     void OnProcessNamesItemClickedSlot(QModelIndex Index);
     void OnSetProcessTreeModel(QStandardItemModel *pModel);
     void OnSetModuleTreeModel(QStandardItemModel *pModel);
+    void OnProcessesDataChanged();
+    void OnModulesDataChanged();
 
 signals:
     void OnShowWidget(QWidget*);

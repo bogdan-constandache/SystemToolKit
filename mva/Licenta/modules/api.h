@@ -6,7 +6,7 @@
 #include "computer/power-management/headers/battery_status.h"
 #include "computer/sensors/headers/sensor_module.h"
 
-#include "motherboard/cpu/headers/intel_cpuid.h"
+#include "motherboard/cpu/headers/cpuid_manager.h"
 #include "motherboard/memory/memory_data.h"
 #include "motherboard/memory/spd.h"
 #include "motherboard/video-card/nvidia_card.h"

@@ -34,6 +34,7 @@
 #include "spd_widget.h"
 #include "video_card_widget.h"
 #include "operating_system_widget.h"
+#include "waiting_widget.h"
 
 namespace Ui {
 class MainWindow;
@@ -69,6 +70,7 @@ private:
     CSPDWidget                      *m_pSPDWidget;
     CVideoCardWidget                *m_pVideoCardWidget;
     COperatingSystemWidget          *m_pOperatingSystemWidget;
+    QWaitingWidget                  *m_pLoadingWidget;
 
     void InitializeStackedWidget();
 
@@ -82,26 +84,28 @@ private slots:
     void OnShowWidget(QWidget *pWidget);
 
 signals:
-    void OnComputerDeviceManagerOptClickedSignal();
-    void OnComputerDMIOptClickedSignal();
-    void OnComputerPowerManagementOptClickedSignal();
-    void OnHddInformationOptClickedSignal();
-    void OnOperatingSystemOptClickedSignal();
-    void OnProcessesOptClickedSignal();
-    void OnSystemDriversOptClickedSignal();
-    void OnStorageATAOptClickedSignal();
-    void OnStorageSmartOptClickedSignal();
-    void OnSmbiosOptClickedSignal();
-    void OnApplicationManagerOptClickedSignal();
-    void OnStartupApplicationsOptClickedSignal();
-    void OnActiveConnectionsOptClickedSignal();
-    void OnNetworkDevicesOptClickedSignal();
-    void OnCPUOptClickedSignal();
-    void OnCPUIDOptClickedSignal();
-    void OnSensorsOptClickedSignal();
-    void OnSystemUsersOptClickedSignal();
-    void OnMotherboardSPDOptClickedSignal();
-    void OnMotherboardVideoCardOptClickedSignal();
+//    void OnComputerDeviceManagerOptClickedSignal();
+//    void OnComputerDMIOptClickedSignal();
+//    void OnComputerPowerManagementOptClickedSignal();
+//    void OnHddInformationOptClickedSignal();
+//    void OnOperatingSystemOptClickedSignal();
+//    void OnProcessesOptClickedSignal();
+//    void OnSystemDriversOptClickedSignal();
+//    void OnStorageATAOptClickedSignal();
+//    void OnStorageSmartOptClickedSignal();
+//    void OnSmbiosOptClickedSignal();
+//    void OnApplicationManagerOptClickedSignal();
+//    void OnStartupApplicationsOptClickedSignal();
+//    void OnActiveConnectionsOptClickedSignal();
+//    void OnNetworkDevicesOptClickedSignal();
+//    void OnCPUOptClickedSignal();
+//    void OnCPUIDOptClickedSignal();
+//    void OnSensorsOptClickedSignal();
+//    void OnSystemUsersOptClickedSignal();
+//    void OnMotherboardSPDOptClickedSignal();
+//    void OnMotherboardVideoCardOptClickedSignal();
+
+    void OnDispatchMenuOptionTagSignal(int);
 };
 
 #endif // MAINWINDOW_H

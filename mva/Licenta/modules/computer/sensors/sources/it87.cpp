@@ -31,9 +31,9 @@ CIT87::~CIT87()
     m_pDriver->Destroy();
     delete m_pDriver;
 
-    delete m_pFanSpeedReg;
+    delete[] m_pFanSpeedReg;
 
-    delete m_pFanSpeedExtReg;
+    delete[] m_pFanSpeedExtReg;
 }
 
 int CIT87::Initialize()

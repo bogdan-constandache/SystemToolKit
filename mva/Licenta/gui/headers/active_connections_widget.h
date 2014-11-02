@@ -23,6 +23,7 @@ public:
 
 public slots:
     void OnSetTreeModel(QStandardItemModel *pModel);
+    void OnActiveConnectionDataChangedSlot();
 
 signals:
     void OnShowWidget(QWidget*);

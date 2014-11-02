@@ -28,6 +28,8 @@ CVideoCardWidget::CVideoCardWidget(QWidget *pParent, AbstractController *pContro
             this, SLOT(OnSetCardInfoTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
     connect(m_pController, SIGNAL(OnVideoCardInformationDataChanged()),
             this, SLOT(OnDataChangedSlot()), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnAvailableVCardsInformationDataChanged()),
+            this, SLOT(OnAvailableVCardsDataChangedSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnRequestCardInformations(int)),
             m_pController, SLOT(OnRequestVCardInformationSlot(int)), Qt::QueuedConnection);
     connect(ui->tvCards, SIGNAL(clicked(QModelIndex)),
@@ -68,9 +70,13 @@ void CVideoCardWidget::OnItemsTreeClicked(QModelIndex index)
 
 void CVideoCardWidget::OnDataChangedSlot()
 {
-    ui->tvDescription->resizeColumnToContents(0);
-    ui->tvDescription->resizeColumnToContents(1);
+    ui->tvDescription->setColumnWidth(0, 130);
     ui->tvDescription->expandAll();
+}
+
+void CVideoCardWidget::OnAvailableVCardsDataChangedSlot()
+{
+    emit OnShowWidget(this);
 }
 
 

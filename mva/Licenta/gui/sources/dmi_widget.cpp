@@ -28,12 +28,15 @@ CDMIWidget::CDMIWidget(QWidget *parent, AbstractController *pController) :
             this, SLOT(OnItemsTreeClicked(QModelIndex)), Qt::QueuedConnection);
     connect(this, SIGNAL(OnRequestPropertiesModel(DMIModuleType)),
             m_pController, SLOT(OnRequestDMIItemProperties(DMIModuleType)), Qt::QueuedConnection);
+
     connect(m_pController, SIGNAL(OnSetDMIItemsInformation(QStandardItemModel*)),
             this, SLOT(OnSetItemsTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
     connect(m_pController, SIGNAL(OnSetDMIPropertiesInfomation(QStandardItemModel*)),
             this, SLOT(OnSetPropertiesTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
     connect(m_pController, SIGNAL(OnDMIPropertiesInformationDataChanged()),
             this, SLOT(OnDataChangedSlot()), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnDMIItemsInformationDataChanged()),
+            this, SLOT(OnDMIItemsDataChangedSlot()), Qt::QueuedConnection);
 }
 
 CDMIWidget::~CDMIWidget()
@@ -47,8 +50,6 @@ void CDMIWidget::OnSetItemsTreeModel(QStandardItemModel *pModel)
     if (pModel)
         ui->itemsTree->setModel(pModel);
     ui->itemsTree->resizeColumnToContents(0);
-
-//    emit OnShowWidget(this);
 }
 
 void CDMIWidget::OnSetPropertiesTreeModel(QStandardItemModel *pModel)
@@ -68,6 +69,11 @@ void CDMIWidget::OnItemsTreeClicked(QModelIndex index)
 
     if( qVariant.isValid() )
         emit OnRequestPropertiesModel((DMIModuleType)qVariant.toInt());
+}
+
+void CDMIWidget::OnDMIItemsDataChangedSlot()
+{
+    emit OnShowWidget(this);
 }
 
 void CDMIWidget::OnDataChangedSlot()

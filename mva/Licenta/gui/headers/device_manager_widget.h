@@ -25,6 +25,8 @@ public slots:
     void OnSetTreeModelSlot(QStandardItemModel *pModel);
     void OnSetDevicePropertiesSlot(QStandardItemModel *pModel);
     void OnItemTreeClickedSlot(QModelIndex qIndex);
+    void OnDevicesCategoryDataChangedSlot();
+    void OnItemProperiesDataChangedSlot();
 
 signals:
     void OnShowWidget(QWidget*);

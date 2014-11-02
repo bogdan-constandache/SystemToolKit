@@ -38,4 +38,12 @@ typedef struct _CPUID_INFORMATION
     QList<PCacheInformation> CacheInformation;
 }CpuIDInformation, *PCpuIDInformation;
 
+
+class ICpuId
+{
+public:
+    virtual QStandardItemModel *GetCPUIDInformations() = 0;
+};
+
+
 #endif // CPUID_DEFINES_H

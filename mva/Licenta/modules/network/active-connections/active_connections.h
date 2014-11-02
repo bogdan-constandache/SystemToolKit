@@ -20,6 +20,7 @@ class CActiveConnections
 {
 private:
     QList<ActiveConnectionsStruct*> m_Connections;
+    QStandardItemModel *m_pDataModel;
 
     int GetAllTCPConnections();
     int GetAllUDPConnections();
@@ -28,8 +29,9 @@ private:
 public:
     CActiveConnections();
     ~CActiveConnections();
-
     QStandardItemModel *GetActiveConnections();
+
+    void OnRefreshData();
 };
 
 #endif // ACTIVE_CONNECTIONS_H

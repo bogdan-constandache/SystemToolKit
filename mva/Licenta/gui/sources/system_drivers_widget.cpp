@@ -20,8 +20,10 @@ CSystemDriversWidget::CSystemDriversWidget(QWidget *parent, AbstractController *
 
     connect(m_pController, SIGNAL(OnSetSystemDriversModelInformation(QStandardItemModel*)),
             this, SLOT(OnSetTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnSystemDriversInformationDataChanged()),
+            this, SLOT(OnDataChanged()), Qt::QueuedConnection);
     connect(ui->refreshButton, SIGNAL(clicked()),
-            m_pController, SLOT(OnSystemDriversOptClickedSlot()), Qt::QueuedConnection);
+            m_pController, SLOT(OnOperatingSystemDriversOptClickedSlot()), Qt::QueuedConnection);
 }
 
 CSystemDriversWidget::~CSystemDriversWidget()
@@ -35,6 +37,11 @@ void CSystemDriversWidget::OnSetTreeModel(QStandardItemModel *pModel)
 {
     if (pModel)
         ui->treeView->setModel(pModel);
+    ui->treeView->resizeColumnToContents(0);
+}
+
+void CSystemDriversWidget::OnDataChanged()
+{
     ui->treeView->resizeColumnToContents(0);
 
     emit OnShowWidget(this);

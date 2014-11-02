@@ -38,5 +38,6 @@ void CBatteryStatusWidget::OnSetTreeModel(QStandardItemModel *pModel)
 void CBatteryStatusWidget::OnDataChangedSlot()
 {
     ui->treeView->setColumnWidth(0, 150);
+    emit OnShowWidget(this);
 }
 

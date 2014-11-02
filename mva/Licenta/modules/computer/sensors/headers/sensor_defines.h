@@ -3,6 +3,11 @@
 
 #include <QString>
 
+#define AMD_INVALID_ADDRESS 0xFFFFFFFF
+#define AMD_VENDOR_ID 0x1022
+#define AMD_BASE_DEVICE 0x18
+#define AMD_CONTROL_FUNCTION 3
+
 typedef enum _CHIP_
 {
     Unknown_Chip = 0,

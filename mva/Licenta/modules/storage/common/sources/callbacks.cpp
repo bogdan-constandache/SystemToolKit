@@ -80,6 +80,8 @@ QStringList GetPhysicalDrivesList()
 
             CloseHandle(hDevice);
 
+            DWORD dwLastErr = GetLastError();
+
             if( 0 == bResult )
             {
                 DEBUG_STATUS(Unsuccessful);

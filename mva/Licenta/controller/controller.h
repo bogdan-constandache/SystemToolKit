@@ -15,6 +15,7 @@
 class Controller : public AbstractController
 {
     Q_OBJECT
+
 private: // internal objects
     CDeviceInfo                 *m_pDeviceManager;
     BatteryStatus               *m_pBatteryStatus;
@@ -25,23 +26,27 @@ private: // internal objects
     SystemDrivers               *m_pSystemDriversManager;
     CNetworkDevices             *m_pNetworkDevicesManager;
     CActiveConnections          *m_pActiveConnectionsManager;
-    CIntelCpuID                 *m_pCPUIDManager;
+    CCPUIDManager               *m_pCPUIDManager;
     Processes                   *m_pProcessesManager;
-    CStartupApplication         *m_pStartupAppsManager;
+    CStartupManager             *m_pStartupAppsManager;
     CSystemUsersInformation     *m_pUserInformationManager;
     CSPDInformation             *m_pSPDManager;
     CNvidiaManager              *m_pNVidiaManager;
     COperatingSystemInformation *m_pOperatingSystemManager;
 
-    CSensorModule *m_pSensorsManager;
-    ISensor *m_pSensor;
-    ICPUSensor *m_pCpuSensor;
-    QTimer *m_pSensorsTimer;
-    QTimer *m_pGPUTimer;
+    CSensorModule               *m_pSensorsManager;
+    ISensor                     *m_pSensor;
+    ICPUSensor                  *m_pCpuSensor;
+    QTimer                      *m_pSensorsTimer;
+    QTimer                      *m_pGPUTimer;
 
-    QMap<QString, QString> m_HDDModelToPhysicalDrive;
+    QMap<QString, QString>      m_HDDModelToPhysicalDrive;
 
-    QStandardItemModel *m_pComputerSummaryModel;
+    QStandardItemModel          *m_pComputerSummaryModel;
+
+    // Internal Models
+    QStandardItemModel          *m_pATAHdds;
+    QStandardItemModel          *m_pATAProp;
 
     void OnCreateComputerSummary();
     int OnLoadDriverFile();
@@ -55,26 +60,35 @@ public:
 
 public slots:
     void StartController();
+
+    virtual void OnDispatchMenuOptionTagSlot(int);
+
     virtual void OnComputerDeviceManagerOptClickedSlot();
     virtual void OnComputerDMIOptClickedSlot();
     virtual void OnComputerPowerManagementOptClickedSlot();
-    virtual void OnHddInformationOptClickedSlot();
+    virtual void OnComputerSensorsOptClickedSlot();
+
+    virtual void OnMotherBoardCPUOptClickedSlot();
+    virtual void OnMotherBoardSPDOptClickedSlot();
+    virtual void OnMotherboardVCardOptClickedSlot();
+
     virtual void OnOperatingSystemOptClickedSlot();
-    virtual void OnProcessesOptClickedSlot();
-    virtual void OnSystemDriversOptClickedSlot();
+    virtual void OnOperatingSystemProcessesOptClickedSlot();
+    virtual void OnOperatingSystemDriversOptClickedSlot();
+    virtual void OnOperatingSystemUserInformationsOptClickedSlot();
+
     virtual void OnStorageATAOptClickedSlot();
     virtual void OnStorageSmartOptClickedSlot();
-    virtual void OnSmbiosOptClickedSlot();
-    virtual void OnApplicationManagerOptClickedSlot();
-    virtual void OnStartupApplicationsOptClickedSlot();
-    virtual void OnActiveConnectionsOptClickedSlot();
+
+    virtual void OnNetworkConnectionsOptClickedSlot();
     virtual void OnNetworkDevicesOptClickedSlot();
+
+    virtual void OnSoftwareStartupApplicationsOptClickedSlot();
+
+    virtual void OnHddInformationOptClickedSlot();
+    virtual void OnSmbiosOptClickedSlot();
+    virtual void OnSoftwareApplicationManagerOptClickedSlot();
     virtual void OnCPUOptClickedSlot();
-    virtual void OnCPUIDOptClickedSlot();
-    virtual void OnSensorsOptClickedSlot();
-    virtual void OnUserInformationsOptClickedSlot();
-    virtual void OnSPDOptClickedSlot();
-    virtual void OnMotherboardVCardOptClickedSlot();
 
     // Device manager slots()
     virtual void OnRequestDeviceDetailsSlot(QString);
@@ -102,6 +116,11 @@ public slots:
 
     // Processes manager slots()
     virtual void OnRequestModulesInformationsSlot(int);
+
+    // Startup application manager slots()
+    virtual void OnRemoveStartupApplicationSlot(QString);
+    virtual void OnChangeStartupApplicationStateSlot(QString);
+    virtual void OnAddStartupApplicationSlot(QString, QString);
 
 signals:
     void OnCancelSensorsTimerSignal();

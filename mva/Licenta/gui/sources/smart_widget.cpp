@@ -4,7 +4,7 @@
 CSmartWidget::CSmartWidget(QWidget *parent, AbstractController *pController) :
     QWidget(parent),
     ui(new Ui::CSmartWidget),
-    m_pController(NULL), m_pPropertiesModel(NULL)
+    m_pController(NULL)
 {
     ui->setupUi(this);
     m_pController = pController;
@@ -14,11 +14,13 @@ CSmartWidget::CSmartWidget(QWidget *parent, AbstractController *pController) :
     ui->propertiesTreeView->setRootIsDecorated(false);
     ui->propertiesTreeView->header()->setStretchLastSection(true);
     ui->propertiesTreeView->header()->setDefaultAlignment(Qt::AlignLeft);
+    ui->propertiesTreeView->setFocusPolicy(Qt::NoFocus);
 
     ui->hddTreeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->hddTreeView->setRootIsDecorated(false);
     ui->hddTreeView->header()->setStretchLastSection(true);
     ui->hddTreeView->header()->setDefaultAlignment(Qt::AlignLeft);
+    ui->hddTreeView->setFocusPolicy(Qt::NoFocus);
 
     // connects
     connect(ui->hddTreeView, SIGNAL(clicked(QModelIndex)),
@@ -29,6 +31,10 @@ CSmartWidget::CSmartWidget(QWidget *parent, AbstractController *pController) :
             this, SLOT(OnSetHDDItemsTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
     connect(m_pController, SIGNAL(OnSetSMARTItemPropertiesInformation(QStandardItemModel*)),
             this, SLOT(OnSetPropertiesTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnSMARTHDDInformationDataChanged()),
+            this, SLOT(OnSmartHDDDataChangedSlot()), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnSMARTItemPropertiesDataChanged()),
+            this, SLOT(OnSmartItemDataChangedSlot()), Qt::QueuedConnection);
 }
 
 CSmartWidget::~CSmartWidget()
@@ -48,16 +54,6 @@ void CSmartWidget::OnSetHDDItemsTreeModel(QStandardItemModel *pModel)
         ui->hddTreeView->setFixedHeight(100);
     else
         ui->hddTreeView->setFixedHeight(nTableSize);
-
-    if( NULL != m_pPropertiesModel )
-    {
-        delete m_pPropertiesModel;
-        m_pPropertiesModel = NULL;
-    }
-
-    ui->propertiesTreeView->reset();
-
-    emit OnShowWidget(this);
 }
 
 void CSmartWidget::OnSetPropertiesTreeModel(QStandardItemModel *pModel)
@@ -65,19 +61,30 @@ void CSmartWidget::OnSetPropertiesTreeModel(QStandardItemModel *pModel)
     if (pModel)
     {
         ui->propertiesTreeView->setModel(pModel);
-        m_pPropertiesModel = pModel;
     }
-    ui->propertiesTreeView->resizeColumnToContents(0);
-    ui->propertiesTreeView->resizeColumnToContents(1);
+    ui->propertiesTreeView->setColumnWidth(0, 150);
 }
 
 void CSmartWidget::OnItemsTreeClicked(QModelIndex Index)
 {
     QStandardItemModel *pModel = dynamic_cast<QStandardItemModel*>(ui->hddTreeView->model());
     QStandardItem *pItem = pModel->itemFromIndex(Index);
-    QString qzItemText = pItem->text();
 
-    emit OnRequestHDDInformations(qzItemText);
+    QVariant qvData = pItem->data();
+
+    if( qvData.isValid() )
+        emit OnRequestHDDInformations(qvData.toString());
+}
+
+void CSmartWidget::OnSmartHDDDataChangedSlot()
+{
+    emit OnShowWidget(this);
+}
+
+void CSmartWidget::OnSmartItemDataChangedSlot()
+{
+    ui->propertiesTreeView->resizeColumnToContents(0);
+    ui->propertiesTreeView->setColumnWidth(1, 275);
 }
 
 

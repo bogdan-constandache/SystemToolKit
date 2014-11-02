@@ -18,10 +18,11 @@
 
 // defines
 
-class CIntelCpuID
+class CIntelCpuID : public ICpuId
 {
 private:
     PCpuIDInformation m_data;
+    QStandardItemModel *m_pDataModel;
 
 private:
     int GetCacheInformation(int *pData);
@@ -32,8 +33,7 @@ private:
 public:
     CIntelCpuID();
     ~CIntelCpuID();
-    QStandardItemModel* GetCPUIDInformations();
-
+    virtual QStandardItemModel* GetCPUIDInformations();
 };
 
 #endif // INTEL_CPUID_H

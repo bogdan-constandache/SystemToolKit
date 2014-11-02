@@ -34,6 +34,8 @@ typedef struct _NVIDIA_REPORT_
     QString qsDriverVersion;
     QString qsBusType;
     QString qsBiosVersion;
+    QString qsVendorName;
+    QString qsChipsetName;
 }NVidiaReport;
 
 #endif // VIDEO_STRUCTURES_H

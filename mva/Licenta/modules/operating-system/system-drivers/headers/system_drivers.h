@@ -29,22 +29,20 @@ typedef struct _SYSTEM_DRIVER_INFO
 
 class SystemDrivers
 {
-public:
-    QList<SystemDriverInfo*> m_qlSystemDrivers;
-
 private:
-    QString m_qszWinDir;
+    QList<SystemDriverInfo*>    m_qlSystemDrivers;
+    QString                     m_qszWinDir;
+    QStandardItemModel          *m_pDataModel;
 
 public:
     SystemDrivers();
     ~SystemDrivers();
     QStandardItemModel *GetSystemDriversInformation();
+    void OnRefreshData();
 
 private:
     int Initialize();
-    int Destroy();
     QString GetDriverVersion(WCHAR* wszFileName);
-    void PopulateModel();
 };
 
 #endif

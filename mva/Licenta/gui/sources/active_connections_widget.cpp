@@ -21,8 +21,10 @@ CActiveConnectionsWidget::CActiveConnectionsWidget(QWidget *parent,  AbstractCon
     // connects
     connect(m_pController, SIGNAL(OnSetActiveConnectionsInformation(QStandardItemModel*)),
             this, SLOT(OnSetTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnActiveConnectionsInformationDataChanged()),
+            this, SLOT(OnActiveConnectionDataChangedSlot()), Qt::QueuedConnection);
     connect(ui->refreshButton, SIGNAL(clicked()),
-            m_pController, SLOT(OnActiveConnectionsOptClickedSlot()), Qt::QueuedConnection);
+            m_pController, SLOT(OnNetworkConnectionsOptClickedSlot()), Qt::QueuedConnection);
 }
 
 CActiveConnectionsWidget::~CActiveConnectionsWidget()
@@ -35,6 +37,13 @@ void CActiveConnectionsWidget::OnSetTreeModel(QStandardItemModel *pModel)
 {
     if (pModel)
         ui->treeView->setModel(pModel);
+    ui->treeView->resizeColumnToContents(0);
+    ui->treeView->resizeColumnToContents(1);
+    ui->treeView->resizeColumnToContents(3);
+}
+
+void CActiveConnectionsWidget::OnActiveConnectionDataChangedSlot()
+{
     ui->treeView->resizeColumnToContents(0);
     ui->treeView->resizeColumnToContents(1);
     ui->treeView->resizeColumnToContents(3);

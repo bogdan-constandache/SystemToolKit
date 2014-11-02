@@ -102,7 +102,7 @@ bool FactoryCpuSensor::DetectCpuSensor()
         case 0x14:
         case 0x15:
         case 0x16:
-            m_pCpuSensor = new CAmd10CpuSensor();
+            m_pCpuSensor = new CAmd10CpuSensor(nDispFamily, nDispModel, nStepping, SystemInfo.dwNumberOfProcessors);
             break;
         default:
             return false;

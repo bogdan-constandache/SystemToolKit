@@ -15,7 +15,6 @@ class CNvidiaManager
 private:
     QStandardItemModel  *m_pGpuModel;
     QStandardItemModel  *m_pGpuDataModel;
-    QTimer              *m_pTimer;
     int                 m_nCurrentIndex;
 
     NVidiaReport        *m_pData;

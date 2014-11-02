@@ -4,6 +4,19 @@
 
 CNetworkDevices::CNetworkDevices()
 {
+    m_pAdaptersModel = new QStandardItemModel();
+    m_pPropsModel = new QStandardItemModel();
+
+    this->GetAllAdaptersInformations();
+
+    m_pAdaptersModel->setHorizontalHeaderLabels(QStringList() <<"Select an adapter to get more informations:");
+
+    for(int i = 0; i < m_qAdapterNames.count(); i++)
+    {
+        QStandardItem *pStandardItem = new QStandardItem(m_qAdapterNames.at(i));
+        pStandardItem->setData(m_qAdapterNames.at(i));
+        m_pAdaptersModel->appendRow(pStandardItem);
+    }
 }
 
 CNetworkDevices::~CNetworkDevices()
@@ -17,6 +30,9 @@ CNetworkDevices::~CNetworkDevices()
     foreach(NetworkSharedResource *pRes, m_qSharedResources)
         SAFE_DELETE(pRes);
     m_qSharedResources.clear();
+
+    SAFE_DELETE(m_pPropsModel);
+    SAFE_DELETE(m_pAdaptersModel);
 }
 
 int CNetworkDevices::GetAllAdaptersInformations()
@@ -198,100 +214,12 @@ int CNetworkDevices::GetSharingInformations()
 
 QStandardItemModel *CNetworkDevices::GetAdapterNames()
 {
-    foreach(NetworkAdapterInfo *pDev, m_qNetworkAdapters)
-        SAFE_DELETE(pDev);
-    m_qNetworkAdapters.clear();
-
-    m_qAdapterNames.clear();
-
-    this->GetAllAdaptersInformations();
-
-    QStandardItemModel *pModel = new QStandardItemModel;
-
-    pModel->setHorizontalHeaderLabels(QStringList() <<"Select a device to get more informations:");
-
-    pModel->setColumnCount(1);
-    pModel->setRowCount(m_qAdapterNames.count());
-
-    for(int i = 0; i < m_qAdapterNames.count(); i++)
-    {
-        pModel->setItem(i, 0, new QStandardItem(m_qAdapterNames.at(i)));
-    }
-
-    return pModel;
+    return m_pAdaptersModel;
 }
 
-QStandardItemModel *CNetworkDevices::GetAdapterInformations(QString qzAdapterName)
+QStandardItemModel *CNetworkDevices::GetAdapterInformations()
 {
-    QStandardItemModel *pModel = 0;
-
-    if (!m_qAdapterNames.contains(qzAdapterName))
-        return 0;
-
-    NetworkAdapterInfo *pDev = 0;
-
-    for(int i = 0; i < m_qNetworkAdapters.count(); i++)
-    {
-        if (qzAdapterName == m_qNetworkAdapters.at(i)->qzDescription)
-        {
-            pDev = m_qNetworkAdapters.at(i);
-            break;
-        }
-    }
-
-    pModel = new QStandardItemModel;
-
-    pModel->setHorizontalHeaderLabels(QStringList() << "Field" << "Value");
-
-    pModel->setColumnCount(2);
-    pModel->setRowCount(15);
-
-    pModel->setItem(0, 0, new QStandardItem("Adapter name: "));
-    pModel->setItem(0, 1, new QStandardItem(pDev->qzAdapterName));
-
-    pModel->setItem(1, 0, new QStandardItem("Adapter description: "));
-    pModel->setItem(1, 1, new QStandardItem(pDev->qzDescription));
-
-    pModel->setItem(2, 0, new QStandardItem("Adapter MAC address: "));
-    pModel->setItem(2, 1, new QStandardItem(pDev->qzMACAddress));
-
-    pModel->setItem(3, 0, new QStandardItem("Index: "));
-    pModel->setItem(3, 1, new QStandardItem(pDev->qzIndex));
-
-    pModel->setItem(4, 0, new QStandardItem("Type: "));
-    pModel->setItem(4, 1, new QStandardItem(pDev->qzAdaptorType));
-
-    pModel->setItem(5, 0, new QStandardItem("IP address: "));
-    pModel->setItem(5, 1, new QStandardItem(pDev->qzIPAddress));
-
-    pModel->setItem(6, 0, new QStandardItem("IP mask: "));
-    pModel->setItem(6, 1, new QStandardItem(pDev->qzIPMask));
-
-    pModel->setItem(7, 0, new QStandardItem("Gateway: "));
-    pModel->setItem(7, 1, new QStandardItem(pDev->qzGateway));
-
-    pModel->setItem(8, 0, new QStandardItem("DHCP enabled: "));
-    pModel->setItem(8, 1, new QStandardItem(pDev->qzDHCPEnabled));
-
-    pModel->setItem(9, 0, new QStandardItem("DHCP server: "));
-    pModel->setItem(9, 1, new QStandardItem(pDev->qzDHCPServer));
-
-    pModel->setItem(10, 0, new QStandardItem("DHCP lease obtained: "));
-    pModel->setItem(10, 1, new QStandardItem(pDev->qzDHCPLeaseObtained));
-
-    pModel->setItem(11, 0, new QStandardItem("DHCP lease expires: "));
-    pModel->setItem(11, 1, new QStandardItem(pDev->qzDHCPLeaseExpires));
-
-    pModel->setItem(12, 0, new QStandardItem("Have WINS (Windows Internet Name Service): "));
-    pModel->setItem(12, 1, new QStandardItem(pDev->qzHaveWINS));
-
-    pModel->setItem(13, 0, new QStandardItem("Primary WINS server: "));
-    pModel->setItem(13, 1, new QStandardItem(pDev->qzPrimaryWINSServer));
-
-    pModel->setItem(14, 0, new QStandardItem("Secondary WINS server: "));
-    pModel->setItem(14, 1, new QStandardItem(pDev->qzSecondaryWINSServer));
-
-    return pModel;
+    return m_pPropsModel;
 }
 
 QStandardItemModel *CNetworkDevices::GetSharedResourcesInformations()
@@ -328,4 +256,71 @@ QStandardItemModel *CNetworkDevices::GetSharedResourcesInformations()
     }
 
     return pModel;
+}
+
+void CNetworkDevices::OnRefreshAdapterData(QString qsAdapter)
+{
+    if (!m_qAdapterNames.contains(qsAdapter))
+        return;
+
+    m_pPropsModel->clear();
+    m_pPropsModel->setHorizontalHeaderLabels(QStringList() << "Field" << "Value");
+
+    NetworkAdapterInfo *pDev = 0;
+
+    for(int i = 0; i < m_qNetworkAdapters.count(); i++)
+    {
+        if (qsAdapter == m_qNetworkAdapters.at(i)->qzDescription)
+        {
+            pDev = m_qNetworkAdapters.at(i);
+            break;
+        }
+    }
+
+    QList<QStandardItem*> qList;
+
+    qList << new QStandardItem("Adapter name: ") << new QStandardItem(pDev->qzAdapterName);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Adapter description: ") << new QStandardItem(pDev->qzDescription);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Adapter MAC address: ") << new QStandardItem(pDev->qzMACAddress);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Index: ") << new QStandardItem(pDev->qzIndex);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Type: ") << new QStandardItem(pDev->qzAdaptorType);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("IP address: ") << new QStandardItem(pDev->qzIPAddress);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("IP mask: ") << new QStandardItem(pDev->qzIPMask);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Gateway: ") << new QStandardItem(pDev->qzGateway);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("DHCP enabled: ") << new QStandardItem(pDev->qzDHCPEnabled);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("DHCP server: ") << new QStandardItem(pDev->qzDHCPServer);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("DHCP lease obtained: ") << new QStandardItem(pDev->qzDHCPLeaseObtained);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("DHCP lease expires: ") << new QStandardItem(pDev->qzDHCPLeaseExpires);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Have WINS (Windows Internet Name Service): ") << new QStandardItem(pDev->qzHaveWINS);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Primary WINS server: ") << new QStandardItem(pDev->qzPrimaryWINSServer);
+    m_pPropsModel->appendRow(qList); qList.clear();
+
+    qList << new QStandardItem("Secondary WINS server: ") << new QStandardItem(pDev->qzSecondaryWINSServer);
+    m_pPropsModel->appendRow(qList); qList.clear();
 }

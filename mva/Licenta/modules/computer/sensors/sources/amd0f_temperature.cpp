@@ -34,17 +34,17 @@ UINT CAmd0FCpuSensor::GetControllAddress(int nFunction)
 {
     UINT unAddress = 0;
     unAddress = (0 & 0xFF) << 8;
-    unAddress |= ((AMD0F_BASE_DEVICE + 0) & 0x1F) << 3;
+    unAddress |= ((AMD_BASE_DEVICE + 0) & 0x1F) << 3;
     unAddress |= (nFunction & 7);
 
     // check that we have the correct bus
     ULONG unDeviceVendor = 0;
     int nStatus = m_pDriver->ReadPCIConfiguration(unAddress, 0, &unDeviceVendor);
     if( Success != nStatus )
-        return AMD0F_INVALID_ADDRESS;
+        return AMD_INVALID_ADDRESS;
 
-    if( unDeviceVendor != (AMD0F_DEVICE_ID << 16 | AMD0F_VENDOR_ID) )
-        return AMD0F_INVALID_ADDRESS;
+    if( unDeviceVendor != (AMD0F_DEVICE_ID << 16 | AMD_VENDOR_ID) )
+        return AMD_INVALID_ADDRESS;
 
     return unAddress;
 }
@@ -77,13 +77,13 @@ int CAmd0FCpuSensor::Destroy()
 int CAmd0FCpuSensor::Update()
 {    
     int nStatus = Uninitialized;
-    UINT unAddress = AMD0F_INVALID_ADDRESS;
+    UINT unAddress = AMD_INVALID_ADDRESS;
     ULONG unTempValue = 0;
 
     for( int i = 0; i < m_nCoreCount; i++ )
     {
-        unAddress = GetControllAddress(3); // 3 - control function
-        if( unAddress == AMD0F_INVALID_ADDRESS )
+        unAddress = GetControllAddress(AMD_CONTROL_FUNCTION); // 3 - control function
+        if( unAddress == AMD_INVALID_ADDRESS )
             continue;
 
         nStatus = m_pDriver->WritePCIConfiguration(unAddress, AMD0F_THERM_STATUS_REGISTER,
@@ -126,4 +126,9 @@ QString CAmd0FCpuSensor::GetMicroArchitecture()
 int CAmd0FCpuSensor::GetNumberOfCores()
 {
     return m_nCoreCount;
+}
+
+int CAmd0FCpuSensor::GetMultiplier()
+{
+    return 0;
 }

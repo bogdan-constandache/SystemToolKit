@@ -1,57 +1,62 @@
 #include "../headers/system_drivers.h"
 
 SystemDrivers::SystemDrivers():
-    m_qszWinDir("")
+    m_qszWinDir(""), m_pDataModel(NULL)
 {
+    m_pDataModel = new QStandardItemModel();
+    m_pDataModel->setHorizontalHeaderLabels(QStringList() << "Driver name" <<
+                                            "Description" << "File name" <<
+                                            "Version" << "Type" << "Current state");
 }
 
 SystemDrivers::~SystemDrivers()
 {
-    Destroy();
+    for(int i = 0; i < m_qlSystemDrivers.count(); i++)
+    {
+        delete m_qlSystemDrivers.at(i);
+    }
+    m_qlSystemDrivers.clear();
+
+    SAFE_DELETE(m_pDataModel);
 }
 
 QStandardItemModel *SystemDrivers::GetSystemDriversInformation()
 {
-    int nStatus = Initialize();
-    if( Success != nStatus )
-    {
-        return 0;
-    }
+    return m_pDataModel;
+}
 
-    QStandardItemModel *pModel = new QStandardItemModel;
-    QStandardItem *pItem = 0;
-    SystemDriverInfo *pDriver = 0;
-
-    pModel->setColumnCount(6);
-    pModel->setRowCount(this->m_qlSystemDrivers.count());
-    pModel->setHorizontalHeaderLabels(QStringList() << "Driver name" <<
-                                             "Description" << "File name" <<
-                                             "Version" << "Type" << "Current state");
-
+void SystemDrivers::OnRefreshData()
+{
     for(int i = 0; i < m_qlSystemDrivers.count(); i++)
     {
-        pDriver = m_qlSystemDrivers.at(i);
+        delete m_qlSystemDrivers.at(i);
+    }
+    m_qlSystemDrivers.clear();
+
+    int nStatus = Initialize();
+    CHECK_OPERATION_STATUS(nStatus);
+
+    m_pDataModel->clear();
+    m_pDataModel->setHorizontalHeaderLabels(QStringList() << "Driver name" <<
+                                            "Description" << "File name" <<
+                                            "Version" << "Type" << "Current state");
+
+    QList<QStandardItem*> qList;
+    QStandardItem *pItem = 0;
+
+    foreach(SystemDriverInfo *pDriver, m_qlSystemDrivers)
+    {
         pItem = new QStandardItem(pDriver->qszDriverName == "" ? "N/A" : pDriver->qszDriverName);
         pItem->setIcon(QIcon(":/img/windows_service.png"));
-        pModel->setItem(i, 0, pItem);
+        qList << pItem;
+        qList << new QStandardItem(pDriver->qszDescription == "" ? "N/A" : pDriver->qszDescription);
+        qList << new QStandardItem(pDriver->qszFileName == "" ? "N/A" : pDriver->qszFileName);
+        qList << new QStandardItem(pDriver->qszVersion == "" ? "N/A" : pDriver->qszVersion);
+        qList << new QStandardItem(pDriver->qszType == "" ? "N/A" : pDriver->qszType);
+        qList << new QStandardItem(pDriver->qszState == "" ? "N/A" : pDriver->qszState);
 
-        pItem = new QStandardItem(pDriver->qszDescription == "" ? "N/A" : pDriver->qszDescription);
-        pModel->setItem(i, 1, pItem);
-
-        pItem = new QStandardItem(pDriver->qszFileName == "" ? "N/A" : pDriver->qszFileName);
-        pModel->setItem(i, 2, pItem);
-
-        pItem = new QStandardItem(pDriver->qszVersion == "" ? "N/A" : pDriver->qszVersion);
-        pModel->setItem(i, 3, pItem);
-
-        pItem = new QStandardItem(pDriver->qszType == "" ? "N/A" : pDriver->qszType);
-        pModel->setItem(i, 4, pItem);
-
-        pItem = new QStandardItem(pDriver->qszState == "" ? "N/A" : pDriver->qszState);
-        pModel->setItem(i, 5, pItem);
+        m_pDataModel->appendRow(qList); qList.clear();
     }
-
-    return pModel;
 }
 
 int SystemDrivers::Initialize()
@@ -234,17 +239,6 @@ CleanUp:
     CloseServiceHandle(hHandle);
 
     return nStatus;
-}
-
-int SystemDrivers::Destroy()
-{
-    for(int i = 0; i < m_qlSystemDrivers.count(); i++)
-    {
-        delete m_qlSystemDrivers.at(i);
-    }
-    m_qlSystemDrivers.clear();
-
-    return Success;
 }
 
 QString SystemDrivers::GetDriverVersion(WCHAR *wszFileName)

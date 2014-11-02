@@ -1,7 +1,46 @@
 #include "system_users_information.h"
 
-CSystemUsersInformation::CSystemUsersInformation(): m_qlUsers()
+CSystemUsersInformation::CSystemUsersInformation(): m_qlUsers(), m_pDataModel(NULL)
 {
+    m_pDataModel = new QStandardItemModel();
+    m_pDataModel->setHorizontalHeaderLabels(QStringList() << "Users:" << "");
+
+    int nStatus = Initialize();
+    CHECK_OPERATION_STATUS(nStatus);
+
+    QList<QStandardItem*> qList;
+
+    foreach(UserInformation *pUser, m_qlUsers)
+    {
+        qList << new QStandardItem("User: ") << new QStandardItem(pUser->UserName == "" ? "N/A" : pUser->UserName);
+        m_pDataModel->appendRow(qList); qList.clear();
+
+        qList << new QStandardItem("Full name: ") << new QStandardItem(pUser->FullUserName == "" ? "N/A" : pUser->FullUserName);
+        m_pDataModel->appendRow(qList); qList.clear();
+
+        qList << new QStandardItem("Privilege: ") << new QStandardItem(pUser->Privilege == "" ? "N/A" : pUser->Privilege);
+        m_pDataModel->appendRow(qList); qList.clear();
+
+        qList << new QStandardItem("Home directory: ") << new QStandardItem(pUser->HomeDir == "" ? "N/A" : pUser->HomeDir);
+        m_pDataModel->appendRow(qList); qList.clear();
+
+        qList << new QStandardItem("Last logon: ") << new QStandardItem(pUser->LastLogon == "" ? "N/A" : pUser->LastLogon);
+        m_pDataModel->appendRow(qList); qList.clear();
+
+        qList << new QStandardItem("Last logoff: ") << new QStandardItem(pUser->LastLogoff == "" ? "N/A" : pUser->LastLogoff);
+        m_pDataModel->appendRow(qList); qList.clear();
+
+        qList << new QStandardItem("Country code: ") << new QStandardItem(pUser->CountryCode == "" ? "N/A" : pUser->CountryCode);
+        m_pDataModel->appendRow(qList); qList.clear();
+
+        qList << new QStandardItem("Logon server: ") << new QStandardItem(pUser->LogonServer == "" ? "N/A" : pUser->LogonServer);
+        m_pDataModel->appendRow(qList); qList.clear();
+
+        qList << new QStandardItem("") << new QStandardItem("");
+        m_pDataModel->appendRow(qList); qList.clear();
+    }
+
+    m_pDataModel->removeRow(m_pDataModel->rowCount() - 1);
 }
 
 CSystemUsersInformation::~CSystemUsersInformation()
@@ -9,49 +48,13 @@ CSystemUsersInformation::~CSystemUsersInformation()
     foreach(UserInformation* pUser, m_qlUsers)
         SAFE_DELETE(pUser);
     m_qlUsers.clear();
+
+    SAFE_DELETE(m_pDataModel);
 }
 
 QStandardItemModel *CSystemUsersInformation::GetUserInformations()
 {
-    int nStatus = Initialize();
-    if( Success != nStatus )
-        return 0;
-
-    QStandardItemModel *pModel = new QStandardItemModel();
-    pModel->setColumnCount(2);
-    pModel->setHorizontalHeaderLabels(QStringList() << "Users: " << "");
-
-    int nRow = 0;
-    foreach(UserInformation* pUser, m_qlUsers)
-    {
-        pModel->setItem(nRow, 0, new QStandardItem("User: "));
-        pModel->setItem(nRow++, 1, new QStandardItem(pUser->UserName == "" ? "N/A" : pUser->UserName));
-
-        pModel->setItem(nRow, 0, new QStandardItem("Full name: "));
-        pModel->setItem(nRow++, 1, new QStandardItem(pUser->FullUserName == "" ? "N/A" : pUser->FullUserName));
-
-        pModel->setItem(nRow, 0, new QStandardItem("Privilege: "));
-        pModel->setItem(nRow++, 1, new QStandardItem(pUser->Privilege == "" ? "N/A" : pUser->Privilege));
-
-        pModel->setItem(nRow, 0, new QStandardItem("Home directory: "));
-        pModel->setItem(nRow++, 1, new QStandardItem(pUser->HomeDir == "" ? "N/A" : pUser->HomeDir));
-
-        pModel->setItem(nRow, 0, new QStandardItem("Last logon: "));
-        pModel->setItem(nRow++, 1, new QStandardItem(pUser->LastLogon == "" ? "N/A" : pUser->LastLogon));
-
-        pModel->setItem(nRow, 0, new QStandardItem("Last logoff: "));
-        pModel->setItem(nRow++, 1, new QStandardItem(pUser->LastLogoff == "" ? "N/A" : pUser->LastLogoff));
-
-        pModel->setItem(nRow, 0, new QStandardItem("Country code: "));
-        pModel->setItem(nRow++, 1, new QStandardItem(pUser->CountryCode == "" ? "N/A" : pUser->CountryCode));
-
-        pModel->setItem(nRow, 0, new QStandardItem("Logon server: "));
-        pModel->setItem(nRow++, 1, new QStandardItem(pUser->LogonServer == "" ? "N/A" : pUser->LogonServer));
-
-        nRow++;
-    }
-
-    return pModel;
+    return m_pDataModel;
 }
 
 int CSystemUsersInformation::Initialize(void)

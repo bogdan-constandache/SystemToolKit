@@ -22,6 +22,7 @@ public:
 
 public slots:
     void OnSetTreeModel(QStandardItemModel *pModel);
+    void OnDataChanged();
 
 signals:
     void OnShowWidget(QWidget*);

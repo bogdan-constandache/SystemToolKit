@@ -153,3 +153,18 @@ QIcon GetIconFromHICON(QString qzFileName)
     else
         return qRetIcon;
 }
+
+
+QString GetChipsetType()
+{
+    int CPUInfo[4] = {0};
+    std::string RegisterString;
+
+    // getting manufacturer
+    __cpuid(CPUInfo, 0);
+    RegisterString += std::string((char*)&CPUInfo[1], 4);
+    RegisterString += std::string((char*)&CPUInfo[3], 4);
+    RegisterString += std::string((char*)&CPUInfo[2], 4);
+
+    return QString::fromStdString(RegisterString);
+}

@@ -85,8 +85,8 @@ MemoryStatus *CHardwareUsage::GetMemoryStatus()
     pMemoryStatus->qzAvailExtVirtual.sprintf("0");
     pMemoryStatus->qzAvailPageFile.sprintf("%d MB", MemStat.ullAvailPageFile / 1048576);
     pMemoryStatus->qzTotalPageFile.sprintf("%d MB", MemStat.ullTotalPageFile / 1048576);
-    pMemoryStatus->qzAvailVirtual.sprintf("%d MB", MemStat.ullAvailVirtual / 1048576);
-    pMemoryStatus->qzTotalVirtual.sprintf("%d MB", MemStat.ullTotalVirtual / 1048576);
+//    pMemoryStatus->qzAvailVirtual.sprintf("%d MB", MemStat.ullAvailVirtual / 1048576);
+//    pMemoryStatus->qzTotalVirtual.sprintf("%d MB", MemStat.ullTotalVirtual / 1048576);
     pMemoryStatus->qzAvailPhys.sprintf("%d MB", MemStat.ullAvailPhys / 1048576);
     pMemoryStatus->qzTotalPhys.sprintf("%d MB", MemStat.ullTotalPhys / 1048576);
 

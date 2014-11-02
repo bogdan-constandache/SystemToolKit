@@ -38,4 +38,6 @@ void COperatingSystemWidget::OnDataChangedSlot()
 {
     ui->tvOperatingSystem->setColumnWidth(0, 150);
     ui->tvOperatingSystem->expandAll();
+
+    emit OnShowWidget(this);
 }

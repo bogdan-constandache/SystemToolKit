@@ -64,7 +64,6 @@ CW836XX::CW836XX(Chip eChip, USHORT usAddress, BYTE bRevision)
 
 CW836XX::~CW836XX()
 {
-    Destroy();
 }
 
 int CW836XX::ReadByteFromBank(BYTE bBank, BYTE bReg, BYTE *bResult)
@@ -223,7 +222,8 @@ int CW836XX::Destroy()
     m_pDriver->Destroy();
     SAFE_DELETE(m_pDriver);
 
-    SAFE_DELETE(m_pVoltages);
+    delete[] m_pVoltages;
+//    SAFE_DELETE(m_pVoltages);
     SAFE_DELETE(m_bVoltageBank);
     SAFE_DELETE(m_bVoltageReg);
 

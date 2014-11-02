@@ -1,17 +1,20 @@
 #include "active_connections.h"
 
 
-CActiveConnections::CActiveConnections()
+CActiveConnections::CActiveConnections() : m_pDataModel(NULL)
 {
+    m_pDataModel = new QStandardItemModel();
 }
 
 CActiveConnections::~CActiveConnections()
 {
     foreach(ActiveConnectionsStruct *pStruct, m_Connections)
     {
-        delete pStruct;
+        SAFE_DELETE(pStruct);
     }
     m_Connections.clear();
+
+    SAFE_DELETE(m_pDataModel)
 }
 
 int CActiveConnections::GetAllTCPConnections()
@@ -259,51 +262,42 @@ QString CActiveConnections::GetProcessNameFromPID(int nPID)
 
 QStandardItemModel *CActiveConnections::GetActiveConnections()
 {
-    QStandardItemModel *pModel = new QStandardItemModel;
-    QStandardItem *pItem = 0;
+    return m_pDataModel;
+}
 
-    this->GetAllTCPConnections();
-    this->GetAllUDPConnections();
+void CActiveConnections::OnRefreshData()
+{
+    foreach(ActiveConnectionsStruct *pStruct, m_Connections)
+    {
+        SAFE_DELETE(pStruct);
+    }
+    m_Connections.clear();
 
-    pModel->setColumnCount(9);
-    pModel->setRowCount(m_Connections.count());
+    GetAllTCPConnections();
+    GetAllUDPConnections();
 
+    m_pDataModel->clear();
+    m_pDataModel->setHorizontalHeaderLabels(QStringList() << "Name" << "PID" << "Type" << "State" << "Local address" << "Local port"
+                                            << "Remote address" << "Remote port" << "Creation time");
 
-    pModel->setHorizontalHeaderLabels(QStringList() << "Name" << "PID" << "Type" << "State" << "Local address" << "Local port"
-                                      << "Remote address" << "Remote port" << "Creation time");
+    QList<QStandardItem*> qList;
 
     for(int i = 0; i < m_Connections.count(); i++)
     {
         ActiveConnectionsStruct *pStruct = m_Connections.at(i);
 
-        pItem = new QStandardItem(pStruct->qzProcessName);
-        pModel->setItem(i, 0, pItem);
+        qList << new QStandardItem(pStruct->qzProcessName);
+        qList << new QStandardItem(pStruct->qzProcessPid);
+        qList << new QStandardItem(pStruct->qzConnectionType);
+        qList << new QStandardItem(pStruct->qzState);
+        qList << new QStandardItem(pStruct->qzLocalAddress);
+        qList << new QStandardItem(pStruct->qzLocalPort);
+        qList << new QStandardItem(pStruct->qzRemoteAddress);
+        qList << new QStandardItem(pStruct->qzRemotePort);
+        qList << new QStandardItem(pStruct->qzCreationTime);
 
-        pItem = new QStandardItem(pStruct->qzProcessPid);
-        pModel->setItem(i, 1, pItem);
-
-        pItem = new QStandardItem(pStruct->qzConnectionType);
-        pModel->setItem(i, 2, pItem);
-
-        pItem = new QStandardItem(pStruct->qzState);
-        pModel->setItem(i, 3, pItem);
-
-        pItem = new QStandardItem(pStruct->qzLocalAddress);
-        pModel->setItem(i, 4, pItem);
-
-        pItem = new QStandardItem(pStruct->qzLocalPort);
-        pModel->setItem(i, 5, pItem);
-
-        pItem = new QStandardItem(pStruct->qzRemoteAddress);
-        pModel->setItem(i, 6, pItem);
-
-        pItem = new QStandardItem(pStruct->qzRemotePort);
-        pModel->setItem(i, 7, pItem);
-
-        pItem = new QStandardItem(pStruct->qzCreationTime);
-        pModel->setItem(i, 8, pItem);
+        m_pDataModel->appendRow(qList);
+        qList.clear();
     }
-
-    return pModel;
 }
 

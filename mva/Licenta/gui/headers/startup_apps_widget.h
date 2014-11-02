@@ -2,6 +2,7 @@
 #define STARTUP_APPS_WIDGET_H
 
 #include <QWidget>
+#include <QFileDialog>
 
 #include "../abstract_controller.h"
 
@@ -23,9 +24,21 @@ public:
 
 public slots:
     void OnSetTreeModel(QStandardItemModel *pModel);
+    void OnApplicationsDataChangedSlot();
+    void OnRemoveApplicationButtonClickedSlot();
+    void OnEnableApplicationButtonClickedSlot();
+    void OnAddApplicationClickedSlot();
+    void OnApplyModificationsClickedSlot();
+    void OnCancelModificationsClickedSlot();
+    void OnApplicationPathClickedSlot();
+
+    void OnLineEditTextChangedSlot(QString qsText);
 
 signals:
     void OnShowWidget(QWidget*);
+    void OnRemoveApplicationSignal(QString);
+    void OnChangeApplicationStateSignal(QString);
+    void OnAddStartupApplicationSignal(QString, QString);
 };
 
 #endif // STARTUP_APPS_WIDGET_H

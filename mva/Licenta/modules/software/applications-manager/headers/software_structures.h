@@ -17,10 +17,4 @@ typedef struct _APPLICATION
     QString UninstallString;
 }Application, *PApplication;
 
-typedef enum USER_SCOPE
-{
-    ALL_USERS,
-    CURRENT_USER
-}UserScope;
-
 #endif

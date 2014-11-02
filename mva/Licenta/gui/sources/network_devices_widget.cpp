@@ -29,6 +29,10 @@ CNetworkDevicesWidget::CNetworkDevicesWidget(QWidget *parent, AbstractController
             this, SLOT(OnSetNetworkNamesTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
     connect(m_pController, SIGNAL(OnSetNetworkDeviceInformation(QStandardItemModel*)),
             this, SLOT(OnSetNetworkDeviceInformationsTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnNetworkAdaptersInformationDataChanged()),
+            this, SLOT(OnAdaptersNamesDataChangedSlot()), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnNetworkAdapterPropertiesDataChanged()),
+            this, SLOT(OnAdaptersPropertiesDataChangedSlot()), Qt::QueuedConnection);
 }
 
 CNetworkDevicesWidget::~CNetworkDevicesWidget()
@@ -53,8 +57,6 @@ void CNetworkDevicesWidget::OnSetNetworkNamesTreeModel(QStandardItemModel *pMode
         ui->networkDevNames->setModel(pModel);
         ui->networkDevNames->resizeColumnToContents(0);
     }
-
-    emit OnShowWidget(this);
 }
 
 void CNetworkDevicesWidget::OnSetNetworkDeviceInformationsTreeModel(QStandardItemModel *pModel)
@@ -65,4 +67,16 @@ void CNetworkDevicesWidget::OnSetNetworkDeviceInformationsTreeModel(QStandardIte
         ui->networkDevInfos->resizeColumnToContents(0);
         ui->networkDevInfos->resizeColumnToContents(1);
     }
+}
+
+void CNetworkDevicesWidget::OnAdaptersNamesDataChangedSlot()
+{
+    ui->networkDevNames->resizeColumnToContents(0);
+
+    emit OnShowWidget(this);
+}
+
+void CNetworkDevicesWidget::OnAdaptersPropertiesDataChangedSlot()
+{
+    ui->networkDevInfos->setColumnWidth(0, 200);
 }

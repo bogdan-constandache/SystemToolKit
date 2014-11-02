@@ -1,7 +1,8 @@
 #include "../headers/csmartinfo.h"
 
 CSmartInfo::CSmartInfo():
-    m_data(0), m_bErrorFlag(false)
+    m_data(0), m_bErrorFlag(false), m_PhysicalDrives(),
+    m_pHddModel(NULL), m_pItemPropModel(NULL)
 {
     // read details out of database
     int nStatus = ReadSMARTDetailsFromDB();
@@ -10,65 +11,48 @@ CSmartInfo::CSmartInfo():
         m_bErrorFlag = true;
         return;
     }
+
+    m_pHddModel = new QStandardItemModel();
+    m_pItemPropModel = new QStandardItemModel();
+
+    m_pHddModel->setHorizontalHeaderLabels(QStringList() << "Devices:");
+
     // get physical drives list (e.g. PhysicalDrive0, PhysicalDrive1, etc..)
     m_PhysicalDrives = GetPhysicalDrivesList();
-    for(int i = 0; i < m_PhysicalDrives.count(); i++)
+    foreach(QString qsDrive, m_PhysicalDrives)
     {
-        ATADeviceProperties *pProp = GetATADeviceProperties(m_PhysicalDrives.at(i).toStdWString().c_str());
-        if( !pProp )
+        ATADeviceProperties *pProperty = GetATADeviceProperties(qsDrive.toStdWString().c_str());
+        if( NULL == pProperty )
             continue;
-        m_PhysicalDrivesToModel.insert(pProp->Model, m_PhysicalDrives.at(i));
-        delete pProp;
+
+        QStandardItem *pStandardItem = new QStandardItem(pProperty->Model);
+        pStandardItem->setData(qsDrive);
+        pStandardItem->setIcon(QIcon(":/img/hdd.png"));
+
+        m_pHddModel->appendRow(pStandardItem);
+
+        delete pProperty;
     }
 }
 
 CSmartInfo::~CSmartInfo()
 {
+    SAFE_DELETE(m_pHddModel);
+    SAFE_DELETE(m_pItemPropModel);
+
+    ClearDriveInfoData();
 }
 
-int CSmartInfo::Initialize(int nDriveIndex)
+int CSmartInfo::Initialize(QString qsDrive)
 {
     int nStatus = Uninitialized;
-    QString qzDriveName = "";
     bool bResult;
 
-    if( 0 == m_data )
-    {
-        m_data = new DriveInfo;
-    }
-    else
-    {
-        delete m_data;
-        m_data = 0;
-        m_data = new DriveInfo;
-    }
-    if( 0 == m_data )
-    {
-        nStatus = NotAllocated;
-        DEBUG_STATUS(nStatus);
-        return nStatus;
-    }
-
-    if( nDriveIndex >= m_PhysicalDrives.count() )
-    {
-        nStatus = Unsuccessful;
-        DEBUG_STATUS(nStatus);
-        return nStatus;
-    }
-    qzDriveName = m_PhysicalDrives.at(nDriveIndex);
-//    pDriveInfo = new DriveInfo;
-//    if( 0 == pDriveInfo )
-//    {
-//        nStatus = NotAllocated;
-//        DEBUG_STATUS(nStatus);
-//        return nStatus;
-//    }
-
     // we save the drive index
-    m_data->DriveIndex = qzDriveName.right(qzDriveName.count() - 1).toShort();
+    m_data->DriveIndex = qsDrive.right(qsDrive.count() - 1).toShort();
 
     // check for cmd commands;
-    bResult = CheckForCMDCommands(qzDriveName.toStdWString().c_str());
+    bResult = CheckForCMDCommands(qsDrive.toStdWString().c_str());
     if( false == bResult )
     {
         nStatus = Unsuccessful;
@@ -77,7 +61,7 @@ int CSmartInfo::Initialize(int nDriveIndex)
     }
 
     // check for smart flag
-    bResult = CheckForSmartFlag(qzDriveName.toStdWString().c_str());
+    bResult = CheckForSmartFlag(qsDrive.toStdWString().c_str());
     if( false == bResult )
     {
         nStatus = Unsuccessful;
@@ -85,7 +69,7 @@ int CSmartInfo::Initialize(int nDriveIndex)
         return nStatus;
     }
 
-    nStatus = CollectSmartAttributes(qzDriveName.toStdWString().c_str());
+    nStatus = CollectSmartAttributes(qsDrive.toStdWString().c_str());
     if( Success != nStatus )
     {
         DEBUG_STATUS(nStatus);
@@ -247,7 +231,7 @@ SmartDetails *CSmartInfo::GetSMARTDetailsFromDB(short sAttribIndex)
     pIt = m_dbSmartDetails.find(sAttribIndex);
     if(pIt != m_dbSmartDetails.end())
     {
-        pRet=pIt.value();
+        pRet = pIt.value();
     }
     return pRet;
 }
@@ -390,44 +374,31 @@ QList<SmartData*> CSmartInfo::GetSmartData()
 
 QStandardItemModel *CSmartInfo::GetAvailableHDD()
 {
-    QStandardItemModel *pModel = new QStandardItemModel();
-    QStandardItem *pItem = 0;
-
-    pModel->setColumnCount(1);
-    pModel->setHorizontalHeaderLabels(QStringList() << "Device description");
-
-    if( m_bErrorFlag )
-    {
-        pItem = new QStandardItem("There was a problem detecting SMART properties for your HDD");
-        pModel->setItem(0, 0, pItem);
-        return pModel;
-    }
-
-    for(int i = 0; i < m_PhysicalDrivesToModel.keys().count(); i++)
-    {
-        pItem = new QStandardItem(m_PhysicalDrivesToModel.keys().at(i));
-        pItem->setIcon(QIcon(":/img/hdd.png"));
-        pModel->setItem(i, 0, pItem);
-    }
-
-    return pModel;
+    return m_pHddModel;
 }
 
-QStandardItemModel *CSmartInfo::GetSMARTPropertiesForHDD(QString qzModel)
+QStandardItemModel *CSmartInfo::GetSMARTPropertiesForHDD()
+{
+    return m_pItemPropModel;
+}
+
+void CSmartInfo::OnRefreshData(QString qsDrive)
 {
     if( m_bErrorFlag )
-        return 0;
+        return;
 
-    QStandardItemModel *pModel = new QStandardItemModel();
     SmartDetails *pSmartDetails = 0;
     SmartData *pSmartData = 0;
-    QString qzDrive = m_PhysicalDrivesToModel.value(qzModel);
 
-    int nStatus = Initialize(qzDrive.right(qzDrive.count() - 1).toShort());
-    if (Success != nStatus)
-        return 0;
+    m_pItemPropModel->clear();
+    m_pItemPropModel->setHorizontalHeaderLabels(QStringList() << "ID" << "Property name" << "Raw" << "Value" << "Worst" << "Threshold");
 
-    pModel->setHorizontalHeaderLabels(QStringList() << "ID" << "Property name" << "Raw" << "Value" << "Worst" << "Threshold");
+    ClearDriveInfoData();
+    m_data = new DriveInfo;
+    CHECK_ALLOCATION(m_data);
+
+    int nStatus = Initialize(qsDrive);
+    CHECK_OPERATION_STATUS(nStatus);
 
     QList<QStandardItem*> qList;
 
@@ -450,9 +421,21 @@ QStandardItemModel *CSmartInfo::GetSMARTPropertiesForHDD(QString qzModel)
         // threshold
         qList << new QStandardItem(QString().setNum(pSmartData->m_dwThreshold));
 
-        pModel->appendRow(qList);
+        m_pItemPropModel->appendRow(qList);
         qList.clear();
     }
+}
 
-    return pModel;
+void CSmartInfo::ClearDriveInfoData()
+{
+    if( NULL == m_data )
+        return;
+
+    foreach(SmartData *pData, m_data->SmartEntries)
+    {
+        SAFE_DELETE(pData);
+    }
+    m_data->SmartEntries.clear();
+
+    SAFE_DELETE(m_data);
 }

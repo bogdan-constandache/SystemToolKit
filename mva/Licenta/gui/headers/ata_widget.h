@@ -16,8 +16,6 @@ private:
     Ui::CATAWidget *ui;
     AbstractController *m_pController;
 
-    QStandardItemModel *m_pPropertiesModel;
-
 public:
     explicit CATAWidget(QWidget *parent = 0, AbstractController *pController = 0);
     ~CATAWidget();
@@ -26,6 +24,8 @@ private slots:
     void OnSetHddItemsTreeModel(QStandardItemModel*);
     void OnSetPropertiesTreeModel(QStandardItemModel*);
     void OnHddTreeItemClicked(QModelIndex);
+    void OnATAHddDataChanged();
+    void OnATAItemPropDataChanged();
 
 signals:
     void OnShowWidget(QWidget*);

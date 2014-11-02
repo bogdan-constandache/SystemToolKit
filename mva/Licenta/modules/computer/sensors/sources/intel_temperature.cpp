@@ -297,3 +297,8 @@ int CIntelCpuSensor::GetNumberOfCores()
 {
     return m_nCoreCount;
 }
+
+int CIntelCpuSensor::GetMultiplier()
+{
+    return m_nMultiplier;
+}

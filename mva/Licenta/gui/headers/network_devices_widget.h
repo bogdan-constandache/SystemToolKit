@@ -25,6 +25,8 @@ private slots:
     void OnNetworkNamesItemClickedSlot(QModelIndex Index);
     void OnSetNetworkNamesTreeModel(QStandardItemModel *pModel);
     void OnSetNetworkDeviceInformationsTreeModel(QStandardItemModel *pModel);
+    void OnAdaptersNamesDataChangedSlot();
+    void OnAdaptersPropertiesDataChangedSlot();
 
 signals:
     void OnShowWidget(QWidget*);

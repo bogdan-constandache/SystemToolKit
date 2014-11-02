@@ -13,9 +13,12 @@ CCPUIDWidget::CCPUIDWidget(QWidget *parent, AbstractController *pController) :
     ui->treeView->header()->setStretchLastSection(true);
     ui->treeView->header()->setDefaultAlignment(Qt::AlignLeft);
     ui->treeView->setRootIsDecorated(false);
+    ui->treeView->setFocusPolicy(Qt::NoFocus);
 
     connect(m_pController, SIGNAL(OnSetCPUIDInformations(QStandardItemModel*)),
             this, SLOT(OnSetTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnCPUIDInformationDataChanged()),
+            this, SLOT(OnCPUIDDataChanged()), Qt::QueuedConnection);
 }
 
 CCPUIDWidget::~CCPUIDWidget()
@@ -27,8 +30,10 @@ void CCPUIDWidget::OnSetTreeModel(QStandardItemModel *pModel)
 {
     if (pModel)
         ui->treeView->setModel(pModel);
-    ui->treeView->resizeColumnToContents(0);
-    ui->treeView->resizeColumnToContents(1);
+}
 
+void CCPUIDWidget::OnCPUIDDataChanged()
+{
+    ui->treeView->setColumnWidth(0, 200);
     emit OnShowWidget(this);
 }

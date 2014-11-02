@@ -23,7 +23,7 @@ CApplicationManagerWidget::CApplicationManagerWidget(QWidget *parent, AbstractCo
     connect(m_pController, SIGNAL(OnSetApplicationManagerInformation(QStandardItemModel*)),
             this, SLOT(OnSetTableModel(QStandardItemModel*)), Qt::QueuedConnection);
     connect(ui->refreshButton, SIGNAL(clicked()),
-            m_pController, SLOT(OnApplicationManagerOptClickedSlot()), Qt::QueuedConnection);
+            m_pController, SLOT(OnSoftwareApplicationManagerOptClickedSlot()), Qt::QueuedConnection);
     connect(ui->uninstallButton, SIGNAL(clicked()),
             this, SLOT(OnUninstallApplicationSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnUninstallApplicationSignal(QString)),

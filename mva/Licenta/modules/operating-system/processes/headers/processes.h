@@ -16,12 +16,16 @@
 
 //Typedefs
 typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
+typedef BOOL (WINAPI *LPFN_GETPROCESSMEMORYINFO) (HANDLE, PROCESS_MEMORY_COUNTERS*, DWORD);
 
 class Processes
 {
 private:
     QList<Process*> m_qlProcesses;
     QList<Module*> m_qlModules;
+
+    QStandardItemModel *m_pProcessModel;
+    QStandardItemModel *m_pModuleModel;
 
 private:
     int GetProcessList();
@@ -33,8 +37,11 @@ private:
 public:
     Processes();
     ~Processes();
-    QStandardItemModel *GetModulesInformationsForProcess(DWORD dwPid);
+    QStandardItemModel *GetModulesInformationsForProcess();
     QStandardItemModel *GetProcessesInformations();
+
+    void OnRefreshProcessList();
+    void OnRefreshModuleList(int nPid);
 };
 
 #endif

@@ -16,8 +16,6 @@ private:
     Ui::CSmartWidget *ui;
     AbstractController *m_pController;
 
-    QStandardItemModel *m_pPropertiesModel;
-
 public:
     explicit CSmartWidget(QWidget *parent = 0, AbstractController *pController = 0);
     ~CSmartWidget();
@@ -26,6 +24,8 @@ private slots:
     void OnSetHDDItemsTreeModel(QStandardItemModel*);
     void OnSetPropertiesTreeModel(QStandardItemModel *);
     void OnItemsTreeClicked(QModelIndex);
+    void OnSmartHDDDataChangedSlot();
+    void OnSmartItemDataChangedSlot();
 
 signals:
     void OnShowWidget(QWidget*);

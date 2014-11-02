@@ -9,6 +9,10 @@ TEMPLATE = app
 
 INCLUDEPATH += $$PWD/proto-buffers/includes
 
+QMAKE_CFLAGS_RELEASE += -Zi
+
+QMAKE_LFLAGS_RELEASE += /DEBUG
+
 QMAKE_LFLAGS += /MANIFESTUAC:\"level=\'requireAdministrator\' uiAccess=\'false\'\"
 
 LIBS += $$PWD/proto-buffers/lib/$$CROSSPLATFORM/libprotobuf-lite.lib
@@ -24,6 +28,7 @@ LIBS += -lws2_32
 LIBS += -lPdh
 LIBS += -lNetapi32
 LIBS += -lShell32
+LIBS += -lPsapi
 
 contains(QMAKE_TARGET.arch, x86_64) {
 LIBS += -l$$PWD/modules/motherboard/video-card/api/nvidia-api/amd64/nvapi64
@@ -108,7 +113,10 @@ SOURCES += main/main.cpp \
         gui/sources/user_information_widget.cpp \
         gui/sources/spd_widget.cpp \
         gui/sources/video_card_widget.cpp \
-        gui/sources/operating_system_widget.cpp
+        gui/sources/operating_system_widget.cpp \
+        modules/motherboard/cpu/sources/cpuid_manager.cpp \
+        modules/motherboard/cpu/sources/amd_cpuid.cpp \
+        gui/sources/waiting_widget.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -187,7 +195,10 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/user_information_widget.h \
         gui/headers/spd_widget.h \
         gui/headers/video_card_widget.h \
-        gui/headers/operating_system_widget.h
+        gui/headers/operating_system_widget.h \
+        modules/motherboard/cpu/headers/cpuid_manager.h \
+        modules/motherboard/cpu/headers/amd_cpuid.h \
+        gui/headers/waiting_widget.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \
@@ -208,7 +219,8 @@ FORMS    += \
         gui/forms/user_information_widget.ui \
         gui/forms/spd_widget.ui \
         gui/forms/video_card_widget.ui \
-        gui/forms/operating_system_widget.ui
+        gui/forms/operating_system_widget.ui \
+        gui/forms/waiting_widget.ui
 
 OTHER_FILES += \
         resources/qss/main_dialog.qss \
@@ -216,6 +228,8 @@ OTHER_FILES += \
 
 RESOURCES += \
         resources/resources.qrc
+
+RC_FILE += res.rc
 
 configurationFile.path = $$PWD/../build
 configurationFile.files += $$PWD/others/configuration.cfg

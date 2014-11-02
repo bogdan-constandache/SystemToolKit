@@ -36,52 +36,57 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
 
     ui->menuTreeView->setEditTriggers(QTreeView::NoEditTriggers);
     ui->menuTreeView->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->menuTreeView->setFocusPolicy(Qt::NoFocus);
 
     m_pController = pController;
 
     connect(m_pController, SIGNAL(OnPopulateMenuTreeSignal(QStandardItemModel*)),
             this, SLOT(OnPopulateMenuTreeSlot(QStandardItemModel*)), Qt::QueuedConnection);
 
-    connect(this, SIGNAL(OnComputerDeviceManagerOptClickedSignal()),
-            m_pController, SLOT(OnComputerDeviceManagerOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnComputerDMIOptClickedSignal()),
-            m_pController, SLOT(OnComputerDMIOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnComputerPowerManagementOptClickedSignal()),
-            m_pController, SLOT(OnComputerPowerManagementOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnHddInformationOptClickedSignal()),
-            m_pController, SLOT(OnHddInformationOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnOperatingSystemOptClickedSignal()),
-            m_pController, SLOT(OnOperatingSystemOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnProcessesOptClickedSignal()),
-            m_pController, SLOT(OnProcessesOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnSystemDriversOptClickedSignal()),
-            m_pController, SLOT(OnSystemDriversOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnStorageATAOptClickedSignal()),
-            m_pController, SLOT(OnStorageATAOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnStorageSmartOptClickedSignal()),
-            m_pController, SLOT(OnStorageSmartOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnSmbiosOptClickedSignal()),
-            m_pController, SLOT(OnSmbiosOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnApplicationManagerOptClickedSignal()),
-            m_pController, SLOT(OnApplicationManagerOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnStartupApplicationsOptClickedSignal()),
-            m_pController, SLOT(OnStartupApplicationsOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnActiveConnectionsOptClickedSignal()),
-            m_pController, SLOT(OnActiveConnectionsOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnNetworkDevicesOptClickedSignal()),
-            m_pController, SLOT(OnNetworkDevicesOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnCPUOptClickedSignal()),
-            m_pController, SLOT(OnCPUOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnCPUIDOptClickedSignal()),
-            m_pController, SLOT(OnCPUIDOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnSensorsOptClickedSignal()),
-            m_pController, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnSystemUsersOptClickedSignal()),
-            m_pController, SLOT(OnUserInformationsOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnMotherboardSPDOptClickedSignal()),
-            m_pController, SLOT(OnSPDOptClickedSlot()), Qt::QueuedConnection);
-    connect(this, SIGNAL(OnMotherboardVideoCardOptClickedSignal()),
-            m_pController, SLOT(OnMotherboardVCardOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnComputerDeviceManagerOptClickedSignal()),
+//            m_pController, SLOT(OnComputerDeviceManagerOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnComputerDMIOptClickedSignal()),
+//            m_pController, SLOT(OnComputerDMIOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnComputerPowerManagementOptClickedSignal()),
+//            m_pController, SLOT(OnComputerPowerManagementOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnHddInformationOptClickedSignal()),
+//            m_pController, SLOT(OnHddInformationOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnOperatingSystemOptClickedSignal()),
+//            m_pController, SLOT(OnOperatingSystemOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnProcessesOptClickedSignal()),
+//            m_pController, SLOT(OnOperatingSystemProcessesOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnSystemDriversOptClickedSignal()),
+//            m_pController, SLOT(OnOperatingSystemDriversOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnStorageATAOptClickedSignal()),
+//            m_pController, SLOT(OnStorageATAOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnStorageSmartOptClickedSignal()),
+//            m_pController, SLOT(OnStorageSmartOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnSmbiosOptClickedSignal()),
+//            m_pController, SLOT(OnSmbiosOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnApplicationManagerOptClickedSignal()),
+//            m_pController, SLOT(OnSoftwareApplicationManagerOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnStartupApplicationsOptClickedSignal()),
+//            m_pController, SLOT(OnSoftwareStartupApplicationsOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnActiveConnectionsOptClickedSignal()),
+//            m_pController, SLOT(OnNetworkConnectionsOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnNetworkDevicesOptClickedSignal()),
+//            m_pController, SLOT(OnNetworkDevicesOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnCPUOptClickedSignal()),
+//            m_pController, SLOT(OnCPUOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnCPUIDOptClickedSignal()),
+//            m_pController, SLOT(OnCPUIDOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnSensorsOptClickedSignal()),
+//            m_pController, SLOT(OnSensorsOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnSystemUsersOptClickedSignal()),
+//            m_pController, SLOT(OnOperatingSystemUserInformationsOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnMotherboardSPDOptClickedSignal()),
+//            m_pController, SLOT(OnMotherBoardSPDOptClickedSlot()), Qt::QueuedConnection);
+//    connect(this, SIGNAL(OnMotherboardVideoCardOptClickedSignal()),
+//            m_pController, SLOT(OnMotherboardVCardOptClickedSlot()), Qt::QueuedConnection);
+
+    connect(this, SIGNAL(OnDispatchMenuOptionTagSignal(int)),
+            m_pController, SLOT(OnDispatchMenuOptionTagSlot(int)), Qt::QueuedConnection);
+
 
     InitializeStackedWidget();
 
@@ -160,6 +165,8 @@ void MainWindow::InitializeStackedWidget()
     m_pOperatingSystemWidget = new COperatingSystemWidget(ui->stackedWidget, m_pController);
     connect(m_pOperatingSystemWidget, SIGNAL(OnShowWidget(QWidget*)), this, SLOT(OnShowWidget(QWidget*)), Qt::QueuedConnection);
 
+    m_pLoadingWidget = new QWaitingWidget(ui->stackedWidget);
+
     // Add widget to the stacked widget
     ui->stackedWidget->addWidget(m_pDMIManagerWidget);
     ui->stackedWidget->addWidget(m_pPowerManagementWidget);
@@ -178,6 +185,7 @@ void MainWindow::InitializeStackedWidget()
     ui->stackedWidget->addWidget(m_pSPDWidget);
     ui->stackedWidget->addWidget(m_pVideoCardWidget);
     ui->stackedWidget->addWidget(m_pOperatingSystemWidget);
+    ui->stackedWidget->addWidget(m_pLoadingWidget);
 
     // remove first to pages
     ui->stackedWidget->removeWidget(ui->page_2);
@@ -189,104 +197,112 @@ void MainWindow::InitializeStackedWidget()
 void MainWindow::OnItemsTreeClickedSlot(QModelIndex index)
 {
     QStandardItem *pStandardItem = this->m_pItemTreeModel->itemFromIndex(index);
-    QString qzItemText = pStandardItem->text();
 
-    if( "Device manager" == qzItemText )
+    if(pStandardItem->data(MENU_OPTION_ID_TAG).isValid())
     {
-        qDebug() << "Device manager clicked!";
-        emit OnComputerDeviceManagerOptClickedSignal();
-        ui->stackedWidget->setCurrentWidget(m_pDeviceManagerWidget);
+        emit OnDispatchMenuOptionTagSignal(pStandardItem->data(MENU_OPTION_ID_TAG).toInt());
+        ui->stackedWidget->setCurrentWidget(m_pLoadingWidget);
     }
-    if( "DMI" == qzItemText )
-    {
-        qDebug() << "DMI clicked!";
-        emit OnComputerDMIOptClickedSignal();
-        ui->stackedWidget->setCurrentWidget(m_pDMIManagerWidget);
-    }
-    if( "Power management" == qzItemText )
-    {
-        qDebug() << "Power management";
-        emit OnComputerPowerManagementOptClickedSignal();
-        ui->stackedWidget->setCurrentWidget(m_pPowerManagementWidget);
-    }
-    if( "Operating system" == qzItemText )
-    {
-        qDebug() << "Operating system clicked";
-        emit OnOperatingSystemOptClickedSignal();
-        ui->stackedWidget->setCurrentWidget(m_pOperatingSystemWidget);
-    }
-    if( "Processes" == qzItemText )
-    {
-        qDebug() << "Processes clicked";
-        emit OnProcessesOptClickedSignal();
-    }
-    if( "System drivers" == qzItemText )
-    {
-        qDebug() << "System drivers clicked";
-        emit OnSystemDriversOptClickedSignal();
-    }
-    if( "System users" == qzItemText )
-    {
-        qDebug() << "System users clicked";
-        emit OnSystemUsersOptClickedSignal();
-    }
-    if( "ATA" == qzItemText)
-    {
-        qDebug() << "ATA clicked";
-        emit OnStorageATAOptClickedSignal();
-    }
-    if( "SMART" == qzItemText )
-    {
-        qDebug() << "SMART";
-        emit OnStorageSmartOptClickedSignal();
-    }
-    if( "Startup applications" == qzItemText )
-    {
-        qDebug() << "Startup applications clicked";
-        emit OnStartupApplicationsOptClickedSignal();
-    }
-    if( "Application manager" == qzItemText )
-    {
-        qDebug() << "Application manager clicked";
-        emit OnApplicationManagerOptClickedSignal();
-    }
-    if( "Connections" == qzItemText )
-    {
-        qDebug() << "Connections clicked";
-        emit OnActiveConnectionsOptClickedSignal();
-    }
-    if( "Network devices" == qzItemText)
-    {
-        qDebug() << "Network devices clicked";
-        emit OnNetworkDevicesOptClickedSignal();
-    }
-    if( "CPU" == qzItemText )
-    {
-        qDebug() << "CPU clicked";
-        emit OnCPUOptClickedSignal();
-    }
-    if( "CPUID" == qzItemText )
-    {
-        qDebug() << "CPUID clicked";
-        emit OnCPUIDOptClickedSignal();
-    }
-    if( "Sensors" == qzItemText )
-    {
-        qDebug() << "Sensors clicked";
-        emit OnSensorsOptClickedSignal();
-    }
-    if( "SPD" == qzItemText )
-    {
-        qDebug() << "SPD clicked";
-        emit OnMotherboardSPDOptClickedSignal();
-        ui->stackedWidget->setCurrentWidget(m_pSPDWidget);
-    }
-    if( "Video card" == qzItemText )
-    {
-        qDebug() << "Video card clicked";
-        emit OnMotherboardVideoCardOptClickedSignal();
-        ui->stackedWidget->setCurrentWidget(m_pVideoCardWidget);
-    }
+
+//    if( "Device manager" == qzItemText )
+//    {
+//        qDebug() << "Device manager clicked!";
+//        emit OnComputerDeviceManagerOptClickedSignal();
+//        ui->stackedWidget->setCurrentWidget(m_pDeviceManagerWidget);
+//    }
+//    if( "DMI" == qzItemText )
+//    {
+//        qDebug() << "DMI clicked!";
+//        emit OnComputerDMIOptClickedSignal();
+//        ui->stackedWidget->setCurrentWidget(m_pDMIManagerWidget);
+//    }
+//    if( "Power management" == qzItemText )
+//    {
+//        qDebug() << "Power management";
+//        emit OnComputerPowerManagementOptClickedSignal();
+//        ui->stackedWidget->setCurrentWidget(m_pPowerManagementWidget);
+//    }
+//    if( "Operating system" == qzItemText )
+//    {
+//        qDebug() << "Operating system clicked";
+//        emit OnOperatingSystemOptClickedSignal();
+//        ui->stackedWidget->setCurrentWidget(m_pOperatingSystemWidget);
+//    }
+//    if( "Processes" == qzItemText )
+//    {
+//        qDebug() << "Processes clicked";
+//        emit OnProcessesOptClickedSignal();
+//        ui->stackedWidget->setCurrentWidget(m_pProcessesWidget);
+//    }
+//    if( "System drivers" == qzItemText )
+//    {
+//        qDebug() << "System drivers clicked";
+//        emit OnSystemDriversOptClickedSignal();
+//        ui->stackedWidget->setCurrentWidget(m_pSystemDriversWidget);
+//    }
+//    if( "System users" == qzItemText )
+//    {
+//        qDebug() << "System users clicked";
+//        emit OnSystemUsersOptClickedSignal();
+//        ui->stackedWidget->setCurrentWidget(m_pUserInformationWidget);
+//    }
+//    if( "ATA" == qzItemText)
+//    {
+//        qDebug() << "ATA clicked";
+//        emit OnStorageATAOptClickedSignal();
+//    }
+//    if( "SMART" == qzItemText )
+//    {
+//        qDebug() << "SMART";
+//        emit OnStorageSmartOptClickedSignal();
+//    }
+//    if( "Startup applications" == qzItemText )
+//    {
+//        qDebug() << "Startup applications clicked";
+//        emit OnStartupApplicationsOptClickedSignal();
+//    }
+//    if( "Application manager" == qzItemText )
+//    {
+//        qDebug() << "Application manager clicked";
+//        emit OnApplicationManagerOptClickedSignal();
+//    }
+//    if( "Connections" == qzItemText )
+//    {
+//        qDebug() << "Connections clicked";
+//        emit OnActiveConnectionsOptClickedSignal();
+//    }
+//    if( "Network devices" == qzItemText)
+//    {
+//        qDebug() << "Network devices clicked";
+//        emit OnNetworkDevicesOptClickedSignal();
+//    }
+//    if( "CPU" == qzItemText )
+//    {
+//        qDebug() << "CPU clicked";
+//        emit OnCPUOptClickedSignal();
+//    }
+//    if( "CPUID" == qzItemText )
+//    {
+//        qDebug() << "CPUID clicked";
+//        emit OnCPUIDOptClickedSignal();
+//    }
+//    if( "Sensors" == qzItemText )
+//    {
+//        qDebug() << "Sensors clicked";
+//        emit OnSensorsOptClickedSignal();
+//    }
+//    if( "SPD" == qzItemText )
+//    {
+//        qDebug() << "SPD clicked";
+//        emit OnMotherboardSPDOptClickedSignal();
+//        ui->stackedWidget->setCurrentWidget(m_pSPDWidget);
+//    }
+//    if( "Video card" == qzItemText )
+//    {
+//        qDebug() << "Video card clicked";
+//        emit OnMotherboardVideoCardOptClickedSignal();
+//        ui->stackedWidget->setCurrentWidget(m_pVideoCardWidget);
+//    }
 }
 
 void MainWindow::OnPopulateMenuTreeSlot(QStandardItemModel *pModel)

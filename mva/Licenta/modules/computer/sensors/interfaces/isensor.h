@@ -25,6 +25,7 @@ public:
     virtual QString GetCpuName() = 0;
     virtual QString GetMicroArchitecture() = 0;
     virtual int GetNumberOfCores() = 0;
+    virtual int GetMultiplier() = 0;
 };
 
 #endif

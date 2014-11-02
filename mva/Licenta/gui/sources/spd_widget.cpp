@@ -34,6 +34,8 @@ CSPDWidget::CSPDWidget(QWidget *pParent, AbstractController *pController):
             this, SLOT(OnSetDimmInfoTreeModel(QStandardItemModel*)), Qt::QueuedConnection);
     connect(m_pController, SIGNAL(OnSPDDimmInformationDataChanged()),
             this, SLOT(OnDataChangedSlot()), Qt::QueuedConnection);
+    connect(m_pController, SIGNAL(OnAvailableDIMMSInformationDataChanged()),
+            this, SLOT(OnAvailableDimmsDataChangedSlot()), Qt::QueuedConnection);
 }
 
 CSPDWidget::~CSPDWidget()
@@ -70,6 +72,10 @@ void CSPDWidget::OnItemsTreeClicked(QModelIndex index)
 
 void CSPDWidget::OnDataChangedSlot()
 {
-    ui->tvDimmInfo->resizeColumnToContents(0);
-    ui->tvDimmInfo->resizeColumnToContents(1);
+    ui->tvDimmInfo->setColumnWidth(0, 130);
+}
+
+void CSPDWidget::OnAvailableDimmsDataChangedSlot()
+{
+    emit OnShowWidget(this);
 }

@@ -16,6 +16,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QStandardItemModel>
+#include <QStandardItemModel>
 
 //My includes
 #include "smart_defines.h"
@@ -31,14 +32,19 @@ private:
     QStringList m_PhysicalDrives;
     DriveInfo *m_data;
 
+    QStandardItemModel *m_pHddModel;
+    QStandardItemModel *m_pItemPropModel;
+
     bool m_bErrorFlag;
+
+    void ClearDriveInfoData();
 
     int ReadSMARTDetailsFromDB();
     bool CheckForCMDCommands(const wchar_t *tszDriveName);
     bool CheckForSmartFlag(const wchar_t* tszDriveName);
     int CollectSmartAttributes(const wchar_t* tszDriveName);
     void PopulateModel(DriveInfo *pDriveInfo);
-    int Initialize(int nDriveIndex);
+    int Initialize(QString qsDrive);
     SmartDetails *GetSMARTDetailsFromDB(short sAttribIndex);
     QList<SmartData*> GetSmartData();
 
@@ -46,7 +52,8 @@ public:
     CSmartInfo();
     ~CSmartInfo();
     QStandardItemModel* GetAvailableHDD();
-    QStandardItemModel* GetSMARTPropertiesForHDD(QString);
+    QStandardItemModel* GetSMARTPropertiesForHDD();
 
+    void OnRefreshData(QString qsDrive);
 };
 #endif // CSMARTINFO_H

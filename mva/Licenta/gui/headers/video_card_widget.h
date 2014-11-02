@@ -25,6 +25,7 @@ private slots:
     void OnSetCardInfoTreeModel(QStandardItemModel *pModel);
     void OnItemsTreeClicked(QModelIndex index);
     void OnDataChangedSlot();
+    void OnAvailableVCardsDataChangedSlot();
 
 signals:
     void OnRequestCardInformations(int);

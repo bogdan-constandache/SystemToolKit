@@ -25,6 +25,7 @@ private slots:
     void OnSetDimmInfoTreeModel(QStandardItemModel *pModel);
     void OnItemsTreeClicked(QModelIndex index);
     void OnDataChangedSlot();
+    void OnAvailableDimmsDataChangedSlot();
 
 signals:
     void OnRequestDimmInformations(int);

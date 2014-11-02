@@ -26,6 +26,9 @@ private:
     QStringList m_qAdapterNames;
     QList<NetworkSharedResource*> m_qSharedResources;
 
+    QStandardItemModel      *m_pAdaptersModel;
+    QStandardItemModel      *m_pPropsModel;
+
     int GetAllAdaptersInformations();
     int GetSharingInformations();
 
@@ -34,8 +37,9 @@ public:
     ~CNetworkDevices();
 
     QStandardItemModel *GetAdapterNames();
-    QStandardItemModel *GetAdapterInformations(QString qzAdapterName);
+    QStandardItemModel *GetAdapterInformations();
     QStandardItemModel *GetSharedResourcesInformations();
+    void OnRefreshAdapterData(QString qsAdapter);
 };
 
 #endif

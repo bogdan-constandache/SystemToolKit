@@ -1,11 +1,18 @@
 #include "../headers/processes.h"
 
-Processes::Processes()
+Processes::Processes() : m_pModuleModel(NULL), m_pProcessModel(NULL)
 {
+    m_pProcessModel = new QStandardItemModel();
+    CHECK_ALLOCATION(m_pProcessModel);
+
+    m_pModuleModel = new QStandardItemModel();
+    CHECK_ALLOCATION(m_pModuleModel);
 }
 
 Processes::~Processes()
 {
+    SAFE_DELETE(m_pModuleModel);
+    SAFE_DELETE(m_pProcessModel);
 }
 
 int Processes::GetProcessList()
@@ -19,6 +26,19 @@ int Processes::GetProcessList()
     IsWOW64Process = (LPFN_ISWOW64PROCESS) GetProcAddress(
                 GetModuleHandle(TEXT("kernel32")),"IsWow64Process");
     CHECK_ALLOCATION_STATUS(IsWOW64Process);
+
+    LPFN_GETPROCESSMEMORYINFO GetProcessMemInfo = NULL;
+    HMODULE hDll = LoadLibrary(TEXT("psapi.dll"));
+    CHECK_ALLOCATION_STATUS(hDll);
+    GetProcessMemInfo = (LPFN_GETPROCESSMEMORYINFO) GetProcAddress(hDll, "GetProcessMemoryInfo");
+    if( NULL == GetProcessMemInfo )
+    {
+        CloseHandle(hDll);
+        hDll = LoadLibrary(TEXT("kernel32.dll"));
+        CHECK_ALLOCATION_STATUS(hDll);
+        GetProcessMemInfo = (LPFN_GETPROCESSMEMORYINFO) GetProcAddress(hDll, "GetProcessMemoryInfo");
+        CHECK_ALLOCATION_STATUS(hDll);
+    };
 
     WCHAR wszProcessFileName[MAX_PATH];
     DWORD dwProcessFileNameSize = MAX_PATH;
@@ -37,9 +57,8 @@ int Processes::GetProcessList()
 
     if( FALSE == Process32First(hProcessSnap, &peProcessEntry) )
     {
-        nStatus = Unsuccessful;
         CloseHandle(hProcessSnap);
-        return nStatus;
+        CHECK_OPERATION_STATUS_EX(Unsuccessful);
     }
 
     do
@@ -56,12 +75,14 @@ int Processes::GetProcessList()
 
         dwProcessFileNameSize = MAX_PATH;
         if( 0 != QueryFullProcessImageName(hProcess, 0, wszProcessFileName, &dwProcessFileNameSize))
-            pProcess->qszProcessFileName = WcharArrayToQString(wszProcessFileName);
+            pProcess->qszProcessFileName = QString::fromWCharArray(wszProcessFileName);
         else
             pProcess->qszProcessFileName = "N/A";
 
-        pProcess->qszProcessName = WcharArrayToQString(peProcessEntry.szExeFile);
+        pProcess->qszProcessName = QString::fromWCharArray(peProcessEntry.szExeFile);
+
         pProcess->qnPID = (qint32) peProcessEntry.th32ProcessID;
+
         pProcess->qnNumberOfThreads = (qint32) peProcessEntry.cntThreads;
 
         if( 0 == IsWOW64Process(hProcess, &bIsTrue))
@@ -73,7 +94,7 @@ int Processes::GetProcessList()
 
         pProcess->qnMemoryUsed = 0;
 
-        if( 0 != GetProcessMemoryInfo(hProcess, &pmProcessMemoryCounters, sizeof(pmProcessMemoryCounters)))
+        if( 0 != GetProcessMemInfo(hProcess, &pmProcessMemoryCounters, sizeof(pmProcessMemoryCounters)))
         {
             SIZE_T workingSetSize = pmProcessMemoryCounters.WorkingSetSize / (1024 * 1024);
             SIZE_T pageFileUsage = pmProcessMemoryCounters.PagefileUsage / (1024 * 1024);
@@ -85,9 +106,14 @@ int Processes::GetProcessList()
         CloseHandle(hProcess);
 
         m_qlProcesses.append(pProcess);
+
     }while( Process32Next(hProcessSnap, &peProcessEntry) );
 
+
+    CloseHandle(hDll);
+
     nStatus = Success;
+
     return nStatus;
 }
 
@@ -102,14 +128,15 @@ int Processes::GetModuleList(DWORD dwPid)
     hModuleSnap = CreateToolhelp32Snapshot( TH32CS_SNAPMODULE, dwPid );
     if( INVALID_HANDLE_VALUE == hModuleSnap )
     {
-        return InvalidHandle;
+        CHECK_OPERATION_STATUS_EX(InvalidHandle);
     }
 
     meModuleEntry.dwSize = sizeof(MODULEENTRY32);
 
     if( 0 == Module32First( hModuleSnap, &meModuleEntry ) )
     {
-        return Unsuccessful;
+        CloseHandle(hModuleSnap);
+        CHECK_OPERATION_STATUS_EX(Unsuccessful);
     }
 
     do
@@ -117,8 +144,8 @@ int Processes::GetModuleList(DWORD dwPid)
         pModule = new Module;
         CHECK_ALLOCATION_STATUS(pModule);
 
-        pModule->qszModuleName = WcharArrayToQString(meModuleEntry.szModule);
-        pModule->qszModuleExePath = WcharArrayToQString(meModuleEntry.szExePath);
+        pModule->qszModuleName = QString::fromWCharArray(meModuleEntry.szModule);
+        pModule->qszModuleExePath = QString::fromWCharArray(meModuleEntry.szExePath);
         pModule->qnPID = (qint32) meModuleEntry.th32ProcessID;
         pModule->qnBaseSize = (qint32) meModuleEntry.modBaseSize / (1024);
 
@@ -148,98 +175,91 @@ void Processes::ClearModuleList()
 }
 
 
-QStandardItemModel *Processes::GetModulesInformationsForProcess(DWORD dwPid)
+QStandardItemModel *Processes::GetModulesInformationsForProcess()
 {
-    QStandardItemModel *pModel = new QStandardItemModel;
-    Module *pModule;
-
-    QStandardItem *pRoot = pModel->invisibleRootItem();
-    QStandardItem *pItem = 0;
-
-    QList<QStandardItem*> qRow;
-
-    GetModuleList(dwPid);
-
-    pModel->setHorizontalHeaderLabels(QStringList() << "Name" << "Path" << "Size");
-
-    for(int i = 0; i < m_qlModules.count(); i++)
-    {
-        pModule = m_qlModules.at(i);
-
-        pItem = new QStandardItem(pModule->qszModuleName == "" ? "N/A" : pModule->qszModuleName);
-        qRow.append(pItem);
-
-        pItem = new QStandardItem(pModule->qszModuleExePath == "" ? "N/A" : pModule->qszModuleExePath);
-        qRow.append(pItem);
-
-        pItem = new QStandardItem(QString().setNum(pModule->qnBaseSize) + " KB");
-        qRow.append(pItem);
-
-        pRoot->appendRow(qRow);
-        qRow.clear();
-    }
-
-    return pModel;
+    return m_pModuleModel;
 }
 
 QStandardItemModel *Processes::GetProcessesInformations()
 {
-    QStandardItemModel *pModel = new QStandardItemModel;
-    Process *pProcess;
+    return m_pProcessModel;
+}
 
-    QStandardItem *pRoot = pModel->invisibleRootItem();
+void Processes::OnRefreshProcessList()
+{
+    int nStatus = GetProcessList();
+    CHECK_OPERATION_STATUS(nStatus);
+
+    m_pProcessModel->clear();
+    m_pProcessModel->setHorizontalHeaderLabels(QStringList() << "Name" << "File name" << "PID" << "Threads" << "Memory" << "Pagefile");
+
+    QList<QStandardItem*> qList;
     QStandardItem *pItem = 0;
 
-    QStandardItem *pFirstItem = 0;
-
-    QList<QStandardItem*> qRow;
-
-    GetProcessList();
-
-    pModel->setHorizontalHeaderLabels(QStringList() << "Name" << "File name" << "PID" << "Threads" << "Memory" << "Pagefile" );
-
-    for(int i = 0; i < m_qlProcesses.count(); i++)
+    foreach(Process *pProcess, m_qlProcesses)
     {
-        pProcess = m_qlProcesses.at(i);
-        pFirstItem = new QStandardItem(pProcess->qszProcessName == "" ? "N/A" : pProcess->qszProcessName);
-        pFirstItem->setStatusTip(QString().setNum(pProcess->qnPID));
-        qRow.append(pFirstItem);
+        pItem = new QStandardItem(pProcess->qszProcessName == "" ? "N/A" : pProcess->qszProcessName);
+        QIcon qIcon = GetIconFromHICON(pProcess->qszProcessFileName);
+        pItem->setIcon(qIcon);
+        pItem->setData(pProcess->qnPID); qList.append(pItem);
 
         pItem = new QStandardItem(pProcess->qszProcessFileName == "" ? "N/A" : pProcess->qszProcessFileName);
-        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
-        qRow.append(pItem);
-
-        QIcon qIcon = GetIconFromHICON(pProcess->qszProcessFileName);
-
-        pFirstItem->setIcon(qIcon);
+        pItem->setData(pProcess->qnPID); qList.append(pItem);
 
 //        pItem = new QStandardItem(pProcess->qszProcessCommandLine == "" ? "N/A" : pProcess->qszProcessCommandLine);
-//        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
-//        qRow.append(pItem);
+//        pItem->setData(pProcess->qnPID); qList.append(pItem);
 
         pItem = new QStandardItem(QString().setNum(pProcess->qnPID));
-        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
-        qRow.append(pItem);
+        pItem->setData(pProcess->qnPID); qList.append(pItem);
 
         pItem = new QStandardItem(QString().setNum(pProcess->qnNumberOfThreads));
-        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
-        qRow.append(pItem);
+        pItem->setData(pProcess->qnPID); qList.append(pItem);
 
 //        pItem = new QStandardItem(pProcess->bType ? "Yes" : "No");
-//        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
-//        qRow.append(pItem);
+//        pItem->setData(pProcess->qnPID); qList.append(pItem);
 
         pItem = new QStandardItem(QString().setNum(pProcess->qnMemoryUsed) + " MB");
-        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
-        qRow.append(pItem);
+        pItem->setData(pProcess->qnPID); qList.append(pItem);
 
         pItem = new QStandardItem(QString().setNum(pProcess->qnPageFileUsage) + " MB");
-        pItem->setStatusTip(QString().setNum(pProcess->qnPID));
-        qRow.append(pItem);
+        pItem->setData(pProcess->qnPID); qList.append(pItem);
 
-        pRoot->appendRow(qRow);
-        qRow.clear();
+        m_pProcessModel->appendRow(qList);
+        qList.clear();
     }
+}
 
-    return pModel;
+void Processes::OnRefreshModuleList(int nPid)
+{
+    int nStatus = GetModuleList(nPid);
+    CHECK_OPERATION_STATUS(nStatus);
+
+    m_pModuleModel->clear();
+    m_pModuleModel->setHorizontalHeaderLabels(QStringList() << "Name" << "Path" << "Size");
+
+    QList<QStandardItem *> qList;
+    QStandardItem *pItem = 0;
+
+    WCHAR wszSystemDir[MAX_PATH] = {0};
+    GetSystemDirectory(wszSystemDir, MAX_PATH);
+
+    QString qsDefaultIcon = QString::fromWCharArray(wszSystemDir);
+    qsDefaultIcon += "\\wmi.dll";
+
+    foreach(Module *pModule, m_qlModules)
+    {
+        pItem = new QStandardItem(pModule->qszModuleName == "" ? "N/A" : pModule->qszModuleName);
+        if( pModule->qszModuleExePath.endsWith(".exe") )
+            pItem->setIcon(GetIconFromHICON(pModule->qszModuleExePath));
+        else
+            pItem->setIcon(GetIconFromHICON(qsDefaultIcon));
+        qList << pItem;
+
+        qList << new QStandardItem(pModule->qszModuleExePath == "" ? "N/A" : pModule->qszModuleExePath);
+
+        qList << new QStandardItem(QString().setNum(pModule->qnBaseSize) + " KB");
+
+        m_pModuleModel->appendRow(qList);
+        qList.clear();
+    }
 }

@@ -308,6 +308,134 @@ bool FactoryBoardSensor::DetectW836XXSensor()
     return false;
 }
 
+bool FactoryBoardSensor::DetectF718XXSensor()
+{
+    int nStatus = Uninitialized;
+    BYTE bChipID = 0, bRevision = 0;
+    BYTE bChipIDRegister = 0x20;
+    BYTE bRevisionRegister = 0x21;
+    BYTE bLogicalDeviceNumber = 0x04;
+    Chip eChip = Unknown_Chip;
+
+
+    nStatus = m_pDriver->WriteIoPortByte(F718_REGISTER_PORT, 0x87);
+    CHECK_OPERATION_STATUS(nStatus);
+    nStatus = m_pDriver->WriteIoPortByte(F718_REGISTER_PORT, 0x87);
+    CHECK_OPERATION_STATUS(nStatus);
+
+    bChipID = ReadByteFromPort(F718_REGISTER_PORT, F718_VALUE_PORT, bChipIDRegister);
+    bRevision = ReadByteFromPort(F718_REGISTER_PORT, F718_VALUE_PORT, bRevisionRegister);
+
+    switch( bChipID )
+    {
+    case 0x05:
+        switch( bRevision )
+        {
+        case 0x07:
+            eChip = F71858; break;
+            bLogicalDeviceNumber = 0x02;
+        case 0x41:
+            eChip = F71882; break;
+        }
+
+        break;
+    case 0x06:
+        switch( bRevision )
+        {
+        case 0x01:
+            eChip = F71862; break;
+        }
+
+        break;
+    case 0x07:
+        switch( bRevision )
+        {
+        case 0x23:
+            eChip = F71889F; break;
+        }
+
+        break;
+    case 0x08:
+        switch (bRevision )
+        {
+        case 0x14:
+            eChip = F71869; break;
+        }
+
+        break;
+    case 0x09:
+        switch( bRevision )
+        {
+        case 0x01:
+            eChip = F71808E; break;
+        case 0x09:
+            eChip = F71889ED; break;
+        }
+
+        break;
+    case 0x10:
+        switch( bRevision )
+        {
+        case 0x05:
+            eChip = F71889AD; break;
+        case 0x07:
+            eChip = F71869A; break;
+        }
+
+        break;
+    default:
+        break;
+    }
+
+    if( Unknown_Chip == eChip )
+    {
+        if( 0 != bChipID && 0xFF != bChipID )
+        {
+            m_pDriver->WriteIoPortByte(F718_REGISTER_PORT, 0xAA);
+        }
+    }
+    else
+    {
+        // select environment
+        nStatus = m_pDriver->WriteIoPortByte(F718_REGISTER_PORT, 0x07);
+        CHECK_OPERATION_STATUS(nStatus);
+        nStatus = m_pDriver->WriteIoPortByte(F718_VALUE_PORT, bLogicalDeviceNumber);
+        CHECK_OPERATION_STATUS(nStatus);
+
+        USHORT usAddress = 0;
+        USHORT usVerify = 0;
+        USHORT usFintekVendorID = 0;
+
+        usAddress = ReadWordFromPort(F718_REGISTER_PORT, F718_VALUE_PORT, BASE_ADDRESS_REGISTER);
+#ifdef STK_WINDOWS
+        Sleep(1);
+#endif
+        usVerify = ReadWordFromPort(F718_REGISTER_PORT, F718_VALUE_PORT, BASE_ADDRESS_REGISTER);
+        usFintekVendorID = ReadWordFromPort(F718_REGISTER_PORT, F718_VALUE_PORT, F718_VENDOR_ID_REGISTER);
+
+        nStatus = m_pDriver->WriteIoPortByte(F718_REGISTER_PORT, 0xAA);
+        CHECK_OPERATION_STATUS(nStatus);
+
+        if( usAddress != usVerify )
+            return false;
+
+        // some F718 chips have address offset added already
+        if( (usAddress & 0x07) == 0x05 )
+            usAddress &= 0xFFF8;
+
+        if( usAddress < 0x100 || ((usAddress & 0xF007) != 0) )
+            return false;
+
+        if( usFintekVendorID != F718_VENDOR_ID_VALUE )
+            return false;
+
+        m_pBoardSensor = new CF718(eChip, usAddress);
+        return true;
+    }
+
+    return false;
+}
+
 
 ISensor *FactoryBoardSensor::GetBoardSensor()
 {
@@ -315,6 +443,9 @@ ISensor *FactoryBoardSensor::GetBoardSensor()
         return m_pBoardSensor;
 
     if (DetectW836XXSensor())
+        return m_pBoardSensor;
+
+    if (DetectF718XXSensor())
         return m_pBoardSensor;
 
     return NULL;
