@@ -63,6 +63,8 @@ CSPDInformation::CSPDInformation():
         }
     }
 
+    // Fill timings stuff about DDR3
+
     m_pDimmsModel->setHorizontalHeaderLabels(QStringList() << "Description:");
 
     // Fill main model
@@ -400,6 +402,67 @@ int CSPDInformation::InterpretDDR3SPDArray(BYTE *pbArray, int nDimm)
     // Name - Manufacturer - Partnumber;
     pData->qsName = QString(DIMM_TO_STRING(nDimm)) + QString(": ") + pData->qsManufacturer + " " + pData->qsPartNumber;
 
+
+    // DDR3 Timings data
+    // FTB - BYTE 9
+    bCurrentVal = pbArray[9];
+    double dFTB = (double)((bCurrentVal >> 4) & 0xF) / (double)(bCurrentVal & 0xF);
+    dFTB /= 1000;
+
+    // MTB - BYTE 10, 11
+    bCurrentVal = pbArray[10];
+    bAdditional = pbArray[11];
+    double dMTB = (double)(bCurrentVal) / (double)(bAdditional);
+
+    // TAA - BYTE 16, offset - BYTE 35
+    bCurrentVal = pbArray[16];
+    signed char cAAOffset = pbArray[35];
+    double dTAA = (double)(bCurrentVal) * dMTB;
+    dTAA += (double)(cAAOffset) * dFTB;
+
+    // TCK - BYTE 12, offset - BYTE 34
+    bCurrentVal = pbArray[12];
+    signed char cCKOffset = pbArray[34];
+    double dTCK = (double)(bCurrentVal) * dMTB;
+    dTCK += (double)(cCKOffset) * dFTB;
+
+    // TRCD - BYTE 18, offset - BYTE 36
+    bCurrentVal = pbArray[18];
+    signed char cTRCDOffset = pbArray[36];
+    double dTRCD = (double)(bCurrentVal) * dMTB;
+    dTRCD += (double)(cTRCDOffset) * dFTB;
+
+    // TRP - BYTE 20, offset - BYTE 37
+    bCurrentVal = pbArray[18];
+    signed char cTRPOffset = pbArray[36];
+    double dTRP = (double)(bCurrentVal) * dMTB;
+    dTRP += (double)(cTRPOffset) * dFTB;
+
+    // TRAS - BYTE 21 [3~0], 22
+    int nTRAS = pbArray[21] & 0xF;
+    nTRAS <<= 8;
+    nTRAS |= pbArray[22];
+    double dTRAS = (double)nTRAS * dMTB;
+
+    QStringList qsCLs = pData->qsCASLatencies.split(", ");
+    qsCLs[0] = qsCLs[0].at(qsCLs[0].count() - 1);
+    QString qsTimings = "";
+    for( int i = 0; i < qsCLs.count(); i++ )
+    {
+        int nCL = qsCLs[i].toInt();
+
+        double dCurrentTCK = dTAA / nCL;
+        if( dCurrentTCK < dTCK )
+            dCurrentTCK = dTCK;
+        double dCurrentFreq = floor(1000.0/dCurrentTCK);
+        int nRCD = ceil(dTRCD / dCurrentTCK);
+        int nRP = ceil(dTRP / dCurrentTCK);
+        int nRAS = ceil(dTRAS / dCurrentTCK);
+
+        qsTimings = QString().sprintf("@ %dMHz: %d-%d-%d-%d (CL-RCD-RP-RAS)", (int)dCurrentFreq, nCL, nRCD, nRP, nRAS);
+        pData->qTimings.append(qsTimings);
+    }
+
     m_qDimmsInformation.insert(nDimm, pData);
 
     return Success;
@@ -409,7 +472,7 @@ int CSPDInformation::InterpretDDR2SPDArray(BYTE *pbArray, int nDimm)
 {
     SpdInformation *pData = new SpdInformation;
     CHECK_ALLOCATION_STATUS(pData);
-    BYTE bCurrentVal = 0, bAdditional = 0;
+    BYTE bCurrentVal = 0;
 
     // SPD total size - BYTE 1 -> log2(sizeof SPD)
     bCurrentVal = pbArray[1];

@@ -175,6 +175,11 @@
     dRes = 1.0 / dFreq; \
 }
 
+#define MODULE_DDR3_GET_FREQ_CLOCK_FROM_NS(X, dRes) \
+{ \
+    dRes = 1000.0 / X; \
+}
+
 typedef struct _SPD_INFORMATION_
 {
     QString qsSPDSize;
@@ -192,7 +197,6 @@ typedef struct _SPD_INFORMATION_
     QString qsDeviceType;
     QString qsSDRAMDeviceType;
     QString qsECCMethod;
-    QString qsMaxTimings;
     QStringList qTimings;
     QStringList qFeatures;
 }SpdInformation;
