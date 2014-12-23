@@ -21,7 +21,7 @@ UINT CAmd10CpuSensor::GetControllAddress(int nFunction, USHORT usDeviceID)
 
 CAmd10CpuSensor::CAmd10CpuSensor(int nFamily, int nModel, int nStepping, int nCoreCount)
 {
-    m_pDriver = new CSTKDriverWrapper;
+    m_pDriver = new CRing0Wrapper;
     int nStatus = m_pDriver->Initialize();
     CHECK_OPERATION_STATUS(nStatus);
 

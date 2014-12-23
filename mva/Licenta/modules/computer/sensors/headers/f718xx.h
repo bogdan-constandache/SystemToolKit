@@ -18,7 +18,7 @@ class CF718 : public ISensor
 private:
     USHORT usAddress;
     Chip eChip;
-    CSTKDriverWrapper *m_pDriver;
+    CRing0Wrapper *m_pDriver;
 
     VoltageReading m_pVoltages[9];
     double m_pTemps[3];

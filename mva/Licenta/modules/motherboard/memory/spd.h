@@ -20,7 +20,7 @@ private:
     QStandardItemModel          *m_pDimmsModel;
     QStandardItemModel          *m_pDimmInformationModel;
 
-    CSTKDriverWrapper           *m_pDriver;
+    CRing0Wrapper           *m_pDriver;
 
     DWORD                       m_dwDataAddr, m_dwBaseAddr, m_dwPortVal;
 

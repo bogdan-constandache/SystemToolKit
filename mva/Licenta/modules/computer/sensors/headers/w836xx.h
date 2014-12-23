@@ -23,7 +23,7 @@ private:
 
     Chip m_eChip;
 
-    CSTKDriverWrapper *m_pDriver;
+    CRing0Wrapper *m_pDriver;
 
     VoltageReading *m_pVoltages;
     double m_pTemps[3];

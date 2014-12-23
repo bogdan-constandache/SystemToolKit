@@ -3,7 +3,7 @@
 CAmd0FCpuSensor::CAmd0FCpuSensor(int nFamily, int nModel, int nStepping, int nCoreCount):
     m_pDriver(NULL)
 {
-    m_pDriver = new CSTKDriverWrapper;
+    m_pDriver = new CRing0Wrapper;
     int nStatus = m_pDriver->Initialize();
     CHECK_OPERATION_STATUS(nStatus);
 

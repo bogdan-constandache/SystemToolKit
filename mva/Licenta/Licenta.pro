@@ -241,11 +241,6 @@ dbFile.files += $$PWD/others/databases/config.db
 
 INSTALLS += dbFile
 
-certFile.path = $$PWD/../build/config/drivers
-certFile.files += $$PWD/others/driver/stk_cert.cer
-
-INSTALLS += certFile
-
 vistaDrivers.path = $$PWD/../build/config/drivers/vista
 vistaDrivers.files += $$PWD/others/driver/vista/stk_driver.sys
 vistaDrivers.files += $$PWD/others/driver/vista/stk_driver64.sys

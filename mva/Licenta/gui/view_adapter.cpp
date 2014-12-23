@@ -9,6 +9,8 @@ ViewAdapter::ViewAdapter(QObject *parent) :
 
 void ViewAdapter::SetController(AbstractController *pController)
 {
+    Q_ASSERT(pController);
+
     m_pController = pController;
 
     connect(m_pController, SIGNAL(OnCreateMainWindowSignal()), this, SLOT(OnCreateMainWindowSlot()), Qt::BlockingQueuedConnection);

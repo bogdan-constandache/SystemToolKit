@@ -6,12 +6,14 @@
 #include "../driver/driver_defines.h"
 #include "../../../../utils/headers/utils.h"
 
-class CSTKDriverWrapper
+class CRing0Wrapper
 {
+private:
 	HANDLE m_hDriver;
+
 public:
-	CSTKDriverWrapper(void);
-    ~CSTKDriverWrapper(void);
+    CRing0Wrapper(void);
+    ~CRing0Wrapper(void);
 
 	int Initialize();
 	int Destroy();

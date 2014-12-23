@@ -10,8 +10,8 @@ class ViewAdapter : public QObject
     Q_OBJECT
 
 private:
-    AbstractController *m_pController;
-    MainWindow *m_pMainWindow;
+    AbstractController      *m_pController;
+    MainWindow              *m_pMainWindow;
 
 public:
     explicit ViewAdapter(QObject *parent = 0);

@@ -6,7 +6,7 @@ CF718::CF718(Chip eChip, USHORT usAddress)
     this->eChip = eChip;
     this->usAddress = usAddress;
 
-    m_pDriver = new CSTKDriverWrapper;
+    m_pDriver = new CRing0Wrapper;
     CHECK_OPERATION_STATUS(m_pDriver->Initialize());
 
     m_pFanSpeedReg = new BYTE[4];

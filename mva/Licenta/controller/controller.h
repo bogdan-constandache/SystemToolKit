@@ -48,7 +48,6 @@ private: // internal objects
     QStandardItemModel          *m_pATAHdds;
     QStandardItemModel          *m_pATAProp;
 
-    void OnCreateComputerSummary();
     int OnLoadDriverFile();
     int OnUnloadDriverFile();
 

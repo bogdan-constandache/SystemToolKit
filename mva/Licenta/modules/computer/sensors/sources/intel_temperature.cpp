@@ -10,7 +10,7 @@ CIntelCpuSensor::CIntelCpuSensor(int nFamily, int nModel, int nStepping, int nCo
     m_nStepping = nStepping;
     m_nCoreCount = nCoreCount;
 
-    m_pDriver = new CSTKDriverWrapper;
+    m_pDriver = new CRing0Wrapper;
     int nStatus = m_pDriver->Initialize();
     CHECK_OPERATION_STATUS(nStatus);
 

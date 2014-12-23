@@ -12,7 +12,7 @@
 class CAmd0FCpuSensor : public ICPUSensor
 {
 private:
-    CSTKDriverWrapper *m_pDriver;
+    CRing0Wrapper *m_pDriver;
 
     double *m_pTemps;
 

@@ -8,7 +8,7 @@ CIT87::CIT87(Chip eChip, USHORT usAddress)
     this->usAddressReg = usAddress + IT87_CHIP_ADDRESS_REGISTER_OFFSET;
     this->usDataReg = usAddress + IT87_CHIP_DATA_REGISTER_OFFSET;
 
-    m_pDriver = new CSTKDriverWrapper;
+    m_pDriver = new CRing0Wrapper;
     m_pDriver->Initialize();
 
     m_pFanSpeedReg = new BYTE[5];

@@ -1,18 +1,18 @@
 #include "../headers/stk_driver_wrapper.h"
 
 
-CSTKDriverWrapper::CSTKDriverWrapper(void):
+CRing0Wrapper::CRing0Wrapper(void):
 	m_hDriver(NULL)
 {
 }
 
 
-CSTKDriverWrapper::~CSTKDriverWrapper(void)
+CRing0Wrapper::~CRing0Wrapper(void)
 {
 }
 
 
-int CSTKDriverWrapper::Initialize()
+int CRing0Wrapper::Initialize()
 {
 	m_hDriver = CreateFile(L"\\\\.\\STKDriver",
 						GENERIC_READ | GENERIC_WRITE,
@@ -31,14 +31,14 @@ int CSTKDriverWrapper::Initialize()
     return Success;
 }
 
-int CSTKDriverWrapper::Destroy()
+int CRing0Wrapper::Destroy()
 {
 	if(m_hDriver)
 		CloseHandle(m_hDriver);
     return Success;
 }
 
-int CSTKDriverWrapper::ReadMsr(ULONG ulIndex, ULONG *ulEAX, ULONG *ulEDX)
+int CRing0Wrapper::ReadMsr(ULONG ulIndex, ULONG *ulEAX, ULONG *ulEDX)
 {
     ULONGLONG ulBuffer = 0;
     DWORD dwBytesReturned = 0;
@@ -69,7 +69,7 @@ int CSTKDriverWrapper::ReadMsr(ULONG ulIndex, ULONG *ulEAX, ULONG *ulEDX)
     return Success;
 }
 
-int CSTKDriverWrapper::WriteMsr(ULONG ulIndex, ULONG ulEAX, ULONG ulEDX)
+int CRing0Wrapper::WriteMsr(ULONG ulIndex, ULONG ulEAX, ULONG ulEDX)
 {
     STK_MSR_INPUT *pInput = new STK_MSR_INPUT;
     bool bResult = false;
@@ -96,7 +96,7 @@ int CSTKDriverWrapper::WriteMsr(ULONG ulIndex, ULONG ulEAX, ULONG ulEDX)
     return Success;
 }
 
-int CSTKDriverWrapper::ReadIoPortByte(ULONG ulPort, BYTE *bValue)
+int CRing0Wrapper::ReadIoPortByte(ULONG ulPort, BYTE *bValue)
 {
     ULONG ulBuffer = 0;
     bool bResult = false;
@@ -123,7 +123,7 @@ int CSTKDriverWrapper::ReadIoPortByte(ULONG ulPort, BYTE *bValue)
     return Success;
 }
 
-int CSTKDriverWrapper::WriteIoPortByte(ULONG ulPort, BYTE bValue)
+int CRing0Wrapper::WriteIoPortByte(ULONG ulPort, BYTE bValue)
 {
     STK_IO_PORT_INPUT *pInput = new STK_IO_PORT_INPUT;
     bool bResult = false;
@@ -152,7 +152,7 @@ int CSTKDriverWrapper::WriteIoPortByte(ULONG ulPort, BYTE bValue)
     return Success;
 }
 
-int CSTKDriverWrapper::ReadIoPortDWORD(ULONG ulPort, DWORD *dwValue)
+int CRing0Wrapper::ReadIoPortDWORD(ULONG ulPort, DWORD *dwValue)
 {
     ULONG ulBuffer = 0;
     bool bResult = false;
@@ -179,7 +179,7 @@ int CSTKDriverWrapper::ReadIoPortDWORD(ULONG ulPort, DWORD *dwValue)
     return Success;
 }
 
-int CSTKDriverWrapper::WriteIoPortDWORD(ULONG ulPort, ULONG dwValue)
+int CRing0Wrapper::WriteIoPortDWORD(ULONG ulPort, ULONG dwValue)
 {
     STK_IO_PORT_DWORD *pInput = new STK_IO_PORT_DWORD;
     bool bResult = false;
@@ -208,7 +208,7 @@ int CSTKDriverWrapper::WriteIoPortDWORD(ULONG ulPort, ULONG dwValue)
     return Success;
 }
 
-int CSTKDriverWrapper::ReadPCIConfiguration(ULONG ulPCIAddress, ULONG ulRegAddress, ULONG *ulValue)
+int CRing0Wrapper::ReadPCIConfiguration(ULONG ulPCIAddress, ULONG ulRegAddress, ULONG *ulValue)
 {
     if ((ulRegAddress & 3) != 0)
     {
@@ -245,7 +245,7 @@ int CSTKDriverWrapper::ReadPCIConfiguration(ULONG ulPCIAddress, ULONG ulRegAddre
     return Success;
 }
 
-int CSTKDriverWrapper::WritePCIConfiguration(ULONG ulPCIAddress, ULONG ulRegAddress, ULONG ulData)
+int CRing0Wrapper::WritePCIConfiguration(ULONG ulPCIAddress, ULONG ulRegAddress, ULONG ulData)
 {
     if ((ulRegAddress & 3) != 0)
     {

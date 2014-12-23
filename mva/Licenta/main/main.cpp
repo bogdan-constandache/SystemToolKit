@@ -4,6 +4,9 @@
 #include "../gui/view_adapter.h"
 
 
+
+
+
 int main(int argc, char *argv[])
 {
     QApplication Application(argc, argv);

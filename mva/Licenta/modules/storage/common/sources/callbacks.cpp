@@ -4,91 +4,76 @@ QStringList GetPhysicalDrivesList()
 {
     QStringList retValue;
     DWORD dwDrivesBitMask = 0;
-    DWORD dwDriveVal = 2;
-    char chDriveCount = 1; // we skip drive A: (floppy) in case GetLogicalDrives() is successful
     char chIsDrive = 0;
+
     VOLUME_DISK_EXTENTS *pVolumeDiskExtends = 0;
     HANDLE hDevice = NULL;
-    TCHAR tszDrivePath[32];
-    memset(tszDrivePath, '\0', sizeof(tszDrivePath));
+    DWORD dwBytesReturned = 0;
+    TCHAR tszDrivePath[32] = {0};
 
     // get available drive letters
     dwDrivesBitMask = GetLogicalDrives();
     if( 0 == dwDrivesBitMask )
     {
-        DEBUG_STATUS(Unsuccessful);
+        qDebug() << "Error on function GetLogicalDrives() in file: " << __FUNCTION__ << " (" << __LINE__ << ")";
+        qDebug() << "Error code from function call : " << GetLastError();
+
+        return QStringList();
     }
 
-    // check each available drive letter in case is up
-    while( chDriveCount < 32 )
+    for( int nIndex = 1; nIndex < 32; nIndex++ )
     {
-        // check if current bit != 0
-        chIsDrive = dwDrivesBitMask & dwDriveVal;
+        chIsDrive = dwDrivesBitMask & (1 << nIndex);
 
         if( 0 != chIsDrive )
         {
-            // if so then we have current letter available for process
-            // prepare path for CreateFile function
-            StringCchPrintf(tszDrivePath, 32, L"\\\\.\\%c:", _T('A' + chDriveCount));
-//            _stprintf_s(tszDrivePath, 32, _T("\\\\.\\%c:"), _T('A' + chDriveCount));
+            StringCchPrintf(tszDrivePath, 32, L"\\\\.\\%c:", _T('A' + nIndex));
 
-            TCHAR tszDriveType[10];
-            memset(tszDriveType, '\0', sizeof(tszDriveType));
-            StringCchPrintf(tszDriveType, 10, L"%c:\\", _T('A' + chDriveCount));
-//            _stprintf_s(tszDriveType, 10, _T("%c:\\"), _T('A'+chDriveCount));
-
+            TCHAR tszDriveType[10] = {0};
+            StringCchPrintf(tszDriveType, 10, L"%c:\\", _T('A' + nIndex));
 
             // check if current drive that we found is a fixed one
             // otherwise we skip him
             if( DRIVE_FIXED != GetDriveType(tszDriveType) )
             {
-                ++chDriveCount;
-                dwDriveVal *= 2;
                 continue;
             }
+
             // open handle to the current drive using letter path
-            hDevice = CreateFile( tszDrivePath
-                                  , GENERIC_READ|GENERIC_WRITE
-                                  , FILE_SHARE_WRITE|FILE_SHARE_READ
-                                  , NULL
-                                  , OPEN_EXISTING
-                                  , FILE_ATTRIBUTE_NORMAL
-                                  , NULL );
+            hDevice = CreateFile( tszDrivePath,
+                                  GENERIC_READ|GENERIC_WRITE,
+                                  FILE_SHARE_WRITE|FILE_SHARE_READ,
+                                  NULL,
+                                  OPEN_EXISTING,
+                                  FILE_ATTRIBUTE_NORMAL,
+                                  NULL );
 
             if( INVALID_HANDLE_VALUE == hDevice )
             {
-                DEBUG_STATUS(InvalidHandle);
+                continue;
             }
 
             pVolumeDiskExtends = new VOLUME_DISK_EXTENTS;
-            if( 0 == pVolumeDiskExtends )
-            {
-                DEBUG_STATUS(NotAllocated);
-            }
-
 
             // use DeviceIoControl function to find what physical drive, current volume extends
-            DWORD dwBytesReturned = 0;
-            bool bResult = DeviceIoControl( hDevice
-                                            , IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS
-                                            , NULL
-                                            , 0
-                                            , pVolumeDiskExtends
-                                            , sizeof(VOLUME_DISK_EXTENTS)
-                                            , &dwBytesReturned
-                                            , NULL );
+            bool bResult = DeviceIoControl( hDevice,
+                                            IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS,
+                                            NULL,
+                                            0,
+                                            pVolumeDiskExtends,
+                                            sizeof(VOLUME_DISK_EXTENTS),
+                                            &dwBytesReturned,
+                                            NULL );
 
             CloseHandle(hDevice);
 
-            DWORD dwLastErr = GetLastError();
-
             if( 0 == bResult )
             {
-                DEBUG_STATUS(Unsuccessful);
-            }
+                qDebug() << "Error on function DeviceIoControl() in file: " << __FUNCTION__ << " (" << __LINE__ << ")";
+                qDebug() << "Error code from function call : " << GetLastError();
 
-            // if DeviceIoControl was a success then we map letter found to the coresponding struct
-            // containing a list with all drives that this drive is extending
+                continue;
+            }
 
             for( DWORD k = 0; k < pVolumeDiskExtends->NumberOfDiskExtents; k++)
             {
@@ -102,11 +87,8 @@ QStringList GetPhysicalDrivesList()
 
             delete pVolumeDiskExtends;
         }
-
-        // check next drive letter
-        ++chDriveCount;
-        dwDriveVal *= 2;
     }
+
     return retValue;
 }
 

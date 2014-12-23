@@ -12,7 +12,7 @@
 
 class FactoryCpuSensor
 {
-    CSTKDriverWrapper *m_pDriver;
+    CRing0Wrapper *m_pDriver;
     ICPUSensor *m_pCpuSensor;
 
     bool DetectCpuSensor();

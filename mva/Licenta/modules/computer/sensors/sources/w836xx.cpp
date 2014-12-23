@@ -58,7 +58,7 @@ CW836XX::CW836XX(Chip eChip, USHORT usAddress, BYTE bRevision)
     m_bFanDivBit2[3] = 23;
     m_bFanDivBit2[4] = 15;
 
-    m_pDriver = new CSTKDriverWrapper;
+    m_pDriver = new CRing0Wrapper;
     CHECK_OPERATION_STATUS(m_pDriver->Initialize());
 }
 

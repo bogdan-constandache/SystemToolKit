@@ -5,7 +5,7 @@ FactoryBoardSensor::FactoryBoardSensor():
     m_pDriver( NULL ),
     m_pBoardSensor( NULL )
 {
-    m_pDriver = new CSTKDriverWrapper;
+    m_pDriver = new CRing0Wrapper;
     CHECK_ALLOCATION(m_pDriver);
 
     int nStatus = m_pDriver->Initialize();

@@ -23,7 +23,7 @@
 class FactoryBoardSensor
 {
 private:
-    CSTKDriverWrapper *m_pDriver;
+    CRing0Wrapper *m_pDriver;
     ISensor *m_pBoardSensor;
 
     USHORT ReadWordFromPort(BYTE bRegisterPort, BYTE bValuePort, BYTE bRegister);

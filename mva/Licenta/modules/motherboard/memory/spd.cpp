@@ -25,7 +25,7 @@ CSPDInformation::CSPDInformation():
     ZeroMemory(m_pDIMM2SPD, 256);
     ZeroMemory(m_pDIMM3SPD, 256);
 
-    m_pDriver = new CSTKDriverWrapper;
+    m_pDriver = new CRing0Wrapper;
     CHECK_ALLOCATION(m_pDriver);
     int nStatus = m_pDriver->Initialize();
     CHECK_OPERATION_STATUS(nStatus);

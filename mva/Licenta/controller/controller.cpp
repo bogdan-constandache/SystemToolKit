@@ -2,60 +2,6 @@
 
 #pragma warning(disable:4996)
 
-void Controller::OnCreateComputerSummary()
-{
-    bool bResult = false; int nStatus;
-    m_pComputerSummaryModel = new QStandardItemModel;
-
-    // GET COMPUTER NAME
-    WCHAR lpComputerName[MAX_COMPUTERNAME_LENGTH + 1];
-    DWORD dwCompName = MAX_COMPUTERNAME_LENGTH + 1;
-
-    bResult = GetComputerName(lpComputerName, &dwCompName);
-
-    m_pComputerSummaryModel->setItem(0, 0, new QStandardItem("Computer name: "));
-    m_pComputerSummaryModel->setItem(0, 1, new QStandardItem(QString::fromWCharArray(lpComputerName)));
-
-    // OPERATING SYSTEM
-    m_pComputerSummaryModel->setItem(1, 0, new QStandardItem("Operating system: "));
-    HKEY hRegKey = 0;
-    WCHAR lpOsName[MAX_PATH + 1];
-    DWORD dwRegKeySize = MAX_PATH + 1;
-    nStatus = RegOpenKey(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", &hRegKey);
-    RegQueryValueEx(hRegKey, L"ProductName", NULL, NULL, (LPBYTE)lpOsName, &dwRegKeySize);
-    m_pComputerSummaryModel->setItem(1, 1, new QStandardItem(QString::fromWCharArray(lpOsName)));
-
-    //User name
-    WCHAR lpUsername[UNLEN + 1];
-    DWORD dwUsernameSize = UNLEN + 1;
-    bResult = GetUserName(lpUsername, &dwUsernameSize);
-
-    m_pComputerSummaryModel->setItem(2, 0, new QStandardItem("User name: "));
-    m_pComputerSummaryModel->setItem(2, 1, new QStandardItem(QString::fromWCharArray(lpUsername)));
-
-    //Domain name
-    WCHAR lpDomainName[UNLEN + 1];
-    DWORD dwDomainNameSize = UNLEN + 1;
-    bResult = GetComputerNameEx(ComputerNameDnsHostname, lpDomainName, &dwDomainNameSize);
-
-    m_pComputerSummaryModel->setItem(2, 0, new QStandardItem("Domain name: "));
-    m_pComputerSummaryModel->setItem(2, 1, new QStandardItem(QString::fromWCharArray(lpDomainName)));
-
-
-    // System memory
-    MemoryStatus *pMemoryInfo = m_pSensorsManager->GetMemoryStat();
-    m_pComputerSummaryModel->setItem(4, 0, new QStandardItem("System memory: "));
-    m_pComputerSummaryModel->setItem(4, 1, new QStandardItem(pMemoryInfo->qzTotalPhys));
-
-    // Hdd size
-    QStringList qzPhysicalDisks = GetPhysicalDrivesList();
-    for(int i = 0; i < qzPhysicalDisks.count(); i++)
-    {
-        m_pComputerSummaryModel->setItem(5 + i, 0, new QStandardItem(QString().sprintf("Disk %d", i + 1)));
-        m_pComputerSummaryModel->setItem(5 + i, 1, new QStandardItem(GetDiskTotalSize(qzPhysicalDisks.at(i))));
-    }
-}
-
 int Controller::OnLoadDriverFile()
 {
     SC_HANDLE hSCManager;
@@ -255,7 +201,7 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
 
     connect(this, SIGNAL(OnCancelSensorsTimerSignal()), this, SLOT(OnCancelSensorsTimerSlot()), Qt::QueuedConnection);
 
-    qDebug() << "DriverLoading status: " << OnLoadDriverFile();
+    qDebug() << "Driver Loading status: " << OnLoadDriverFile();
 
     // Create device manager obj
     m_pDeviceManager = new CDeviceInfo();
@@ -265,7 +211,7 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pBatteryStatus = new BatteryStatus();
 
     // Create CPUID manager obj
-    m_pCPUIDManager = new CCPUIDManager(); // HEAP CORRUPTION
+    m_pCPUIDManager = new CCPUIDManager();
     // Create SPD manager obj
     m_pSPDManager = new CSPDInformation();
 
@@ -309,7 +255,7 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pNetworkDevicesManager = new CNetworkDevices();
 
     // Create Startup manager obj
-    m_pStartupAppsManager = new CStartupManager(/*this*/);
+    m_pStartupAppsManager = new CStartupManager();
 }
 
 Controller::~Controller()
@@ -598,7 +544,6 @@ void Controller::OnComputerSensorsOptClickedSlot()
     MotherboardData *pMBData = 0;
     CpuData *pCpuData = 0;
     RAMData *pRAMData = 0;
-    GPUData *pGPUData = 0;
 
     double *pResults = 0;
     VoltageReading *pVoltages = 0;
@@ -714,14 +659,6 @@ RAM:
     pItemPair->set_name("Available (Physical): ");
     pItemPair->set_value(pMemoryStatus->qzAvailPhys.toLatin1().data());
 
-//    pItemPair = pDataType->add_datavalue();
-//    pItemPair->set_name("Total (Virtual): ");
-//    pItemPair->set_value(pMemoryStatus->qzTotalVirtual.toLatin1().data());
-
-//    pItemPair = pDataType->add_datavalue();
-//    pItemPair->set_name("Available (Virtual): ");
-//    pItemPair->set_value(pMemoryStatus->qzAvailVirtual.toLatin1().data());
-
     pItemPair = pDataType->add_datavalue();
     pItemPair->set_name("Pagefile (Total): ");
     pItemPair->set_value(pMemoryStatus->qzTotalPageFile.toLatin1().data());
@@ -738,70 +675,6 @@ RAM:
     pItemPair->set_name("Value");
     pItemPair->set_value(pMemoryStatus->qzMemoryLoad.toLatin1().data());
 
-//    if( NULL != m_pNVidiaManager )
-//        goto NVIDIA;
-
-//NVIDIA:
-//    pGPUData = pSensorData.mutable_gpudata();
-//    pGPUData->set_name(m_pNVidiaManager->GetGPUInformations(0)->qzFullName.toLatin1().data());
-
-//    NVidiaThermalReport *pThermalReport = m_pNVidiaManager->GetThermalReport(0);
-
-//    if( pThermalReport->qzTemp != "" )
-//    {
-//        // Temperature
-//        pDataType = pGPUData->add_data();
-//        pDataType->set_dataname("Temperatures: ");
-
-//        pItemPair = pDataType->add_datavalue();
-
-//        pItemPair->set_name(pThermalReport->qzTarget.toLatin1().data());
-//        pItemPair->set_value(pThermalReport->qzTemp.toLatin1().data());
-//    }
-
-//    // Fan speed
-//    pDataType = pGPUData->add_data();
-//    pDataType->set_dataname("Fan speed: ");
-
-//    pItemPair = pDataType->add_datavalue();
-//    pItemPair->set_name("Fan: ");
-//    pItemPair->set_value((QString::number(m_pNVidiaManager->GetFanSpeedReport(0)) + QString("RPM")).toLatin1().data());
-
-//    // Clocks
-//    pDataType = pGPUData->add_data();
-//    pDataType->set_dataname("Clocks: ");
-
-//    pItemPair = pDataType->add_datavalue();
-//    pItemPair->set_name("GPU: ");
-//    pItemPair->set_value(m_pNVidiaManager->GetGPUInformations(0)->qzGraphicsClock.toLatin1().data());
-
-//    pItemPair = pDataType->add_datavalue();
-//    pItemPair->set_name("Memory: ");
-//    pItemPair->set_value(m_pNVidiaManager->GetGPUInformations(0)->qzMemoryClock.toLatin1().data());
-
-//    // Usage
-//    pDataType = pGPUData->add_data();
-//    pDataType->set_dataname("Usage: ");
-
-//    pItemPair = pDataType->add_datavalue();
-//    pItemPair->set_name("GPU usage: ");
-//    pItemPair->set_value(m_pNVidiaManager->GetGPUUtilizationReport(0)->qzGPUUtilization.toLatin1().data());
-
-//    pItemPair = pDataType->add_datavalue();
-//    pItemPair->set_name("FB usage: ");
-//    pItemPair->set_value(m_pNVidiaManager->GetGPUUtilizationReport(0)->qzFBUtilization.toLatin1().data());
-
-//    pItemPair = pDataType->add_datavalue();
-//    pItemPair->set_name("VID usage: ");
-//    pItemPair->set_value(m_pNVidiaManager->GetGPUUtilizationReport(0)->qzVIDUtilization.toLatin1().data());
-
-//    pItemPair = pDataType->add_datavalue();
-//    pItemPair->set_name("BUS usage: ");
-//    pItemPair->set_value(m_pNVidiaManager->GetGPUUtilizationReport(0)->qzBUSUtilization.toLatin1().data());
-
-//    goto END;
-
-END:
 
     emit OnSetSensorsInformations(pSensorData.SerializeAsString());
 }

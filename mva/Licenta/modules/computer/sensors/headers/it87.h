@@ -27,7 +27,7 @@ class CIT87 : public ISensor
     USHORT usAddressReg;
     USHORT usDataReg;
     Chip eChip;
-    CSTKDriverWrapper *m_pDriver;
+    CRing0Wrapper *m_pDriver;
 
     VoltageReading m_pVoltages[4];
     double m_pTemps[3];
