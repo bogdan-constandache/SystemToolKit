@@ -10,6 +10,7 @@
 #include "motherboard/memory/memory_data.h"
 #include "motherboard/memory/spd.h"
 #include "motherboard/video-card/nvidia_card.h"
+#include "motherboard/video-card/amd_card.h"
 
 #include "network/active-connections/active_connections.h"
 #include "network/network-devices/headers/network_devices.h"

@@ -71,6 +71,7 @@ private:
     CVideoCardWidget                *m_pVideoCardWidget;
     COperatingSystemWidget          *m_pOperatingSystemWidget;
     QWaitingWidget                  *m_pLoadingWidget;
+    QWidget                         *m_pInitialWidget;
 
     void InitializeStackedWidget();
 

@@ -1,5 +1,8 @@
 #include "amd_card.h"
 
+#include "coverdrive5.h"
+#include "coverdrive6.h"
+
 void* __cdecl ADL_Main_Memory_Alloc ( int iSize )
 {
     void* lpBuffer = malloc ( iSize );
@@ -18,8 +21,23 @@ void __cdecl ADL_Main_Memory_Free ( void** lpBuffer )
 CAmdCard::CAmdCard():
     m_pOverdrive(NULL), m_nAdapterIndex(-1), m_hDll(NULL),
     m_nNumberOfAdapters(0), m_nInformationIndex(-1), m_nOverdriveVersion(-1),
-    m_pAdapterInfo(NULL)
+    m_pAdapterInfo(NULL), m_pGpuModel(NULL), m_pGpuDataModel(NULL)
 {
+    if( !Initialize() )
+        return;
+
+    m_pGpuModel = new QStandardItemModel();
+    CHECK_ALLOCATION(m_pGpuModel);
+    m_pGpuDataModel = new QStandardItemModel();
+    CHECK_ALLOCATION(m_pGpuDataModel);
+
+    m_pGpuModel->setHorizontalHeaderLabels(QStringList() << "Devices: ");
+
+    QStandardItem* pStandardItem = new QStandardItem(GetAdapterName());
+    pStandardItem->setData((int)m_nInformationIndex);
+
+    m_pGpuModel->appendRow(pStandardItem);
+
 
 }
 
@@ -33,6 +51,84 @@ CAmdCard::~CAmdCard()
 
     if( NULL != m_hDll )
         FreeLibrary(m_hDll);
+}
+
+QStandardItemModel *CAmdCard::GetPhysicalGPUModel()
+{
+    return m_pGpuModel;
+}
+
+QStandardItemModel *CAmdCard::GetGPUDetailsModel()
+{
+    return m_pGpuDataModel;
+}
+
+void CAmdCard::OnRefreshData(int)
+{
+    double *dAux = 0;
+    QList<QStandardItem*> qRow;
+    int nCount = 0;
+    double dAux2 = 0;
+
+    m_pGpuDataModel->clear();
+
+    QStandardItem *pIndex = 0;
+
+    dAux = GetTemperatures();
+    if( dAux )
+    {
+        pIndex = new QStandardItem("Temperatures: ");
+        m_pGpuDataModel->appendRow(pIndex);
+        nCount = 0;
+        for(int i = 0; i < 10; i++)
+        {
+            if( dAux[i] == 0 )
+                continue;
+
+            qRow.clear();
+            qRow << new QStandardItem(QString().sprintf("Temp #%d", ++nCount));
+            qRow << new QStandardItem(QString().sprintf("%.2f",dAux[i]));
+
+            pIndex->appendRow(qRow);
+        }
+    }
+
+    dAux = GetFanSpeedsRPM();
+    if( dAux )
+    {
+        pIndex = new QStandardItem("Fan speed: ");
+        m_pGpuDataModel->appendRow(pIndex);
+        nCount = 0;
+        for(int i = 0; i < 10; i++)
+        {
+            if( dAux[i] == 0 )
+                continue;
+
+            qRow.clear();
+            qRow << new QStandardItem(QString().sprintf("Fan #%d", ++nCount));
+            qRow << new QStandardItem(QString().sprintf("%.2f",dAux[i]));
+
+            pIndex->appendRow(qRow);
+        }
+    }
+
+    dAux2 = GetEngineClock();
+    qRow.clear();
+    qRow << new QStandardItem("Engine Clock: ");
+    qRow << new QStandardItem("%d MHz");
+    m_pGpuDataModel->appendRow(qRow);
+
+    dAux2 = GetEngineClock();
+    qRow.clear();
+    qRow << new QStandardItem("Memory Clock: ");
+    qRow << new QStandardItem("%d MHz");
+    m_pGpuDataModel->appendRow(qRow);
+
+    dAux2 = GetEngineClock();
+    qRow.clear();
+    qRow << new QStandardItem("Core Voltage: ");
+    qRow << new QStandardItem("%d V");
+    m_pGpuDataModel->appendRow(qRow);
 }
 
 bool CAmdCard::Initialize()
@@ -95,8 +191,11 @@ bool CAmdCard::Initialize()
     int  nOverdriveEnabled = 0;
 
     int nAdlRes;
-    if( ADL_OK != (nAdlRes = ADL_Overdrive_Caps(m_nAdapterIndex, &nOverdriveSupported, &nOverdriveEnabled, &m_nOverdriveVersion)) )
-        return false;
+    if( ADL_OK != (nAdlRes = ADL_Overdrive_Caps(m_nAdapterIndex, &nOverdriveSupported, &nOverdriveEnabled, &m_nOverdriveVersion)) )   
+    {
+        m_pOverdrive = new COverdrive5(m_hDll);
+        return true;
+    }
 
     if( !nOverdriveSupported )
         return false;
@@ -146,3 +245,5 @@ double CAmdCard::GetCoreVoltage()
 {
     return m_pOverdrive->OnGetCoreVoltage(m_nAdapterIndex);
 }
+
+

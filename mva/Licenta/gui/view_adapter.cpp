@@ -3,8 +3,13 @@
 ViewAdapter::ViewAdapter(QObject *parent) :
     QObject(parent),
     m_pController(NULL),
-    m_pMainWindow(NULL)
+    m_pMainWindow(NULL),
+    m_pSplashScreen(NULL)
 {
+    m_pSplashScreen = new QSplashScreen();
+    m_pSplashScreen->setPixmap(QPixmap(":/img/splash.png"));
+
+    m_pSplashScreen->show();
 }
 
 void ViewAdapter::SetController(AbstractController *pController)
@@ -52,4 +57,5 @@ void ViewAdapter::OnCreateMainWindowSlot()
 void ViewAdapter::OnShowMainWindowSlot()
 {
     m_pMainWindow->show();
+    m_pSplashScreen->finish(m_pMainWindow);
 }

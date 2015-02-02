@@ -12,5 +12,6 @@
         <file>logo.png</file>
         <file>windows_service.png</file>
         <file>hdd.png</file>
+        <file>splash.png</file>
     </qresource>
 </RCC>

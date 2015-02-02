@@ -2,6 +2,7 @@
 #define VIEW_ADAPTER_H
 
 #include <QObject>
+#include <QSplashScreen>
 #include "abstract_controller.h"
 #include "headers/main_window.h"
 
@@ -12,6 +13,7 @@ class ViewAdapter : public QObject
 private:
     AbstractController      *m_pController;
     MainWindow              *m_pMainWindow;
+    QSplashScreen           *m_pSplashScreen;
 
 public:
     explicit ViewAdapter(QObject *parent = 0);

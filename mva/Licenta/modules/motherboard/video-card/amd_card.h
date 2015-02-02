@@ -1,10 +1,12 @@
 #ifndef AMD_CARD_H
 #define AMD_CARD_H
 
-#include "coverdrive5.h"
-#include "coverdrive6.h"
+#include "../../../utils/headers/utils.h"
+#include "ioverdrive.h"
 
 #include <QString>
+
+#include <QStandardItemModel>
 
 class CAmdCard
 {
@@ -25,11 +27,10 @@ private:
 
     LPAdapterInfo						    m_pAdapterInfo;
 
-public:
-    CAmdCard();
-    ~CAmdCard();
-    bool Initialize();
+    QStandardItemModel                      *m_pGpuModel;
+    QStandardItemModel                      *m_pGpuDataModel;
 
+    bool Initialize();
     QString GetAdapterName();
     double *GetTemperatures();
     double *GetFanSpeedsRPM();
@@ -37,6 +38,15 @@ public:
     double GetEngineClock();
     double GetMemoryClock();
     double GetCoreVoltage();
+
+public:
+    CAmdCard();
+    ~CAmdCard();
+
+    QStandardItemModel *GetPhysicalGPUModel();
+    QStandardItemModel *GetGPUDetailsModel();
+
+    void OnRefreshData(int);
 };
 
 #endif // AMD_CARD_H

@@ -32,6 +32,7 @@ private: // internal objects
     CSystemUsersInformation     *m_pUserInformationManager;
     CSPDInformation             *m_pSPDManager;
     CNvidiaManager              *m_pNVidiaManager;
+    CAmdCard                    *m_pRadeonManager;
     COperatingSystemInformation *m_pOperatingSystemManager;
 
     CSensorModule               *m_pSensorsManager;
@@ -43,6 +44,8 @@ private: // internal objects
     QMap<QString, QString>      m_HDDModelToPhysicalDrive;
 
     QStandardItemModel          *m_pComputerSummaryModel;
+
+    int                         m_nIsNvidia;
 
     // Internal Models
     QStandardItemModel          *m_pATAHdds;

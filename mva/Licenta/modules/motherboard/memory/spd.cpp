@@ -433,7 +433,7 @@ int CSPDInformation::InterpretDDR3SPDArray(BYTE *pbArray, int nDimm)
     dTRCD += (double)(cTRCDOffset) * dFTB;
 
     // TRP - BYTE 20, offset - BYTE 37
-    bCurrentVal = pbArray[18];
+    bCurrentVal = pbArray[20];
     signed char cTRPOffset = pbArray[36];
     double dTRP = (double)(bCurrentVal) * dMTB;
     dTRP += (double)(cTRPOffset) * dFTB;

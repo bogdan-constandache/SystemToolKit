@@ -84,6 +84,8 @@ int CAmd10CpuSensor::Initialize()
         m_usControlDeviceID = 0;
     }
 
+    m_uiControlAddress = GetControllAddress(AMD_CONTROL_FUNCTION, m_usControlDeviceID);
+
     return Success;
 }
 

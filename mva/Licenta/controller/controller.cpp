@@ -130,40 +130,83 @@ int Controller::OnUnloadDriverFile()
 
 int Controller::AssignStandardModelsToUi()
 {
+    QStandardItemModel *pModel = 0;
     // Device Manager Models
-    emit OnSetDeviceManagerInformation(m_pDeviceManager->GetAllDeviceDetails());
-    emit OnSetDevicePropertiesInformation(m_pDeviceManager->GetDeviceProperties());
+    pModel = m_pDeviceManager->GetAllDeviceDetails();
+    if( pModel )
+        emit OnSetDeviceManagerInformation(pModel);
+    pModel = m_pDeviceManager->GetDeviceProperties();
+    if( pModel )
+        emit OnSetDevicePropertiesInformation(pModel);
 
     // DMI Manager Models
-    emit OnSetDMIItemsInformation(m_pDMIManager->GetItemsModel());
-    emit OnSetDMIPropertiesInfomation(m_pDMIManager->GetItemPropertiesModel());
+    pModel = m_pDMIManager->GetItemsModel();
+    if( pModel )
+        emit OnSetDMIItemsInformation(pModel);
+    pModel = m_pDMIManager->GetItemPropertiesModel();
+    if( pModel )
+        emit OnSetDMIPropertiesInfomation(pModel);
 
     // Battery status Models
-    emit OnSetPowerManagementInformation(m_pBatteryStatus->GetBatteryInformation());
+    pModel = m_pBatteryStatus->GetBatteryInformation();
+    if( pModel )
+        emit OnSetPowerManagementInformation(pModel);
 
     // CPUID manager models
-    emit OnSetCPUIDInformations(m_pCPUIDManager->GetCPUIDDataModel()); // HEAP CORRUPTION
+    pModel = m_pCPUIDManager->GetCPUIDDataModel();
+    if( pModel )
+        emit OnSetCPUIDInformations(pModel); // HEAP CORRUPTION
 
     // SPD models
-    emit OnSetAvailableDIMMSInformation(m_pSPDManager->GetDimmsModel());
-    emit OnSetDimmSPDInformation(m_pSPDManager->GetDimmsInformationModel());
+    pModel = m_pSPDManager->GetDimmsModel();
+    if( pModel )
+        emit OnSetAvailableDIMMSInformation(pModel);
+    pModel = m_pSPDManager->GetDimmsInformationModel();
+    if( pModel )
+        emit OnSetDimmSPDInformation(pModel);
 
     // Nvidia models
-    emit OnSetAvailableVCardsInformation(m_pNVidiaManager->GetPhysicalGPUModel());
-    emit OnSetVCardInfromation(m_pNVidiaManager->GetGPUDetailsModel());
+    pModel = m_pNVidiaManager->GetPhysicalGPUModel();
+    if( pModel )
+    {
+        m_nIsNvidia = 1;
+        emit OnSetAvailableVCardsInformation(pModel);
+        pModel = m_pNVidiaManager->GetGPUDetailsModel();
+        if( pModel )
+            emit OnSetVCardInfromation(pModel);
+    }
+    else
+    {
+        m_nIsNvidia = 0;
+        pModel = m_pRadeonManager->GetPhysicalGPUModel();
+        emit OnSetAvailableVCardsInformation(pModel);
+        pModel = m_pRadeonManager->GetGPUDetailsModel();
+        if( pModel )
+            emit OnSetVCardInfromation(pModel);
+    }
 
     // Operating system models
-    emit OnSetOperatingSystemInformation(m_pOperatingSystemManager->GetOSModelInformation());
+    pModel = m_pOperatingSystemManager->GetOSModelInformation();
+    if( pModel )
+        emit OnSetOperatingSystemInformation(pModel);
 
     // System users models
-    emit OnSetUsersInformations(m_pUserInformationManager->GetUserInformations());
+    pModel = m_pUserInformationManager->GetUserInformations();
+    if( pModel )
+        emit OnSetUsersInformations(pModel);
 
     // System drivers models
-    emit OnSetSystemDriversModelInformation(m_pSystemDriversManager->GetSystemDriversInformation());
+    pModel = m_pSystemDriversManager->GetSystemDriversInformation();
+    if( pModel )
+        emit OnSetSystemDriversModelInformation(pModel);
 
     // Process manager models
-    emit OnSetProcessesInformations(m_pProcessesManager->GetProcessesInformations());
-    emit OnSetModulesInformations(m_pProcessesManager->GetModulesInformationsForProcess());
+    pModel = m_pProcessesManager->GetProcessesInformations();
+    if( pModel )
+        emit OnSetProcessesInformations(pModel);
+    pModel = m_pProcessesManager->GetModulesInformationsForProcess();
+    if( pModel )
+        emit OnSetModulesInformations(pModel);
 
     // Storage ATA models
     emit OnSetATAHDDItemsInformation(m_pATAHdds);
@@ -192,7 +235,7 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
     m_pSensorsManager(NULL), m_pSensor(NULL), m_pSensorsTimer(NULL), m_pCpuSensor(NULL), m_pNVidiaManager(NULL),
     m_pProcessesManager(NULL), m_pStartupAppsManager(NULL), m_pComputerSummaryModel(NULL), m_pDeviceManager(NULL),
     m_pUserInformationManager(NULL), m_pUninstallerProcess(NULL), m_pSPDManager(NULL), m_pOperatingSystemManager(NULL),
-    m_pATAHdds(NULL), m_pATAProp(NULL)
+    m_pATAHdds(NULL), m_pATAProp(NULL), m_nIsNvidia(-1)
 {
     m_pSensorsTimer = new QTimer(this);
     connect(m_pSensorsTimer, SIGNAL(timeout()), this, SLOT(OnComputerSensorsOptClickedSlot()), Qt::QueuedConnection);
@@ -217,6 +260,8 @@ Controller::Controller(): m_pBatteryStatus(NULL), m_pApplicationManager(NULL),
 
     // Create nvidia manager obj
     m_pNVidiaManager = new CNvidiaManager();
+    // Create radeon manager obj
+    m_pRadeonManager = new CAmdCard();
 
     // Create operating system manager obj
     m_pOperatingSystemManager = new COperatingSystemInformation();
@@ -275,6 +320,7 @@ Controller::~Controller()
     SAFE_DELETE(m_pUserInformationManager);
     SAFE_DELETE(m_pSPDManager);
     SAFE_DELETE(m_pNVidiaManager);
+    SAFE_DELETE(m_pRadeonManager);
     SAFE_DELETE(m_pOperatingSystemManager);
 
     SAFE_DELETE(m_pATAHdds);
@@ -851,7 +897,10 @@ void Controller::OnRequestSPDDimmDetailsSlot(int nDimm)
 
 void Controller::OnRequestVCardInformationSlot(int nIndex)
 {
-    m_pNVidiaManager->OnRefreshData(nIndex);
+    if( m_nIsNvidia == 1 )
+        m_pNVidiaManager->OnRefreshData(nIndex);
+    if( m_nIsNvidia == 0 )
+        m_pRadeonManager->OnRefreshData(nIndex);
 
     m_pGPUTimer->setProperty("VCardIndex", nIndex);
     if (!m_pGPUTimer->isActive())
@@ -977,7 +1026,11 @@ void Controller::OnCancelSensorsTimerSlot()
 
 void Controller::OnRefreshVCardInformations()
 {
-    m_pNVidiaManager->OnRefreshData(m_pGPUTimer->property("VCardIndex").toInt());
+    if( m_nIsNvidia == 1 )
+        m_pNVidiaManager->OnRefreshData(m_pGPUTimer->property("VCardIndex").toInt());
+    if( m_nIsNvidia == 0 )
+        m_pRadeonManager->OnRefreshData(m_pGPUTimer->property("VCardIndex").toInt());
+
 
     emit OnVideoCardInformationDataChanged();
 }

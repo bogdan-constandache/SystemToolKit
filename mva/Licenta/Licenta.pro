@@ -116,7 +116,10 @@ SOURCES += main/main.cpp \
         gui/sources/operating_system_widget.cpp \
         modules/motherboard/cpu/sources/cpuid_manager.cpp \
         modules/motherboard/cpu/sources/amd_cpuid.cpp \
-        gui/sources/waiting_widget.cpp
+        gui/sources/waiting_widget.cpp \
+    modules/motherboard/video-card/amd_card.cpp \
+    modules/motherboard/video-card/coverdrive5.cpp \
+    modules/motherboard/video-card/coverdrive6.cpp
 
 HEADERS  += gui/abstract_controller.h \
         gui/view_adapter.h \
@@ -198,7 +201,11 @@ HEADERS  += gui/abstract_controller.h \
         gui/headers/operating_system_widget.h \
         modules/motherboard/cpu/headers/cpuid_manager.h \
         modules/motherboard/cpu/headers/amd_cpuid.h \
-        gui/headers/waiting_widget.h
+        gui/headers/waiting_widget.h \
+    modules/motherboard/video-card/amd_card.h \
+    modules/motherboard/video-card/coverdrive5.h \
+    modules/motherboard/video-card/coverdrive6.h \
+    modules/motherboard/video-card/ioverdrive.h
 
 FORMS    += \
         gui/forms/mainwindow.ui \

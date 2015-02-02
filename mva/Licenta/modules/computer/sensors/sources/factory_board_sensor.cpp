@@ -61,11 +61,13 @@ bool FactoryBoardSensor::DetectIT87XXSensor()
     BYTE bChipIDRegister = 0x20;
     Chip eChip = Unknown_Chip;
 
+    // Prepare environment for ITE family chip query
     m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, 0x87);
     m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, 0x01);
     m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, 0x55);
     m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, 0x55);
 
+    // Get ChipID
     usChipID = ReadWordFromPort(IT87_REGISTER_PORT, IT87_VALUE_PORT, bChipIDRegister);
     switch (usChipID)
     {
@@ -97,6 +99,7 @@ bool FactoryBoardSensor::DetectIT87XXSensor()
     {
         if (usChipID != 0 && usChipID != 0xFFFF)
         {
+            // Exit ITE enviroment
             m_pDriver->WriteIoPortByte(IT87_REGISTER_PORT, 0x02);
             m_pDriver->WriteIoPortByte(IT87_VALUE_PORT, 0x02);
         }

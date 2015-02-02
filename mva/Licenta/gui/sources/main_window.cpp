@@ -34,6 +34,9 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
     ui->lineLogo->setFixedHeight(1);
     ui->lineMenu->setFixedWidth(1);
 
+//    ui->lineLogo->hide();
+    ui->lineMenu->hide();
+
     ui->menuTreeView->setEditTriggers(QTreeView::NoEditTriggers);
     ui->menuTreeView->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->menuTreeView->setFocusPolicy(Qt::NoFocus);
@@ -89,6 +92,8 @@ MainWindow::MainWindow(QWidget *parent, AbstractController *pController) :
 
 
     InitializeStackedWidget();
+
+    ui->stackedWidget->setCurrentWidget(m_pInitialWidget);
 
     QFile qFile(":/style/qss/main_dialog.qss");
     if( !qFile.open(QIODevice::ReadOnly) )
@@ -167,7 +172,22 @@ void MainWindow::InitializeStackedWidget()
 
     m_pLoadingWidget = new QWaitingWidget(ui->stackedWidget);
 
+    m_pInitialWidget = new QWidget(ui->stackedWidget);
+    m_pInitialWidget->setObjectName("m_pInitialWidget");
+//    m_pInitialWidget->setLayout(new QHBoxLayout());
+//    m_pInitialWidget->layout()->setContentsMargins(0, 0, 0, 0);
+
+//    QLabel *pLabel = new QLabel("Select a category from the left menu", m_pInitialWidget);
+//    pLabel->setAlignment(Qt::AlignLeft);
+
+//    pLabel->setStyleSheet("padding: 10px;"
+//                          "font-family: \"Segoe UI\";"
+//                          "font-size: 20px;");
+
+//    m_pInitialWidget->layout()->addWidget(pLabel);
+
     // Add widget to the stacked widget
+    ui->stackedWidget->addWidget(m_pInitialWidget);
     ui->stackedWidget->addWidget(m_pDMIManagerWidget);
     ui->stackedWidget->addWidget(m_pPowerManagementWidget);
     ui->stackedWidget->addWidget(m_pApplicationManagerWidget);
@@ -313,7 +333,7 @@ void MainWindow::OnPopulateMenuTreeSlot(QStandardItemModel *pModel)
     connect(ui->menuTreeView, SIGNAL(clicked(QModelIndex)),
             this, SLOT(OnItemsTreeClickedSlot(QModelIndex)), Qt::QueuedConnection);
 
-    ui->stackedWidget->setCurrentWidget(ui->page);
+    ui->stackedWidget->setCurrentWidget(m_pInitialWidget);
 }
 
 void MainWindow::OnShowWidget(QWidget *pWidget)

@@ -13,11 +13,13 @@ CProcessesWidget::CProcessesWidget(QWidget *parent, AbstractController *pControl
     ui->treeWProcesses->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->treeWProcesses->setSelectionBehavior(QTreeView::SelectRows);
     ui->treeWProcesses->setRootIsDecorated(false);
+    ui->treeWProcesses->setFocusPolicy(Qt::NoFocus);
 
     ui->treeWDlls->setSelectionMode(QTreeView::SingleSelection);
     ui->treeWDlls->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->treeWDlls->setSelectionBehavior(QTreeView::SelectRows);
     ui->treeWDlls->setRootIsDecorated(false);
+    ui->treeWDlls->setFocusPolicy(Qt::NoFocus);
 
     connect(m_pController, SIGNAL(OnSetProcessesInformations(QStandardItemModel*)),
             this, SLOT(OnSetProcessTreeModel(QStandardItemModel*)), Qt::QueuedConnection);

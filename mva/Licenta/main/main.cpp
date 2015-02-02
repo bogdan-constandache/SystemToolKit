@@ -4,15 +4,12 @@
 #include "../gui/view_adapter.h"
 
 
-
-
-
 int main(int argc, char *argv[])
 {
     QApplication Application(argc, argv);
     QThread ControllerThread;
-    Controller *pController  = new Controller();
     ViewAdapter *pViewAdapter = new ViewAdapter();
+    Controller *pController  = new Controller();
 
     qRegisterMetaType< DMIModuleType > ( "DMIModuleType" );
     qRegisterMetaType< std::string > ( "std::string" );

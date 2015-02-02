@@ -1,5 +1,5 @@
 QDialog#CAboutDialog {
-    background-color: rgb(65, 65, 65);
+    background-color: rgb(41, 57, 85);
 }
 
 QLabel#titleLabel {
@@ -9,7 +9,7 @@ QLabel#titleLabel {
 }
 
 QTextBrowser#aboutContentTBrowser {
-    background-color: rgb(65, 65, 65);
+    background-color: rgb(41, 57, 85);
     color: rgb( 255, 255, 255 );
     border: 0px;
 }
