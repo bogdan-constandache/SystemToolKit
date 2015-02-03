@@ -24,6 +24,8 @@ CSystemDriversWidget::CSystemDriversWidget(QWidget *parent, AbstractController *
             this, SLOT(OnDataChanged()), Qt::QueuedConnection);
     connect(ui->refreshButton, SIGNAL(clicked()),
             m_pController, SLOT(OnOperatingSystemDriversOptClickedSlot()), Qt::QueuedConnection);
+
+    ui->line->hide();
 }
 
 CSystemDriversWidget::~CSystemDriversWidget()

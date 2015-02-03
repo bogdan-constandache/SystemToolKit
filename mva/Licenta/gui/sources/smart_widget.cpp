@@ -35,6 +35,8 @@ CSmartWidget::CSmartWidget(QWidget *parent, AbstractController *pController) :
             this, SLOT(OnSmartHDDDataChangedSlot()), Qt::QueuedConnection);
     connect(m_pController, SIGNAL(OnSMARTItemPropertiesDataChanged()),
             this, SLOT(OnSmartItemDataChangedSlot()), Qt::QueuedConnection);
+
+    ui->line->hide();
 }
 
 CSmartWidget::~CSmartWidget()

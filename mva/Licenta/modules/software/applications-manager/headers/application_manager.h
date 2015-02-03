@@ -9,6 +9,7 @@
 // QT includes
 #include <QString>
 #include <QList>
+#include <QMap>
 #include <QSysInfo>
 #include <QStandardItemModel>
 
@@ -16,20 +17,22 @@
 #include "../../../../utils/headers/utils.h"
 #include "software_structures.h"
 
+#define UNINSTALL_REGISTRY_LOCATION      "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
+
 class CApplicationManager
 {
 private:
-    QList<PApplication> m_qApplicationList;
+    QMap<QString, PApplication> m_qApps;
+
+    void ClearInternalMap();
+    bool IsX64System();
+
+    void GetInstalledApplication(HKEY hKey, QString qsPath, bool bIsX64Hive);
 
 public:
     CApplicationManager();
     ~CApplicationManager();
     QStandardItemModel* GetApplicationList();
-
-private:
-    bool IsX64System();
-    int FillX64Applications();
-    int FillX86Applications();
 };
 
 #endif // APPLICATION_MANAGER_H

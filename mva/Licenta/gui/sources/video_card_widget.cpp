@@ -34,6 +34,8 @@ CVideoCardWidget::CVideoCardWidget(QWidget *pParent, AbstractController *pContro
             m_pController, SLOT(OnRequestVCardInformationSlot(int)), Qt::QueuedConnection);
     connect(ui->tvCards, SIGNAL(clicked(QModelIndex)),
             this, SLOT(OnItemsTreeClicked(QModelIndex)), Qt::QueuedConnection);
+
+    ui->line->hide();
 }
 
 CVideoCardWidget::~CVideoCardWidget()

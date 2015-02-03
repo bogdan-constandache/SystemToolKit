@@ -236,6 +236,8 @@ OTHER_FILES += \
 RESOURCES += \
         resources/resources.qrc
 
+QMAKE_POST_LINK += rcc $$PWD/resources/resources.qrc -o $$PWD/resources.rcc
+
 RC_FILE += res.rc
 
 configurationFile.path = $$PWD/../build
@@ -265,3 +267,8 @@ win8Driver.files += $$PWD/others/driver/win8/stk_driver.sys
 win8Driver.files += $$PWD/others/driver/win8/stk_driver64.sys
 
 INSTALLS += win8Driver
+
+resourceFile.path = $$PWD/../build
+resourceFile.files += $$PWD/resources.rcc
+
+INSTALLS += resourceFile

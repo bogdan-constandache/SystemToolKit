@@ -37,6 +37,8 @@ CDMIWidget::CDMIWidget(QWidget *parent, AbstractController *pController) :
             this, SLOT(OnDataChangedSlot()), Qt::QueuedConnection);
     connect(m_pController, SIGNAL(OnDMIItemsInformationDataChanged()),
             this, SLOT(OnDMIItemsDataChangedSlot()), Qt::QueuedConnection);
+
+    ui->line->hide();
 }
 
 CDMIWidget::~CDMIWidget()

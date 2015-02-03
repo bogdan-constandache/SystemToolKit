@@ -36,6 +36,8 @@ CSPDWidget::CSPDWidget(QWidget *pParent, AbstractController *pController):
             this, SLOT(OnDataChangedSlot()), Qt::QueuedConnection);
     connect(m_pController, SIGNAL(OnAvailableDIMMSInformationDataChanged()),
             this, SLOT(OnAvailableDimmsDataChangedSlot()), Qt::QueuedConnection);
+
+    ui->line->hide();
 }
 
 CSPDWidget::~CSPDWidget()

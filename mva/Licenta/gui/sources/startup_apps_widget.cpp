@@ -53,6 +53,7 @@ CStartupAppsWidget::CStartupAppsWidget(QWidget *parent, AbstractController *pCon
 
     ui->frameAddApplication->hide();
     ui->line_2->hide();
+    ui->line->hide();
 
     ui->lineEditPath->setDisabled(true);
     ui->lineEditPath->setPlaceholderText("Application path");
@@ -119,7 +120,7 @@ void CStartupAppsWidget::OnEnableApplicationButtonClickedSlot()
 
 void CStartupAppsWidget::OnAddApplicationClickedSlot()
 {
-    ui->line_2->show();
+//    ui->line_2->show();
     ui->frameAddApplication->show();
 }
 

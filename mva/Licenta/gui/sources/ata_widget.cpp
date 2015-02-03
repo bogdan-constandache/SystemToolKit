@@ -35,6 +35,8 @@ CATAWidget::CATAWidget(QWidget *parent, AbstractController *pController) :
             this, SLOT(OnATAHddDataChanged()), Qt::QueuedConnection);
     connect(m_pController, SIGNAL(OnATAItemPropertiesDataChanged()),
             this, SLOT(OnATAItemPropDataChanged()), Qt::QueuedConnection);
+
+    ui->line->hide();
 }
 
 CATAWidget::~CATAWidget()

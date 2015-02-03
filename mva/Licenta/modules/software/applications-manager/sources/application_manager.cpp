@@ -1,11 +1,25 @@
 #include "../headers/application_manager.h"
 
-CApplicationManager::CApplicationManager()
+CApplicationManager::CApplicationManager() : m_qApps()
 {
 }
 
 CApplicationManager::~CApplicationManager()
 {
+    ClearInternalMap();
+}
+
+void CApplicationManager::ClearInternalMap()
+{
+    for(auto it = m_qApps.begin(); it != m_qApps.end(); it++)
+    {
+        Application *pApp = *it;
+        if( pApp )
+        {
+            delete pApp;
+            *it = nullptr;
+        }
+    }
 }
 
 bool CApplicationManager::IsX64System()
@@ -17,356 +31,154 @@ bool CApplicationManager::IsX64System()
     return false;
 }
 
-int CApplicationManager::FillX64Applications()
+void CApplicationManager::GetInstalledApplication(HKEY hKey, QString qsPath, bool bIsX64Hive)
 {
-    HKEY hKey = 0, hItem = 0;
-    DWORD dwIndex = 0, dwKeyNameSize = 512, dwValueSize = 512, dwReturnCode = 0;
-    TCHAR tzKeyName[512] = {0}, tzValue[512] = {0};
-    Application *pApplication = 0;
+    HKEY hRegKey = 0, hItemKey = 0;
+    DWORD dwIndex = 0, dwKeyNameSize = 0, dwValueSize = 512;
+    WCHAR wsKeyName[512] = {0}, wsValue[512] = {0};
 
-    if( ERROR_SUCCESS != RegOpenKeyEx(HKEY_LOCAL_MACHINE,
-                                      L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
-                                      NULL,
-                                      KEY_READ | KEY_WOW64_64KEY,
-                                      &hKey) )
+    Application *pApp = 0;
+
+    if( ERROR_SUCCESS != RegOpenKeyEx(hKey, qsPath.toStdWString().c_str(), NULL,
+                                      KEY_READ | (bIsX64Hive ? KEY_WOW64_64KEY : KEY_WOW64_32KEY), &hRegKey) )
     {
-        DEBUG_STATUS(Unsuccessful);
-        return Unsuccessful;
+        CHECK_OPERATION_STATUS(Unsuccessful);
+        return;
     }
 
-    while( ERROR_NO_MORE_ITEMS != RegEnumKeyEx(hKey,
-                                               dwIndex,
-                                               tzKeyName,
-                                               &dwKeyNameSize,
-                                               NULL,
-                                               NULL,
-                                               NULL,
-                                               NULL) )
+    while( ERROR_NO_MORE_ITEMS != RegEnumKeyEx(hRegKey, dwIndex, wsKeyName, &dwKeyNameSize,
+                                               NULL, NULL, NULL, NULL) )
     {
-        QString qzKeyName = QString::fromWCharArray(tzKeyName);
-        if( qzKeyName.contains("KB[1-9]*") )
-        {
-            memset(tzKeyName, 0, 512);
-            dwKeyNameSize = 512;
-            dwIndex++;
-            continue;
-        }
-
-        if( ERROR_SUCCESS != RegOpenKeyEx(hKey,
-                                          tzKeyName,
-                                          NULL,
-                                          KEY_READ,
-                                          &hItem) )
-        {
-            memset(tzKeyName, 0, 512);
-            dwKeyNameSize = 512;
-            dwIndex++;
-            continue;
-        }
-
-        pApplication = new Application;
-
-        dwValueSize = 512;
-        memset(tzValue, 0, 512);
-        dwReturnCode = RegQueryValueEx(hItem,
-                                       L"DisplayName",
-                                       NULL,
-                                       NULL,
-                                       (LPBYTE)tzValue,
-                                       &dwValueSize);
-
-        if( ERROR_SUCCESS != dwReturnCode )
-        {
-            DEBUG_STATUS(Unsuccessful);
-        }
-        else
-        {
-            pApplication->Name = QString::fromWCharArray(tzValue);
-//            qDebug() << pApplication->Name;
-        }
-
-        dwValueSize = 512;
-        memset(tzValue, 0, 512);
-        dwReturnCode = RegQueryValueEx(hItem,
-                                       L"DisplayVersion",
-                                       NULL,
-                                       NULL,
-                                       (LPBYTE)tzValue,
-                                       &dwValueSize);
-
-        if( ERROR_SUCCESS != dwReturnCode )
-        {
-            DEBUG_STATUS(Unsuccessful);
-        }
-        else
-        {
-            pApplication->Version = QString::fromWCharArray(tzValue);
-//            qDebug() << pApplication->Version;
-        }
-
-        dwValueSize = 512;
-        memset(tzValue, 0, 512);
-        dwReturnCode = RegQueryValueEx(hItem,
-                                       L"Publisher",
-                                       NULL,
-                                       NULL,
-                                       (LPBYTE)tzValue,
-                                       &dwValueSize);
-        if( ERROR_SUCCESS != dwReturnCode )
-        {
-            DEBUG_STATUS(Unsuccessful);
-        }
-        else
-        {
-            pApplication->Publisher = QString::fromWCharArray(tzValue);
-//            qDebug() << pApplication->Publisher;
-        }
-
-        dwValueSize = 512;
-        memset(tzValue, 0, 512);
-        dwReturnCode = RegQueryValueEx(hItem,
-                                       L"InstallDate",
-                                       NULL,
-                                       NULL,
-                                       (LPBYTE)tzValue,
-                                       &dwValueSize);
-        if( ERROR_SUCCESS != dwReturnCode )
-        {
-            DEBUG_STATUS(Unsuccessful);
-        }
-        else
-        {
-            pApplication->InstallDate = QString::fromWCharArray(tzValue);
-            pApplication->InstallDate.insert(4,"/");
-            pApplication->InstallDate.insert(7,"/");
-//            qDebug() << pApplication->InstallDate;
-        }
-
-        dwValueSize = 512;
-        memset(tzValue, 0, 512);
-        dwReturnCode = RegQueryValueEx(hItem,
-                                       L"UninstallString",
-                                       NULL,
-                                       NULL,
-                                       (LPBYTE)tzValue,
-                                       &dwValueSize);
-        if( ERROR_SUCCESS != dwReturnCode )
-        {
-            DEBUG_STATUS(Unsuccessful);
-        }
-        else
-        {
-            pApplication->UninstallString = QString::fromWCharArray(tzValue);
-        }
-
-        if( !pApplication->Name.isEmpty() )
-            m_qApplicationList.append(pApplication);
-        else
-            delete pApplication;
-
-        memset(tzKeyName, 0, 512);
-        dwKeyNameSize = 512;
-        dwIndex++;
-        RegCloseKey(hItem);
-    }
-    RegCloseKey(hKey);
-    return Success;
-}
-
-int CApplicationManager::FillX86Applications()
-{
-    HKEY hKey = 0, hItem = 0;
-    DWORD dwIndex = 0, dwKeyNameSize = 512, dwValueSize = 512, dwReturnCode = 0;
-    TCHAR tzKeyName[512] = {0}, tzValue[512] = {0};
-    Application *pApplication = 0;
-
-    if( ERROR_SUCCESS != RegOpenKeyEx(HKEY_LOCAL_MACHINE,
-                                      L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
-                                      NULL,
-                                      KEY_READ | KEY_WOW64_32KEY,
-                                      &hKey) )
-    {
-        DEBUG_STATUS(Unsuccessful);
-        return Unsuccessful;
-    }
-
-    while( ERROR_NO_MORE_ITEMS != RegEnumKeyEx(hKey,
-                                               dwIndex,
-                                               tzKeyName,
-                                               &dwKeyNameSize,
-                                               NULL,
-                                               NULL,
-                                               NULL,
-                                               NULL) )
-    {
-        QString qzKeyName = QString::fromWCharArray(tzKeyName);
+        QString qzKeyName = QString::fromWCharArray(wsKeyName);
         if( qzKeyName.contains("}.KB") )
         {
-            memset(tzKeyName, 0, 512);
-            dwKeyNameSize = 512;
-            dwIndex++;
-            continue;
-        }
-        if( ERROR_SUCCESS != RegOpenKeyEx(hKey,
-                                          tzKeyName,
-                                          NULL,
-                                          KEY_READ,
-                                          &hItem) )
-        {
-            memset(tzKeyName, 0, 512);
+            memset(wsKeyName, 0, sizeof(wsKeyName));
             dwKeyNameSize = 512;
             dwIndex++;
             continue;
         }
 
-        pApplication = new Application;
+        if( ERROR_SUCCESS != RegOpenKeyEx(hRegKey, wsKeyName,
+                                          NULL, KEY_READ, &hItemKey) )
+        {
+            memset(wsKeyName, 0, sizeof(wsKeyName));
+            dwKeyNameSize = 512;
+            dwIndex++;
+            continue;
+        }
+
+        pApp = new Application();
 
         dwValueSize = 512;
-        memset(tzValue, 0, 512);
-        dwReturnCode = RegQueryValueEx(hItem,
-                                       L"DisplayName",
-                                       NULL,
-                                       NULL,
-                                       (LPBYTE)tzValue,
-                                       &dwValueSize);
-
-        if( ERROR_SUCCESS != dwReturnCode )
+        memset(wsValue, 0, sizeof(wsValue));
+        if( ERROR_SUCCESS == RegQueryValueEx(hItemKey, L"DisplayName", NULL, NULL,
+                                            (LPBYTE)wsValue, &dwValueSize) )
         {
-            DEBUG_STATUS(Unsuccessful);
-        }
-        else
-        {
-            pApplication->Name = QString::fromWCharArray(tzValue);
-//            qDebug() << pApplication->Name;
+            pApp->Name = QString::fromWCharArray(wsValue);
         }
 
         dwValueSize = 512;
-        memset(tzValue, 0, 512);
-        dwReturnCode = RegQueryValueEx(hItem,
-                                       L"DisplayVersion",
-                                       NULL,
-                                       NULL,
-                                       (LPBYTE)tzValue,
-                                       &dwValueSize);
-
-        if( ERROR_SUCCESS != dwReturnCode )
+        memset(wsValue, 0, sizeof(wsValue));
+        if( ERROR_SUCCESS == RegQueryValueEx(hItemKey, L"DisplayVersion", NULL, NULL,
+                                            (LPBYTE)wsValue, &dwValueSize) )
         {
-            DEBUG_STATUS(Unsuccessful);
-        }
-        else
-        {
-            pApplication->Version = QString::fromWCharArray(tzValue);
-//            qDebug() << pApplication->Version;
+            pApp->Version = QString::fromWCharArray(wsValue);
         }
 
         dwValueSize = 512;
-        memset(tzValue, 0, 512);
-        dwReturnCode = RegQueryValueEx(hItem,
-                                       L"Publisher",
-                                       NULL,
-                                       NULL,
-                                       (LPBYTE)tzValue,
-                                       &dwValueSize);
-        if( ERROR_SUCCESS != dwReturnCode )
+        memset(wsValue, 0, sizeof(wsValue));
+        if( ERROR_SUCCESS == RegQueryValueEx(hItemKey, L"Publisher", NULL, NULL,
+                                            (LPBYTE)wsValue, &dwValueSize) )
         {
-            DEBUG_STATUS(Unsuccessful);
-        }
-        else
-        {
-            pApplication->Publisher = QString::fromWCharArray(tzValue);
-//            qDebug() << pApplication->Publisher;
+            pApp->Publisher = QString::fromWCharArray(wsValue);
         }
 
         dwValueSize = 512;
-        memset(tzValue, 0, 512);
-        dwReturnCode = RegQueryValueEx(hItem,
-                                       L"InstallDate",
-                                       NULL,
-                                       NULL,
-                                       (LPBYTE)tzValue,
-                                       &dwValueSize);
-        if( ERROR_SUCCESS != dwReturnCode )
+        memset(wsValue, 0, sizeof(wsValue));
+        if( ERROR_SUCCESS == RegQueryValueEx(hItemKey, L"InstallDate", NULL, NULL,
+                                            (LPBYTE)wsValue, &dwValueSize) )
         {
-            DEBUG_STATUS(Unsuccessful);
-        }
-        else
-        {
-            pApplication->InstallDate = QString::fromWCharArray(tzValue);
-            pApplication->InstallDate.insert(4,"/");
-            pApplication->InstallDate.insert(7,"/");
+            pApp->InstallDate = QString::fromWCharArray(wsValue);
+            pApp->InstallDate.insert(4,"/");
+            pApp->InstallDate.insert(7,"/");
         }
 
         dwValueSize = 512;
-        memset(tzValue, 0, 512);
-        dwReturnCode = RegQueryValueEx(hItem,
-                                       L"UninstallString",
-                                       NULL,
-                                       NULL,
-                                       (LPBYTE)tzValue,
-                                       &dwValueSize);
-        if( ERROR_SUCCESS != dwReturnCode )
+        memset(wsValue, 0, sizeof(wsValue));
+        if( ERROR_SUCCESS == RegQueryValueEx(hItemKey, L"UninstallString", NULL, NULL,
+                                            (LPBYTE)wsValue, &dwValueSize) )
         {
-            DEBUG_STATUS(Unsuccessful);
+            pApp->UninstallString = QString::fromWCharArray(wsValue);
+        }
+
+        if( !pApp->Name.isEmpty() && !pApp->UninstallString.isEmpty() )
+        {
+            m_qApps.insert(pApp->Name, pApp);
         }
         else
         {
-            pApplication->UninstallString = QString::fromWCharArray(tzValue);
+            delete pApp;
         }
 
-        if( !pApplication->Name.isEmpty() )
-            m_qApplicationList.append(pApplication);
-        else
-            delete pApplication;
-
-        memset(tzKeyName, 0, 512);
+        memset(wsKeyName, 0, sizeof(wsKeyName));
         dwKeyNameSize = 512;
         dwIndex++;
-        RegCloseKey(hItem);
+        RegCloseKey(hItemKey);
     }
-    RegCloseKey(hKey);
-    return Success;
+    RegCloseKey(hRegKey);
 }
 
 QStandardItemModel* CApplicationManager::GetApplicationList()
 {
-    m_qApplicationList.clear();
+    ClearInternalMap();
 
-    bool bArchitecture = IsX64System();
-    if( bArchitecture )
+    if( IsX64System() )
     {
-        FillX64Applications();
-        FillX86Applications();
+        GetInstalledApplication(HKEY_CURRENT_USER, UNINSTALL_REGISTRY_LOCATION, false);
+        GetInstalledApplication(HKEY_CURRENT_USER, UNINSTALL_REGISTRY_LOCATION, true);
+
+        GetInstalledApplication(HKEY_LOCAL_MACHINE, UNINSTALL_REGISTRY_LOCATION, false);
+        GetInstalledApplication(HKEY_LOCAL_MACHINE, UNINSTALL_REGISTRY_LOCATION, true);
     }
     else
     {
-        FillX86Applications();
+        GetInstalledApplication(HKEY_CURRENT_USER, UNINSTALL_REGISTRY_LOCATION, false);
+
+        GetInstalledApplication(HKEY_LOCAL_MACHINE, UNINSTALL_REGISTRY_LOCATION, false);
     }
 
     QStandardItemModel *pModel = new QStandardItemModel();
 
     QStandardItem *pItem = NULL;
 
-    pModel->setColumnCount(4);
-    pModel->setRowCount(m_qApplicationList.count());
+    QList<QStandardItem*> qRow;
+
     pModel->setHorizontalHeaderLabels(QStringList() << "Application name" << "Publisher" << "Install date" << "Version");
 
-    for (int i = 0; i < this->m_qApplicationList.count();i++)
+
+    for( auto it = m_qApps.begin(); it != m_qApps.end(); it++ )
     {
-        pItem = new QStandardItem(this->m_qApplicationList.at(i)->Name);
-        pItem->setData(this->m_qApplicationList.at(i)->UninstallString);
-        pModel->setItem(i, 0, pItem);
+        Application *pApp = *it;
 
-        pItem = new QStandardItem(this->m_qApplicationList.at(i)->Publisher);
-        pItem->setData(this->m_qApplicationList.at(i)->UninstallString);
-        pModel->setItem(i, 1, pItem);
+        pItem = new QStandardItem(pApp->Name);
+        pItem->setData(pApp->UninstallString);
+        qRow << pItem;
 
-        pItem = new QStandardItem(this->m_qApplicationList.at(i)->InstallDate);
-        pItem->setData(this->m_qApplicationList.at(i)->UninstallString);
-        pModel->setItem(i, 2, pItem);
+        pItem = new QStandardItem(pApp->Publisher);
+        pItem->setData(pApp->UninstallString);
+        qRow << pItem;
 
-        pItem = new QStandardItem(this->m_qApplicationList.at(i)->Version);
-        pItem->setData(this->m_qApplicationList.at(i)->UninstallString);
-        pModel->setItem(i, 3, pItem);
+        pItem = new QStandardItem(pApp->InstallDate);
+        pItem->setData(pApp->UninstallString);
+        qRow << pItem;
+
+        pItem = new QStandardItem(pApp->Version);
+        pItem->setData(pApp->UninstallString);
+        qRow << pItem;
+
+        pModel->appendRow(qRow);
+
+        qRow.clear();
     }
 
     return pModel;

@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QThread>
+#include <QResource>
 #include "../controller/controller.h"
 #include "../gui/view_adapter.h"
 
@@ -7,6 +8,9 @@
 int main(int argc, char *argv[])
 {
     QApplication Application(argc, argv);
+
+    QResource::registerResource(QApplication::applicationDirPath() + "/" + "resouces.rcc");
+
     QThread ControllerThread;
     ViewAdapter *pViewAdapter = new ViewAdapter();
     Controller *pController  = new Controller();

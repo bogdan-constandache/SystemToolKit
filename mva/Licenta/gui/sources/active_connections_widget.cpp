@@ -25,6 +25,8 @@ CActiveConnectionsWidget::CActiveConnectionsWidget(QWidget *parent,  AbstractCon
             this, SLOT(OnActiveConnectionDataChangedSlot()), Qt::QueuedConnection);
     connect(ui->refreshButton, SIGNAL(clicked()),
             m_pController, SLOT(OnNetworkConnectionsOptClickedSlot()), Qt::QueuedConnection);
+
+    ui->line->hide();
 }
 
 CActiveConnectionsWidget::~CActiveConnectionsWidget()

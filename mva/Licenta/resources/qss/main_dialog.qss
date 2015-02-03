@@ -8,7 +8,7 @@ QLabel#labelText {
     color: rgb( 255, 255, 255 );
 }
 
-#lineLogo {
+#lineLogo, #line, #line_2 {
     border: 0px;
     border-bottom: 1px;
 
@@ -20,21 +20,34 @@ QLabel#labelAppName,
 QLabel#labelAppPath{
     font-family: Segoe Ui;
     font-size: 14px;
-    color: rgb( 255, 255, 255 );
+    color: rgb( 27, 41, 62 );
 }
 
 QPushButton {
     background-color: transparent;
     font-family: Segoe Ui;
-    color: rgb( 255, 255, 255 );
-    font-size: 16px;
-    text-decoration: underline;
-    text-align: left;
+    color: rgb( 0, 122, 204 );
+    font-size: 14px;
+    text-align: center;
+    text-transform: uppercase;
+    max-height: 25px;
+}
+
+QPushButton:hover {
+    color: rgb( 119, 170, 255 );
 }
 
 QPushButton#btnAbout {
     text-align: right;
 }
+
+QFrame#frameButtons,
+QFrame#frameAddApplication {
+    background-color: rgb( 255, 255, 255 );
+
+    border: 1px solid rgb( 142, 155, 188 );
+}
+
 
 QTreeView::branch:has-children:!has-siblings:closed,
 QTreeView::branch:closed:has-children:has-siblings {
@@ -49,7 +62,8 @@ QTreeView {
     border-style: solid;
     border-color: rgb( 142, 155, 188 );
 
-    color: rgb( 0, 0, 0 );
+    /*color: rgb( 0, 0, 0 );*/
+    color: rgb( 27, 41, 62 );
     font-family: Segoe Ui;
 }
 

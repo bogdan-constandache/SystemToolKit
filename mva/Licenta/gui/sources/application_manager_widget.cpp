@@ -28,6 +28,8 @@ CApplicationManagerWidget::CApplicationManagerWidget(QWidget *parent, AbstractCo
             this, SLOT(OnUninstallApplicationSlot()), Qt::QueuedConnection);
     connect(this, SIGNAL(OnUninstallApplicationSignal(QString)),
             m_pController, SLOT(OnUninstallApplicationSlot(QString)), Qt::QueuedConnection);
+
+    ui->line->hide();
 }
 
 CApplicationManagerWidget::~CApplicationManagerWidget()
